@@ -2,7 +2,7 @@
 // fixed 120 Hz step, and sends the aircraft state back to the page about 60 times a second.
 import { JSBSimSdk } from "@0x62/jsbsim-wasm";
 import { MODEL_FILES, SimCore, STEP_HZ } from "./core.ts";
-import type { Controls, FromWorker, ToWorker } from "./types.ts";
+import type { Controls, FromWorker, StartPosition, ToWorker } from "./types.ts";
 
 const MAX_STEPS_PER_TICK = 12; // never try to catch up more than 0.1 s at once
 
@@ -16,6 +16,7 @@ let simAtLastReport = 0;
 let wallAtLastReport = 0;
 let simRate = 1;
 let stepDebt = 0;
+let lastStart: StartPosition | null = null;
 
 const post = (msg: FromWorker) => (self as unknown as Worker).postMessage(msg);
 
@@ -47,6 +48,13 @@ function tick() {
     const steps = Math.min(MAX_STEPS_PER_TICK, Math.floor(stepDebt));
     stepDebt = Math.min(stepDebt - steps, 2);
     for (let i = 0; i < steps; i++) core.step(controls);
+    if (!core.healthy() && lastStart) {
+      // The flight model broke down. Start again rather than send broken numbers to the page.
+      controls = null;
+      const { throttle } = core.place(lastStart);
+      post({ type: "ready", throttle, start: lastStart });
+      post({ type: "notice", message: "The flight model hit a problem and was restarted at the start position." });
+    }
   }
   if (now - wallAtLastReport > 1000) {
     const t = core.get("simulation/sim-time-sec");
@@ -64,6 +72,7 @@ self.onmessage = async (ev: MessageEvent<ToWorker>) => {
       case "init": {
         await init(msg.baseUrl);
         displayOffsetM = msg.displayOffsetM;
+        lastStart = msg.start;
         const { throttle } = core!.place(msg.start);
         post({ type: "ready", throttle, start: msg.start });
         lastTick = wallAtLastReport = performance.now();
@@ -83,6 +92,7 @@ self.onmessage = async (ev: MessageEvent<ToWorker>) => {
         if (!core) break;
         displayOffsetM = msg.displayOffsetM;
         controls = null; // wait for the page to send controls that match the new start
+        lastStart = msg.start;
         const { throttle } = core.place(msg.start);
         post({ type: "ready", throttle, start: msg.start });
         break;

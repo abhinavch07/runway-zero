@@ -45,9 +45,22 @@ const viewer = new Cesium.Viewer("globe", {
   baseLayer: hasToken
     ? Cesium.ImageryLayer.fromWorldImagery({})
     : new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({ url: "https://tile.openstreetmap.org/" })),
-  terrain: hasToken ? Cesium.Terrain.fromWorldTerrain() : undefined,
 });
 const scene = viewer.scene;
+
+// Real terrain loads in the background. Until it is ready the globe is flat, so nothing that
+// measures the ground (the height offset, the terrain under the aircraft) may run before it.
+let terrainLoaded = false;
+const terrainReady: Promise<void> = hasToken
+  ? Cesium.createWorldTerrainAsync()
+      .then((provider) => {
+        scene.terrainProvider = provider;
+        terrainLoaded = true;
+      })
+      .catch(() => {
+        $("mode").textContent = "Real terrain failed to load: flat ground";
+      })
+  : Promise.resolve();
 scene.screenSpaceCameraController.enableInputs = false; // the aircraft drives the camera
 scene.globe.depthTestAgainstTerrain = true;
 scene.fog.enabled = true;
@@ -111,13 +124,18 @@ startSelect.addEventListener("change", () => {
 // ellipsoid. Near Delhi the two differ by tens of metres, so we measure the difference at the runway
 // 28 threshold once and use it for the whole area.
 let displayOffsetM = -ILS_28.threshold.elevationFt * FT_TO_M; // no token: flat ground at height 0
+let offsetMeasured = false;
 async function measureOffset() {
-  if (!hasToken) return;
+  await terrainReady;
+  if (!terrainLoaded) return;
   try {
     const [c] = await Cesium.sampleTerrainMostDetailed(scene.terrainProvider, [
       Cesium.Cartographic.fromDegrees(ILS_28.threshold.lonDeg, ILS_28.threshold.latDeg),
     ]);
-    if (c && Number.isFinite(c.height)) displayOffsetM = c.height - ILS_28.threshold.elevationFt * FT_TO_M;
+    if (c && Number.isFinite(c.height)) {
+      displayOffsetM = c.height - ILS_28.threshold.elevationFt * FT_TO_M;
+      offsetMeasured = true;
+    }
   } catch {
     /* keep the default */
   }
@@ -125,12 +143,14 @@ async function measureOffset() {
 
 // Stand-in aircraft for the outside view: a fuselage and a wing, A320-sized.
 let latest: SimState | null = null;
+const finiteState = (s: SimState | null): s is SimState =>
+  !!s && Number.isFinite(s.latDeg) && Number.isFinite(s.lonDeg) && Number.isFinite(s.heightM);
 const aircraftPos = new Cesium.CallbackPositionProperty(
-  () => (latest ? Cesium.Cartesian3.fromDegrees(latest.lonDeg, latest.latDeg, latest.heightM) : undefined),
+  () => (finiteState(latest) ? Cesium.Cartesian3.fromDegrees(latest.lonDeg, latest.latDeg, latest.heightM) : undefined),
   false,
 );
 const aircraftOrient = new Cesium.CallbackProperty(() => {
-  if (!latest) return undefined;
+  if (!finiteState(latest)) return undefined;
   const pos = Cesium.Cartesian3.fromDegrees(latest.lonDeg, latest.latDeg, latest.heightM);
   const hpr = new Cesium.HeadingPitchRoll(rad(latest.headingDeg - 90), rad(latest.pitchDeg), rad(latest.rollDeg));
   return Cesium.Transforms.headingPitchRollQuaternion(pos, hpr);
@@ -196,7 +216,10 @@ worker.onmessage = (ev: MessageEvent<FromWorker>) => {
       $("loading").classList.add("hidden");
       break;
     case "state":
-      latest = msg.state;
+      if (finiteState(msg.state)) latest = msg.state;
+      break;
+    case "notice":
+      showNotice(msg.message);
       break;
     case "error":
       showError(msg.message);
@@ -211,6 +234,15 @@ measureOffset().then(() =>
   send({ type: "init", baseUrl: new URL(".", document.baseURI).href, start: currentStart, displayOffsetM }),
 );
 
+let noticeTimer = 0;
+function showNotice(text: string) {
+  const el = $("notice-msg");
+  el.textContent = text;
+  el.classList.remove("hidden");
+  clearTimeout(noticeTimer);
+  noticeTimer = window.setTimeout(() => el.classList.add("hidden"), 6000);
+}
+
 function showError(text: string) {
   const el = $("error");
   el.textContent = `Problem: ${text}`;
@@ -220,7 +252,7 @@ function showError(text: string) {
 // ---------- Terrain height under the aircraft ----------
 let sampling = false;
 setInterval(async () => {
-  if (!hasToken || !latest || sampling) return;
+  if (!terrainLoaded || !offsetMeasured || !latest || sampling) return;
   sampling = true;
   try {
     const [c] = await Cesium.sampleTerrainMostDetailed(scene.terrainProvider, [

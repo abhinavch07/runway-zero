@@ -95,4 +95,5 @@ export type FromWorker =
   | { type: "ready"; throttle: number; start: StartPosition }
   | { type: "state"; state: SimState }
   | { type: "error"; message: string }
+  | { type: "notice"; message: string }
   | { type: "log"; message: string };

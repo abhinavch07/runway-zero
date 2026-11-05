@@ -18,6 +18,7 @@ export const MODEL_FILES = ["aircraft/A320/A320.xml", "engine/CFM56_5.xml", "eng
 export class SimCore {
   readonly fcc: FlightControlComputer;
   private terrainFt = 0;
+  private terrainTargetFt = 0;
   private wasAirborne = false;
   private airborneFor = 0;
   private lastVsFpm = 0;
@@ -39,13 +40,32 @@ export class SimCore {
     this.sdk.setPropertyValue(p, v);
   }
 
+  /**
+   * New ground height under the aircraft from the globe. Ignored if it is not a number, or if it
+   * jumps by more than 50 ft while the aircraft is on its wheels (that means bad data, not a hill).
+   * Otherwise the flight model's ground moves towards it gradually, at most 100 ft per second.
+   */
   setTerrain(ft: number) {
-    this.terrainFt = ft;
+    if (!Number.isFinite(ft)) return;
+    const onWheels = this.get("gear/wow") > 0;
+    if (onWheels && Math.abs(ft - this.terrainFt) > 50) return;
+    this.terrainTargetFt = ft;
+  }
+
+  /** True when the flight model's numbers are all valid. False means it has broken down. */
+  healthy(): boolean {
+    return [
+      this.get("position/lat-geod-deg"),
+      this.get("position/long-gc-deg"),
+      this.get("position/h-sl-ft"),
+      this.get("velocities/vt-fps"),
+    ].every(Number.isFinite);
   }
 
   /** Places the aircraft at a start position. Returns the thrust lever and trim values to start with. */
   place(start: StartPosition): { throttle: number } {
     this.terrainFt = start.terrainFt;
+    this.terrainTargetFt = start.terrainFt;
     this.set("propulsion/tank[0]/contents-lbs", start.fuelLbs / 2);
     this.set("propulsion/tank[1]/contents-lbs", start.fuelLbs / 2);
     this.set("ic/lat-geod-deg", start.latDeg);
@@ -106,6 +126,8 @@ export class SimCore {
     this.set("fcs/speedbrake-cmd-norm", c.speedbrake);
     this.set("fcs/left-brake-cmd-norm", c.brakes);
     this.set("fcs/right-brake-cmd-norm", c.brakes);
+    const maxStep = 100 / STEP_HZ;
+    this.terrainFt += Math.max(-maxStep, Math.min(maxStep, this.terrainTargetFt - this.terrainFt));
     this.set("position/terrain-elevation-asl-ft", this.terrainFt);
     this.fcc.step(1 / STEP_HZ, input);
     this.sdk.run();

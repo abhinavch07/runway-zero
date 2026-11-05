@@ -202,3 +202,10 @@ kbd {
 .panel {
   z-index: 2;
 }
+#notice-msg {
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  border-color: #b8860b;
+  color: #ffd27a;
+}
