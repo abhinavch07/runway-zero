@@ -41,7 +41,9 @@ Known gaps:
 
 ## Try it online
 
-https://abhinavch07.github.io/runway-zero/ (published from `main` by GitHub Actions, see `.github/workflows/pages.yml`).
+https://abhinavch07.github.io/runway-zero/
+
+The site is the built `dist/` folder on the `gh-pages` branch. To publish the latest `main`, run `npm run publish:pages`. GitHub Pages is set to Deploy from a branch: `gh-pages`, `/ (root)`.
 
 After each lesson there is a 5-question quiz, with the answer and the reason after each question. 4 out of 5 passes. The lesson list shows a green tick when a lesson is finished and its quiz is passed, and a half tick when the lesson is finished but the quiz is not passed yet. Progress is saved in the browser only.
 
