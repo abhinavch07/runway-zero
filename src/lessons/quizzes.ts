@@ -241,4 +241,158 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "With everything else off, ground power and then the batteries go off last. The aircraft is now cold and dark.",
     },
   ],
+
+  "c172-start": [
+    {
+      q: "Why are the avionics OFF during engine start?",
+      options: [
+        "The starter pulls a lot of current and the voltage dips, which can harm the avionics",
+        "The avionics need the propeller turning to work",
+        "To save fuel",
+        "The PFD only works with the avionics off",
+      ],
+      why: "Avionics go off before start and on after start, once the alternator gives a steady voltage.",
+    },
+    {
+      q: "How do you prime this fuel-injected engine for a cold start?",
+      options: [
+        "Run the electric fuel pump for 3 to 5 seconds with the mixture rich",
+        "Pump the throttle several times",
+        "Pull the primer knob",
+        "Turn on carb heat",
+      ],
+      why: "The fuel-injected engine has no primer knob and no carb heat. The electric fuel pump primes it. Too long floods it.",
+    },
+    {
+      q: "What do the two halves of the MASTER switch do?",
+      options: [
+        "BAT connects the battery, ALT connects the alternator",
+        "One is for the PFD and one for the MFD",
+        "One is for the engine and one for the lights",
+        "They are two spare switches for the same thing",
+      ],
+      why: "BAT puts the battery on the main bus. ALT lets the alternator charge once the engine runs.",
+    },
+    {
+      q: "The engine has started. What must you check within 30 seconds?",
+      options: ["Oil pressure rises", "Fuel tanks are full", "The flaps are up", "The heading bug is set"],
+      why: "No oil pressure means the engine is not being lubricated. Stop it at once with the mixture.",
+    },
+    {
+      q: "After start, the bus shows 28 V and the battery current is positive. What does it mean?",
+      options: [
+        "The alternator is working and charging the battery",
+        "The battery is going flat",
+        "The avionics have failed",
+        "The engine is about to stop",
+      ],
+      why: "About 24 V means battery only. About 28 V with a positive charge means the alternator is online.",
+    },
+  ],
+  "c172-pfd": [
+    {
+      q: "On the PFD, where is the airspeed shown?",
+      options: ["The tape on the left", "The tape on the right", "The rose at the bottom", "The top bar"],
+      why: "Airspeed on the left, altitude on the right, attitude in the middle, heading at the bottom.",
+    },
+    {
+      q: "What does the red line at the top of the airspeed tape mean?",
+      options: ["Never exceed speed (163 kt)", "Stall speed", "Best climb speed", "Flap limit speed"],
+      why: "Red is a limit: never fly faster than that. The yellow band below it is for smooth air only.",
+    },
+    {
+      q: "You set the baro to today's QNH at Delhi. What should the altitude show on the ground?",
+      options: [
+        "The airfield elevation, about 780 ft",
+        "Zero",
+        "The cruise altitude",
+        "1008 ft",
+      ],
+      why: "With the right QNH the altimeter reads height above sea level, which on the ground is the airfield elevation.",
+    },
+    {
+      q: "What is the cyan heading bug on the HSI for?",
+      options: [
+        "It marks the heading you want to fly",
+        "It shows the wind",
+        "It points to the nearest airport",
+        "It shows the aircraft's current heading",
+      ],
+      why: "The current heading is in the box at the top of the rose. The bug is the heading you select.",
+    },
+    {
+      q: "On the MFD engine strip, what rises with the RPM when you open the throttle?",
+      options: ["Fuel flow", "Fuel quantity", "Bus voltage", "Outside air temperature"],
+      why: "More power needs more fuel, so fuel flow (gallons per hour) goes up with the RPM.",
+    },
+  ],
+  "c172-runup": [
+    {
+      q: "At what RPM is the magneto check done in this lesson?",
+      options: ["1800 RPM", "1000 RPM", "2700 RPM", "At idle"],
+      why: "The run-up is done at 1800 RPM with the parking brake set.",
+    },
+    {
+      q: "During the magneto check, what is the most RPM drop allowed on one magneto?",
+      options: ["150 RPM", "500 RPM", "No drop at all", "1000 RPM"],
+      why: "A small drop is normal. More than 150 RPM, or more than 50 RPM difference between L and R, needs attention.",
+    },
+    {
+      q: "Why is there no carb heat check in this aircraft?",
+      options: [
+        "The engine is fuel injected, so it has no carburettor",
+        "Carb heat is only checked in flight",
+        "It is checked at 2700 RPM",
+        "The fuel pump does it automatically",
+      ],
+      why: "Carb heat is for carburettor engines. This fuel-injected engine has no carburettor to ice up.",
+    },
+    {
+      q: "Where must the trim be before take-off?",
+      options: ["At the TAKEOFF mark", "Fully nose up", "Fully nose down", "Anywhere, it does not matter"],
+      why: "A wrong trim setting can make the aircraft pitch up or down hard after take-off.",
+    },
+    {
+      q: "Why pull the throttle to idle near the end of the run-up?",
+      options: [
+        "To check the engine keeps running smoothly at low power",
+        "To cool the oil",
+        "To charge the battery",
+        "To test the brakes",
+      ],
+      why: "An engine that stops at idle could stop on the landing approach. Check it now on the ground.",
+    },
+  ],
+  "c172-shutdown": [
+    {
+      q: "How do you normally stop the engine?",
+      options: ["MIXTURE to IDLE CUT-OFF", "MAGNETOS to OFF", "MASTER to OFF", "FUEL SELECTOR to OFF"],
+      why: "Cutting off the fuel stops the engine cleanly. The magnetos go off after it has stopped.",
+    },
+    {
+      q: "Why turn the magnetos OFF and take the key out?",
+      options: [
+        "A magneto left on can start the engine if someone turns the propeller",
+        "To save battery power",
+        "To stop the clock",
+        "To lock the doors",
+      ],
+      why: "Magnetos make their own spark without the battery. A live magneto makes the propeller dangerous.",
+    },
+    {
+      q: "When do the avionics go off?",
+      options: ["Before the engine is stopped", "After the master switch", "Never", "During the magneto check"],
+      why: "Like at start, avionics are off while the engine stops or starts.",
+    },
+    {
+      q: "Where does the fuel selector go when the aircraft is parked?",
+      options: ["LEFT or RIGHT", "BOTH", "It has no off position, so anywhere", "Halfway"],
+      why: "On BOTH, fuel can flow from one tank to the other when the aircraft is not level.",
+    },
+    {
+      q: "What is the last thing to switch off?",
+      options: ["The master switch (after the standby battery)", "The beacon", "The mixture", "The avionics"],
+      why: "Electrical power goes off last: standby battery, then both halves of the master switch.",
+    },
+  ],
 };

@@ -39,6 +39,17 @@ Known gaps:
 - No real SIDs, STARs, approaches or airways in the MCDU.
 - Headings are true, not magnetic (about 1° difference at Delhi).
 
+## Cessna 172
+
+A second aircraft: a C172-type light aircraft with a glass cockpit (its own page, `c172.html`). Pick it from the aircraft tabs in the lesson list.
+
+1. **Before start and engine start**: fuel shutoff and selector, master (BAT and ALT), standby battery, beacon, mixture and throttle, priming with the electric fuel pump, the magneto key, oil pressure, 1000 RPM, avionics.
+2. **PFD and MFD basics**: the PFD tapes, colours and HSI, baro and heading bug, the MFD engine strip, fuel and electrics.
+3. **Run-up before take-off**: brakes, mixture, flight controls, fuel, trim, 1800 RPM, magneto check, engine and electrics, idle check, flaps.
+4. **Shutdown and secure**: avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector to one tank.
+
+The flight model is JSBSim's public Cessna 172 (`c172p`) with its IO-320 engine. Our own code adds the electrics (24 V battery, 28 V alternator, essential and avionics buses, standby battery), the fuel selector and shutoff, priming with the fuel pump, and the spring-loaded START position of the key. The engine is fuel injected, so there is no carb heat and no primer knob. The glass PFD and MFD are our own drawings in the general style of light-aircraft glass cockpits, not copies of any manufacturer's display.
+
 ## Try it online
 
 https://abhinavch07.github.io/runway-zero/
@@ -65,6 +76,7 @@ npm run build         # production build in dist/
 npm run preview       # serve the production build
 npm run typecheck     # TypeScript check
 npm run test:fdm      # run the flight model for 60 s in Node
+npm run test:c172     # C172 start-up, run-up and shutdown in Node
 npm run test:flights  # scripted test flights: cold start and taxi, ground, normal law, takeoff, ILS and landing
 ```
 
@@ -86,7 +98,10 @@ Click switches and buttons with the mouse. MCDU: click it once, then you can typ
 src/
   main.ts               page, panels, lesson picker, display loop
   config.ts             start positions for the lessons
-  lessons/lessons.ts    the lessons and their steps
+  lessons/lessons.ts    the A320 lessons and their steps
+  lessons/catalog.ts    every aircraft and its lessons, for the lesson picker
+  shell/picker.ts       lesson picker with aircraft tabs, shared by both pages
+  c172/                 the Cessna 172: page, worker, systems, PFD, MFD, lower panel, lessons
   lessons/quizzes.ts    five quiz questions for each lesson
   lessons/progress.ts   lesson ticks and best quiz scores, saved in the browser
   sim/fdm.worker.ts     runs the simulation in a Web Worker at 120 Hz
@@ -128,4 +143,5 @@ Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps
 
 - Runway Zero code: GPL v3 or later (see `LICENSE`).
 - JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold. Our copy is modified: fuel tank position moved from 600 to 650 in, CmDe changed from -1.5 to -2.0 so the model can be trimmed at normal approach speeds, and nose gear steering widened from 5° to 70° for taxiing. The changes are noted at the top of `A320.xml`.
+- JSBSim Cessna 172 (`aircraft/c172p`, `engine/eng_io320.xml`, `engine/prop_75in2f.xml`): LGPL 2.1, unmodified. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.

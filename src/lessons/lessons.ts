@@ -9,27 +9,13 @@ import type { Switches } from "../sim/systems";
 import type { Controls, SimState } from "../sim/types";
 import type { FmsData } from "../cockpit/mcdu";
 import type { EfisState } from "../cockpit/efis";
+import type { LessonBase, StepBase } from "./types";
 
 export type PanelName = "ovhd" | "main" | "ped";
 
-export interface LessonStep {
-  title: string;
-  why: string;
-  /** Controls to highlight (their data-ctl values). */
-  targets: string[];
-  /** Where the step's switches should end up. Switches already there stop pulsing. */
-  want?: boolean;
-  /** Panel to show for this step. */
-  panel: PanelName;
-  /** Ticks the step off when true. Steps without it are manual: the learner presses Next. */
-  done?: (s: SimState, c: Controls, f: FmsData) => boolean;
-}
+export type LessonStep = StepBase<SimState, Controls, FmsData, PanelName>;
 
-export interface Lesson {
-  id: string;
-  title: string;
-  summary: string;
-  minutes: number;
+export interface Lesson extends LessonBase<SimState, Controls, FmsData, PanelName> {
   /** Start position id from config.ts. */
   startId: string;
   /** Changes to the starting switch positions. */
@@ -42,8 +28,6 @@ export interface Lesson {
   efis?: Partial<EfisState>;
   /** Today's QNH in hPa. The altimeter shows true altitude when the baro is set to it. */
   qnh?: number;
-  steps: LessonStep[];
-  finished: string;
 }
 
 const allPumps = (c: Controls) => c.switches.fuelL1 && c.switches.fuelL2 && c.switches.fuelR1 && c.switches.fuelR2;

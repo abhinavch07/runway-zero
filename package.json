@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test:fdm": "node scripts/fdm-smoke-test.mjs",
     "test:flights": "node scripts/fcc-test.ts",
+    "test:c172": "node scripts/c172-test.ts",
     "publish:pages": "bash scripts/publish-pages.sh"
   },
   "license": "GPL-3.0-or-later",

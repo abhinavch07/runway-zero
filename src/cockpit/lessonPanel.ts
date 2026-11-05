@@ -1,15 +1,15 @@
 // Lesson sidebar: shows the steps of the current lesson, explains the current one, highlights the
 // control to use, switches to the right panel, and ticks steps off in order.
-import type { Lesson, PanelName } from "../lessons/lessons";
-import type { Controls, SimState } from "../sim/types";
-import type { FmsData } from "./mcdu";
+// It works for any aircraft: S is the simulation state, C the controls (with a switches object),
+// X any extra data the lessons check (the A320 MCDU), P the panel names.
+import type { LessonBase } from "../lessons/types";
 
-export class LessonPanel {
+export class LessonPanel<S, C extends { switches: object }, X, P extends string> {
   readonly el: HTMLElement;
   private header: HTMLElement;
   private list: HTMLElement;
   private footer: HTMLElement;
-  private lesson: Lesson | null = null;
+  private lesson: LessonBase<S, C, X, P> | null = null;
   private latched: boolean[] = [];
   private lastCurrent = -1;
   private nextPressed = false;
@@ -18,10 +18,10 @@ export class LessonPanel {
   /** Called when the learner presses "Take the quiz" at the end of the lesson. */
   onQuiz?: () => void;
   private footerHtml = "";
-  private showPanel: (p: PanelName) => void;
-  private getPanel: () => PanelName;
+  private showPanel: (p: P) => void;
+  private getPanel: () => P;
 
-  constructor(parent: HTMLElement, showPanel: (p: PanelName) => void, getPanel: () => PanelName) {
+  constructor(parent: HTMLElement, showPanel: (p: P) => void, getPanel: () => P) {
     this.showPanel = showPanel;
     this.getPanel = getPanel;
     this.el = document.createElement("aside");
@@ -35,7 +35,7 @@ export class LessonPanel {
     parent.appendChild(this.el);
   }
 
-  start(lesson: Lesson) {
+  start(lesson: LessonBase<S, C, X, P>) {
     this.lesson = lesson;
     this.latched = lesson.steps.map(() => false);
     this.lastCurrent = -1;
@@ -57,7 +57,7 @@ export class LessonPanel {
     );
   }
 
-  update(s: SimState, c: Controls, f: FmsData) {
+  update(s: S, c: C, f: X) {
     const lesson = this.lesson;
     if (!lesson) return;
     // Steps count in order: a step only ticks once all steps before it are done. Once ticked it

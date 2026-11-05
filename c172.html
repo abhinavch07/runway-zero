@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Runway Zero · Cessna 172</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header id="topbar">
+      <span class="brand">RUNWAY ZERO</span>
+      <button id="lessons-btn">Lessons</button>
+      <nav id="tabs">
+        <button data-panel="inst" data-ctl="tab-inst">Instruments <kbd>1</kbd></button>
+        <button data-panel="lower" data-ctl="tab-lower">Lower panel <kbd>2</kbd></button>
+      </nav>
+      <span id="sound-ctl">
+        <button id="sound-btn" title="Sound on / off (M)">🔊</button>
+        <input id="sound-vol" type="range" min="0" max="100" title="Volume" />
+      </span>
+      <span id="status"></span>
+    </header>
+
+    <div id="layout">
+      <div id="lesson-slot"></div>
+      <main id="cockpit">
+        <section id="p-inst" class="cp-panel">
+          <div id="c172-screens">
+            <div class="c-display">
+              <canvas id="c172-pfd" title="PFD"></canvas>
+              <div class="c-knobs">
+                <div class="c-knob" data-ctl="c-hdg">
+                  <span>HDG</span>
+                  <button data-k="hdg-down" title="Shift: 10°">−</button>
+                  <button data-k="hdg-up" title="Shift: 10°">+</button>
+                </div>
+                <div class="c-knob" data-ctl="c-baro">
+                  <span>BARO</span>
+                  <button data-k="baro-down" data-ctl="c-baro-down">−</button>
+                  <button data-k="baro-up" data-ctl="c-baro-up">+</button>
+                  <button data-k="baro-std">STD</button>
+                </div>
+              </div>
+            </div>
+            <div class="c-display">
+              <canvas id="c172-mfd" title="MFD"></canvas>
+              <div class="c-knobs">
+                <div class="c-knob" data-ctl="c-range">
+                  <span>MAP RANGE</span>
+                  <button data-k="range-down">−</button>
+                  <button data-k="range-up">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="p-lower" class="cp-panel"></section>
+      </main>
+    </div>
+
+    <footer id="notice">
+      Runway Zero is a C172-type procedures trainer, for learning only. Not approved for flight training credit or
+      real-world operations. Not affiliated with Cessna, Textron Aviation or Garmin. Lessons are simplified training
+      flows, not the POH checklist.
+    </footer>
+
+    <div id="picker" class="hidden">
+      <div class="picker-box">
+        <h2>Choose a lesson</h2>
+        <div id="picker-tabs"></div>
+        <div id="picker-list"></div>
+        <div class="picker-foot">
+          Progress is saved in this browser only.
+          <button id="reset-progress">Reset progress</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading" class="hidden">Loading the aircraft…</div>
+    <div id="error" class="hidden"></div>
+
+    <script type="module" src="/src/c172/main.ts"></script>
+  </body>
+</html>

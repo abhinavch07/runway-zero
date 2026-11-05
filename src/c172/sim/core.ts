@@ -1,0 +1,179 @@
+// C172 simulation: JSBSim's public Cessna 172 model plus our own simple systems: electrics
+// (battery, alternator, essential and avionics buses, standby battery), fuel selector and shutoff,
+// electric fuel pump for priming, magnetos and starter. Used by the worker and the Node tests.
+import type { JSBSimSdk } from "@0x62/jsbsim-wasm";
+import type { C172Controls, C172Start, C172State } from "./types.ts";
+
+export const C172_MODEL_FILES = ["aircraft/c172p/c172p.xml", "engine/eng_io320.xml", "engine/prop_75in2f.xml"];
+export const C172_STEP_HZ = 120;
+const LBS_PER_GAL = 6;
+const MAG_CMD = { OFF: 0, L: 1, R: 2, BOTH: 3, START: 3 } as const;
+
+export class C172Core {
+  private sdk: JSBSimSdk;
+  private terrainFt = 0;
+  /** Seconds the electric fuel pump ran with the engine stopped. Cold engines need 3 to 5 s. */
+  private primeS = 0;
+  private crankS = 0;
+  /** True once the engine has caught and keeps running on its own. */
+  private firing = false;
+  private alternatorWarm = 0;
+  /** Switch positions from the last step, for the electrics in state(). */
+  private lastSwitches: C172Controls["switches"] | null = null;
+
+  constructor(sdk: JSBSimSdk) {
+    this.sdk = sdk;
+  }
+
+  get(p: string) {
+    return this.sdk.getPropertyValue(p);
+  }
+  set(p: string, v: number) {
+    this.sdk.setPropertyValue(p, v);
+  }
+
+  healthy(): boolean {
+    const v = [this.get("position/h-sl-ft"), this.get("velocities/vc-kts"), this.get("attitude/phi-rad")];
+    return v.every(Number.isFinite) && Math.abs(this.get("attitude/phi-rad")) < 3.2;
+  }
+
+  place(start: C172Start) {
+    this.terrainFt = start.terrainFt;
+    for (let i = 0; i < 2; i++) this.set(`propulsion/tank[${i}]/contents-lbs`, start.fuelGalPerTank * LBS_PER_GAL);
+    this.set("ic/lat-geod-deg", start.latDeg);
+    this.set("ic/long-gc-deg", start.lonDeg);
+    this.set("ic/terrain-elevation-ft", start.terrainFt);
+    this.set("ic/psi-true-deg", start.headingDeg);
+    this.set("ic/h-agl-ft", 4.5);
+    this.set("ic/vc-kts", 0);
+    this.set("ic/gamma-deg", 0);
+    this.sdk.runIc();
+    this.set("fcs/flap-cmd-norm", 0);
+    this.primeS = start.running ? 10 : 0;
+    this.crankS = 0;
+    this.firing = start.running;
+    this.alternatorWarm = start.running ? 10 : 0;
+    if (start.running) {
+      this.set("fcs/mixture-cmd-norm", 1);
+      this.set("fcs/throttle-cmd-norm", 0.1);
+      this.set("propulsion/magneto_cmd", 3);
+      this.set("propulsion/set-running", 0);
+    } else {
+      this.set("propulsion/magneto_cmd", 0);
+      this.set("fcs/mixture-cmd-norm", 0);
+    }
+    for (let i = 0; i < C172_STEP_HZ * 2; i++) {
+      this.set("fcs/left-brake-cmd-norm", 1);
+      this.set("fcs/right-brake-cmd-norm", 1);
+      this.set("position/terrain-elevation-asl-ft", this.terrainFt);
+      this.sdk.run();
+    }
+  }
+
+  step(c: C172Controls) {
+    const dt = 1 / C172_STEP_HZ;
+    const sw = c.switches;
+    this.lastSwitches = sw;
+    const rpm = this.get("propulsion/engine/engine-rpm");
+    const running = this.firing;
+
+    // ----- Fuel: selector, shutoff valve, electric pump for priming -----
+    const fuelFlowing = sw.fuelShutoff;
+    this.set("propulsion/tank[0]/priority", sw.fuelSel === "RIGHT" ? 0 : 1);
+    this.set("propulsion/tank[1]/priority", sw.fuelSel === "LEFT" ? 0 : 1);
+    const mainBus = sw.masterBat;
+    if (sw.fuelPump && mainBus && fuelFlowing && !running && c.mixture > 0.5) this.primeS = Math.min(30, this.primeS + dt);
+
+    // ----- Starter and magnetos -----
+    const cranking = sw.magnetos === "START" && mainBus;
+    this.crankS = cranking ? this.crankS + dt : 0;
+    this.set("propulsion/starter_cmd", cranking ? 1 : 0);
+    this.set("propulsion/magneto_cmd", MAG_CMD[sw.magnetos]);
+    // A cold engine fires only when primed. Without priming it needs a long crank to catch.
+    const needCrank = this.primeS >= 2 ? 0.8 : 5;
+    if (!this.firing && cranking && this.crankS >= needCrank && fuelFlowing && c.mixture > 0.3 && sw.magnetos !== "OFF")
+      this.firing = true;
+    // It stops when it slows right down (mixture cut-off, magnetos off, no fuel).
+    if (this.firing && !cranking && rpm < 250) this.firing = false;
+    const mixture = fuelFlowing && this.firing ? c.mixture : 0;
+    this.set("fcs/mixture-cmd-norm", mixture);
+    this.set("fcs/throttle-cmd-norm", c.throttle);
+
+    // ----- Flight controls, flaps, brakes -----
+    this.set("fcs/elevator-cmd-norm", -c.pitch);
+    this.set("fcs/aileron-cmd-norm", c.roll);
+    this.set("fcs/rudder-cmd-norm", -c.yaw);
+    this.set("fcs/steer-cmd-norm", c.yaw);
+    this.set("fcs/pitch-trim-cmd-norm", c.trim * 0.3);
+    this.set("fcs/flap-cmd-norm", Math.max(0, Math.min(3, c.flaps)) / 3);
+    const brakes = Math.max(c.brakes, sw.parkBrake ? 1 : 0);
+    this.set("fcs/left-brake-cmd-norm", brakes);
+    this.set("fcs/right-brake-cmd-norm", brakes);
+
+    this.alternatorWarm = sw.masterAlt && mainBus && rpm > 800 ? Math.min(10, this.alternatorWarm + dt) : 0;
+    this.set("position/terrain-elevation-asl-ft", this.terrainFt);
+    this.sdk.run();
+  }
+
+  state(): C172State {
+    const g = (p: string) => this.get(p);
+    const sw = this.lastSwitches;
+    const rpm = g("propulsion/engine/engine-rpm");
+    const running = this.firing && rpm > 450;
+    const cranking = !!sw && sw.magnetos === "START" && sw.masterBat;
+    const altOn = this.alternatorWarm > 1;
+    const mainBus = !!sw?.masterBat;
+    const avionics = mainBus && !!sw?.avionics;
+    // Battery 24 V system. Alternator 28 V. Cranking pulls the battery down.
+    let mainVolts = mainBus ? (altOn ? 28.0 : cranking ? 21.5 : 24.4) : 0;
+    let load = 0;
+    if (mainBus) {
+      load = 6 + (avionics ? 9 : 0) + (sw!.fuelPump ? 3 : 0) + (sw!.beacon ? 1.5 : 0) + (sw!.landing ? 6 : 0) +
+        (sw!.taxi ? 4 : 0) + (sw!.nav ? 2 : 0) + (sw!.strobe ? 2 : 0) + (sw!.pitotHeat ? 10 : 0) + (cranking ? 120 : 0);
+    }
+    const mainAmps = !mainBus ? 0 : altOn ? Math.max(1.5, 8 - this.alternatorWarm * 0.6) : -load;
+    const stbyOnly = !mainBus && !!sw?.stbyBatt;
+    if (stbyOnly) mainVolts = 0;
+    const essVolts = mainBus ? mainVolts : stbyOnly ? 24.0 : 0;
+    return {
+      simTime: g("simulation/sim-time-sec"),
+      latDeg: g("position/lat-geod-deg"),
+      lonDeg: g("position/long-gc-deg"),
+      altFt: g("position/h-sl-ft"),
+      aglFt: g("position/h-agl-ft"),
+      pitchDeg: g("attitude/theta-deg"),
+      rollDeg: g("attitude/phi-deg"),
+      headingDeg: (g("attitude/psi-deg") + 360) % 360,
+      trackDeg: (g("flight-path/psi-gt-rad") * 180) / Math.PI,
+      kias: Math.max(0, g("velocities/vc-kts")),
+      groundSpeedKt: g("velocities/vg-fps") * 0.5925,
+      vsFpm: g("velocities/h-dot-fps") * 60,
+      onGround: g("gear/wow") > 0,
+      flapDeg: g("fcs/flap-pos-deg"),
+      oatC: g("atmosphere/T-R") / 1.8 - 273.15,
+      engine: {
+        running,
+        cranking,
+        rpm,
+        mapInHg: g("propulsion/engine/map-inhg"),
+        fuelFlowGph: g("propulsion/engine/fuel-flow-rate-gph"),
+        oilPressPsi: g("propulsion/engine/oil-pressure-psi"),
+        oilTempF: g("propulsion/engine/oil-temperature-degF"),
+        egtF: g("propulsion/engine/egt-degF"),
+        chtF: g("propulsion/engine/cht-degF"),
+      },
+      fuelGal: [g("propulsion/tank[0]/contents-lbs") / LBS_PER_GAL, g("propulsion/tank[1]/contents-lbs") / LBS_PER_GAL],
+      elec: {
+        mainVolts,
+        essVolts,
+        mainAmps,
+        stbyAmps: stbyOnly ? -4 : 0,
+        mainBus,
+        essBus: essVolts > 0,
+        avionicsBus: avionics,
+        alternatorOn: altOn,
+      },
+      primeS: this.primeS,
+    };
+  }
+}

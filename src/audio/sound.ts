@@ -150,6 +150,21 @@ export class Sound {
     this.ramp(this.engTone.frequency, 60 + n2 * 520);
   }
 
+  /** Light aircraft: piston engine sound from RPM, starter whine while cranking. */
+  updatePiston(rpm: number, running: boolean, cranking: boolean, power: number) {
+    if (!this.ctx) return;
+    this.ramp(this.humGain.gain, power * 0.035);
+    // The starter whine uses the APU voice.
+    this.ramp(this.apuGain.gain, cranking ? 0.05 : 0, 0.1);
+    this.ramp(this.apuTone.frequency, 500 + Math.min(1000, rpm) * 0.4, 0.1);
+    const r = Math.min(1, rpm / 2700);
+    // Four cylinders, four-stroke: two firings per turn of the crankshaft.
+    this.ramp(this.engTone.frequency, Math.max(8, (rpm / 60) * 2), 0.15);
+    this.ramp(this.engWhine.gain, running ? 0.05 + r * 0.06 : rpm > 50 ? 0.015 : 0, 0.15);
+    this.ramp(this.engRumble.gain, running ? 0.08 + r * 0.22 : rpm > 50 ? 0.03 : 0, 0.15);
+    this.ramp(this.engFilter.frequency, 150 + r * 1100, 0.15);
+  }
+
   click() {
     const ctx = this.ctx;
     if (!ctx) return;

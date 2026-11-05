@@ -1,0 +1,411 @@
+// C172 lessons. Simplified training flows for a fuel-injected C172 with a glass cockpit, written in
+// our own words from general public knowledge. Not the manufacturer's checklist: real pilots use
+// the POH and their school's checklist. A flight instructor should review these.
+import type { LessonBase, StepBase } from "../lessons/types";
+import type { C172Controls, C172State, C172Switches } from "./sim/types";
+
+export type C172Panel = "inst" | "lower";
+export type C172Step = StepBase<C172State, C172Controls, null, C172Panel>;
+
+export interface C172Lesson extends LessonBase<C172State, C172Controls, null, C172Panel> {
+  /** Engine running at the start. */
+  running: boolean;
+  /** Changes to the starting switches. */
+  switches?: (sw: C172Switches) => void;
+  /** Changes to the starting levers and settings. */
+  controls?: Partial<Omit<C172Controls, "switches">>;
+  /** Today's QNH in hPa, for the altimeter. */
+  qnh?: number;
+}
+
+const rpmBetween = (s: C172State, lo: number, hi: number) => s.engine.running && s.engine.rpm >= lo && s.engine.rpm <= hi;
+
+export const C172_LESSONS: C172Lesson[] = [
+  {
+    id: "c172-start",
+    title: "Before start and engine start",
+    summary: "From a cold aircraft to the engine running at 1000 RPM: fuel, master, beacon, mixture, priming with the fuel pump, the key, then avionics.",
+    minutes: 6,
+    running: false,
+    switches: (sw) => {
+      sw.fuelShutoff = false;
+    },
+    controls: { throttle: 0, mixture: 0 },
+    finished: "The engine is running at 1000 RPM, the alternator is charging and the avionics are on. Next: the PFD and MFD lesson, or the run-up.",
+    steps: [
+      {
+        title: "Parking brake: SET",
+        why: "The aircraft must not roll when the engine starts. Check the brake is set.",
+        targets: ["parkBrake"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.parkBrake,
+      },
+      {
+        title: "FUEL SHUTOFF valve: ON",
+        why: "The red fuel shutoff knob on the floor is pushed in for ON. Pulled out, no fuel can reach the engine.",
+        targets: ["fuelShutoff"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelShutoff,
+      },
+      {
+        title: "FUEL SELECTOR: BOTH",
+        why: "For start, taxi and take-off the selector is on BOTH, so fuel comes from both wing tanks.",
+        targets: ["fuelSel-BOTH"],
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelSel === "BOTH",
+      },
+      {
+        title: "AVIONICS: check OFF",
+        why: "The avionics stay off during engine start. The starter pulls a lot of current and the voltage dips.",
+        targets: ["avionics"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.avionics,
+      },
+      {
+        title: "MASTER switch: ON (BAT and ALT)",
+        why: "The master switch has two halves: BAT connects the battery, ALT the alternator. The PFD comes on. On the lower panel the bus shows about 24 V from the battery.",
+        targets: ["masterBat", "masterAlt"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.masterBat && c.switches.masterAlt,
+      },
+      {
+        title: "STBY BATT: ARM",
+        why: "The standby battery keeps the PFD powered if the main electrical system fails. (On the real aircraft you test it first, then arm it.)",
+        targets: ["stbyBatt"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.stbyBatt,
+      },
+      {
+        title: "BEACON: ON",
+        why: "The flashing beacon warns people outside that the engine is about to start.",
+        targets: ["beacon"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.beacon,
+      },
+      {
+        title: "MIXTURE: RICH, THROTTLE: open a little",
+        why: "Push the mixture fully in (RICH). Open the throttle about a quarter of an inch: one or two presses of + from idle.",
+        targets: ["mixture", "throttle"],
+        panel: "lower",
+        done: (_s, c) => c.mixture > 0.9 && c.throttle >= 0.05 && c.throttle <= 0.25,
+      },
+      {
+        title: "FUEL PUMP: ON for 3 to 5 seconds, then OFF",
+        why: "This engine has fuel injection. Running the electric fuel pump for a few seconds primes it for a cold start. Too long floods the engine.",
+        targets: ["fuelPump"],
+        panel: "lower",
+        done: (s, c) => s.primeS >= 2 && !c.switches.fuelPump,
+      },
+      {
+        title: "Propeller area: CLEAR",
+        why: "Look all around the propeller. On the real aircraft you open the window and call \"Clear prop!\" before you start. Press Next.",
+        targets: [],
+        panel: "lower",
+      },
+      {
+        title: "MAGNETOS: hold START, let go when it starts",
+        why: "Press and hold START on the key. The starter turns the engine. When the RPM rises past about 600, let go: the key springs back to BOTH.",
+        targets: ["mag-START"],
+        panel: "lower",
+        done: (s, c) => s.engine.running && c.switches.magnetos === "BOTH",
+      },
+      {
+        title: "OIL PRESSURE: check it rises",
+        why: "Within 30 seconds the oil pressure must rise. If it does not, stop the engine at once (mixture to idle cut-off).",
+        targets: ["mini-oil"],
+        panel: "lower",
+        done: (s) => s.engine.oilPressPsi > 20,
+      },
+      {
+        title: "THROTTLE: set 1000 RPM",
+        why: "1000 RPM is a good warm-up speed. Watch the RPM on the lower panel or the MFD as you move the throttle.",
+        targets: ["throttle", "mini-rpm"],
+        panel: "lower",
+        // The RPM flares just after start, so the throttle must have been moved up as well.
+        done: (s, c) => c.throttle >= 0.12 && rpmBetween(s, 900, 1100),
+      },
+      {
+        title: "AVIONICS: ON",
+        why: "With the engine running and the voltage steady, the avionics can come on. The MFD starts up.",
+        targets: ["avionics"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.avionics,
+      },
+      {
+        title: "Check the alternator is charging",
+        why: "On the lower panel (or the MFD): the bus is now about 28 V and the battery current is positive (charging). Press Next.",
+        targets: ["mini-volts", "mini-amps"],
+        panel: "lower",
+      },
+      {
+        title: "NAV lights: ON",
+        why: "Navigation lights on. The aircraft is ready for the PFD and MFD lesson or the run-up.",
+        targets: ["nav"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.nav,
+      },
+    ],
+  },
+  {
+    id: "c172-pfd",
+    title: "PFD and MFD basics",
+    summary: "With the engine running: read the glass PFD (speed, attitude, altitude, heading) and the MFD engine page, set the baro and the heading bug.",
+    minutes: 6,
+    running: true,
+    controls: { throttle: 0.15, mixture: 1 },
+    qnh: 1008,
+    finished: "You can read the PFD and the MFD engine page, set the baro and the heading bug. Next: the run-up before take-off.",
+    steps: [
+      {
+        title: "The PFD layout",
+        why: "Left: airspeed tape. Middle: attitude (blue sky, brown ground). Right: altitude tape, with vertical speed beside it. Bottom: the heading (HSI) rose. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "The airspeed tape colours",
+        why: "White band: flaps can be used (up to 85 kt). Green: normal operating speeds. Yellow: smooth air only. Red line: never exceed (163 kt). On the ground it shows no speed yet. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "BARO: set QNH 1008",
+        why: "The airfield gives today's pressure: 1008 hPa. Use the BARO − button beside the PFD until it shows 1008. The altitude then reads the airfield elevation, about 780 ft.",
+        targets: ["c-baro-down"],
+        panel: "inst",
+        done: (_s, c) => !c.baro.std && c.baro.qnh === 1008,
+      },
+      {
+        title: "HDG bug: set 280",
+        why: "The cyan heading bug on the HSI marks the heading you want. Set it to 280, the runway heading for runway 28. Hold Shift for 10° steps.",
+        targets: ["c-hdg"],
+        panel: "inst",
+        done: (_s, c) => c.hdgBug === 280,
+      },
+      {
+        title: "The MFD engine strip",
+        why: "On the left of the MFD: RPM at the top, then fuel flow, oil pressure, oil temperature and exhaust gas temperature (EGT). Green is normal, red is a limit. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "Fuel and electrics on the MFD",
+        why: "Lower on the strip: fuel in each tank (L and R, in gallons), then the bus volts (M BUS, E BUS) and battery current (M BATT, S BATT). Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "THROTTLE: set 1200 RPM and watch",
+        why: "Open the throttle a little. On the MFD watch the RPM rise and the fuel flow go up with it.",
+        targets: ["throttle"],
+        panel: "lower",
+        done: (s) => rpmBetween(s, 1150, 1300),
+      },
+      {
+        title: "THROTTLE: back to 1000 RPM",
+        why: "Back to a steady 1000 RPM. Fuel flow comes down again.",
+        targets: ["throttle"],
+        panel: "lower",
+        done: (s) => rpmBetween(s, 900, 1100),
+      },
+    ],
+  },
+  {
+    id: "c172-runup",
+    title: "Run-up before take-off",
+    summary: "At the run-up area: brakes, mixture, flight controls, fuel, trim, 1800 RPM, magneto check, engine and electrics, idle check, ready for take-off.",
+    minutes: 6,
+    running: true,
+    controls: { throttle: 0.15, mixture: 1, trim: 0.6 },
+    finished: "The run-up is complete and the aircraft is ready for take-off. Real pilots then do the before take-off checklist and get a clearance.",
+    steps: [
+      {
+        title: "Parking brake: SET",
+        why: "Hold the aircraft still during the run-up. Point it into wind if you can.",
+        targets: ["parkBrake"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.parkBrake,
+      },
+      {
+        title: "MIXTURE: RICH",
+        why: "At low airfields like Delhi the mixture stays fully rich for the run-up and take-off.",
+        targets: ["mixture"],
+        panel: "lower",
+        done: (_s, c) => c.mixture > 0.9,
+      },
+      {
+        title: "Flight controls: free and correct",
+        why: "Move the yoke fully forward, back, left and right and check the control surfaces move the right way. (Not modelled here.) Press Next.",
+        targets: [],
+        panel: "lower",
+      },
+      {
+        title: "FUEL SELECTOR: BOTH",
+        why: "Fuel from both tanks for take-off.",
+        targets: ["fuelSel-BOTH"],
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelSel === "BOTH",
+      },
+      {
+        title: "TRIM: set for take-off",
+        why: "The trim is nose up from the last landing. Use the trim buttons until the indicator is at the TAKEOFF mark.",
+        targets: ["trim"],
+        panel: "lower",
+        done: (_s, c) => Math.abs(c.trim) < 0.06,
+      },
+      {
+        title: "THROTTLE: 1800 RPM",
+        why: "The engine checks are done at 1800 RPM.",
+        targets: ["throttle", "mini-rpm"],
+        panel: "lower",
+        done: (s) => rpmBetween(s, 1720, 1880),
+      },
+      {
+        title: "MAGNETOS: L, note the RPM drop",
+        why: "Turn the key to L: the engine runs on the left magneto only. The RPM drops a little. The drop must not be more than 150 RPM.",
+        targets: ["mag-L", "mini-rpm"],
+        panel: "lower",
+        done: (_s, c) => c.switches.magnetos === "L",
+      },
+      {
+        title: "MAGNETOS: BOTH",
+        why: "Back to BOTH. The RPM comes back up.",
+        targets: ["mag-BOTH"],
+        panel: "lower",
+        done: (s, c) => c.switches.magnetos === "BOTH" && s.engine.rpm > 1700,
+      },
+      {
+        title: "MAGNETOS: R, note the RPM drop",
+        why: "Now the right magneto only. Again not more than 150 RPM drop, and not more than 50 RPM different from the left.",
+        targets: ["mag-R", "mini-rpm"],
+        panel: "lower",
+        done: (_s, c) => c.switches.magnetos === "R",
+      },
+      {
+        title: "MAGNETOS: BOTH",
+        why: "Back to BOTH. Never take off on one magneto.",
+        targets: ["mag-BOTH"],
+        panel: "lower",
+        done: (s, c) => c.switches.magnetos === "BOTH" && s.engine.rpm > 1700,
+      },
+      {
+        title: "Engine and electrics: check",
+        why: "On the MFD: oil pressure and temperature in the green, both bus volts about 28 V, battery current positive. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "THROTTLE: idle, check it runs smoothly",
+        why: "Pull the throttle to idle. The engine must keep running smoothly at low RPM.",
+        targets: ["throttle"],
+        panel: "lower",
+        done: (s) => s.engine.running && s.engine.rpm < 900,
+      },
+      {
+        title: "THROTTLE: 1000 RPM",
+        why: "Back to 1000 RPM to wait at the holding point.",
+        targets: ["throttle"],
+        panel: "lower",
+        done: (s) => rpmBetween(s, 900, 1100),
+      },
+      {
+        title: "FLAPS: 0° to 10° for take-off",
+        why: "A normal take-off uses flaps 0° to 10°.",
+        targets: ["flaps0", "flaps1"],
+        panel: "lower",
+        done: (_s, c) => c.flaps <= 1,
+      },
+    ],
+  },
+  {
+    id: "c172-shutdown",
+    title: "Shutdown and secure",
+    summary: "Parked with the engine running: avionics off, lights off, mixture to idle cut-off, magnetos off, master off, fuel selector to one tank.",
+    minutes: 4,
+    running: true,
+    switches: (sw) => {
+      sw.taxi = true;
+    },
+    controls: { throttle: 0.15, mixture: 1 },
+    finished: "The engine is stopped and the aircraft is secured. Real pilots then fit the control lock and tie the aircraft down.",
+    steps: [
+      {
+        title: "Parking brake: SET",
+        why: "Set the brake as soon as you stop at the parking spot.",
+        targets: ["parkBrake"],
+        want: true,
+        panel: "lower",
+        done: (_s, c) => c.switches.parkBrake,
+      },
+      {
+        title: "THROTTLE: 1000 RPM",
+        why: "Let the engine run at 1000 RPM for a moment before shutdown.",
+        targets: ["throttle"],
+        panel: "lower",
+        done: (s) => rpmBetween(s, 900, 1100),
+      },
+      {
+        title: "AVIONICS: OFF",
+        why: "Avionics off before the engine stops, to protect them from voltage changes.",
+        targets: ["avionics"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.avionics,
+      },
+      {
+        title: "TAXI light: OFF",
+        why: "Switch off the lights you no longer need.",
+        targets: ["taxi"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.taxi,
+      },
+      {
+        title: "MIXTURE: IDLE CUT-OFF",
+        why: "Pull the mixture fully out. The engine stops because no fuel reaches the cylinders. This is the normal way to stop it.",
+        targets: ["mixture"],
+        panel: "lower",
+        done: (s) => !s.engine.running && s.engine.rpm < 100,
+      },
+      {
+        title: "MAGNETOS: OFF",
+        why: "Turn the key to OFF and take it out. A magneto left on can start the engine if someone turns the propeller.",
+        targets: ["mag-OFF"],
+        panel: "lower",
+        done: (_s, c) => c.switches.magnetos === "OFF",
+      },
+      {
+        title: "BEACON and NAV lights: OFF",
+        why: "The engine has stopped, so the beacon can go off.",
+        targets: ["beacon", "nav"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.beacon && !c.switches.nav,
+      },
+      {
+        title: "STBY BATT: OFF, MASTER: OFF",
+        why: "Standby battery off, then both halves of the master switch. Everything goes dark.",
+        targets: ["stbyBatt", "masterAlt", "masterBat"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.stbyBatt && !c.switches.masterBat && !c.switches.masterAlt,
+      },
+      {
+        title: "FUEL SELECTOR: LEFT or RIGHT",
+        why: "When parked, the selector goes to one tank. On BOTH, fuel can flow from the fuller tank to the other if the aircraft is not level.",
+        targets: ["fuelSel-LEFT", "fuelSel-RIGHT"],
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelSel !== "BOTH",
+      },
+    ],
+  },
+];
