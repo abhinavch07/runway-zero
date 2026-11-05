@@ -2,6 +2,18 @@
 // tapes with the FCU targets, vertical speed, heading, ILS deviation scales and radio height.
 // A training display in the spirit of the real one, not a replica.
 import type { SimState } from "../sim/types";
+import type { FmsData } from "./mcdu";
+import { baroSetting, type EfisState } from "./efis";
+
+/** Extra inputs from the page: MCDU data, EFIS settings, today's QNH and a managed speed target. */
+export interface PfdExtra {
+  fms: FmsData;
+  efis: EfisState;
+  worldQnh: number;
+  managedSpd: number | null;
+}
+/** About 27 ft of altitude for each hPa near sea level. */
+const FT_PER_HPA = 27;
 
 const SIZE = 420;
 const SKY = "#2a6fc9";
@@ -21,6 +33,7 @@ export const RA_ZERO_FT = 8;
 export class Pfd {
   readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private x?: PfdExtra;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -31,7 +44,8 @@ export class Pfd {
     this.ctx.scale(dpr, dpr);
   }
 
-  draw(s: SimState) {
+  draw(s: SimState, x?: PfdExtra) {
+    this.x = x;
     const g = this.ctx;
     g.save();
     g.fillStyle = "#000";
@@ -93,8 +107,9 @@ export class Pfd {
     if (f.vertArmed) g.fillText(f.vertArmed, col(1), 33);
     if (f.latArmed) g.fillText(f.latArmed, col(2), 33);
     g.fillStyle = WHITE;
-    if (f.ap) g.fillText("AP1", col(4), 15);
-    if (f.athr) g.fillText("A/THR", col(4), 33);
+    if (f.ap) g.fillText("AP1", col(4), 12);
+    if (this.x?.efis.fd) g.fillText("1 FD 2", col(4), 26);
+    if (f.athr) g.fillText("A/THR", col(4), 40);
     if (!f.ap && !f.athr && !f.vert) {
       g.fillStyle = "#9aa";
       g.font = "12px ui-monospace, Menlo, monospace";
@@ -249,9 +264,25 @@ export class Pfd {
       g.stroke();
       if (v % 20 === 0) g.fillText(String(v), cx + w / 2 - 14, y);
     }
-    // Selected speed: cyan triangle on the right edge of the tape.
-    const spdY = cy - (s.fcc.fcu.spd - kias) * pxPerKt;
-    g.fillStyle = CYAN;
+    // Speed target: cyan triangle when selected on the FCU, magenta when managed (V2 on the ground).
+    const managed = this.x?.managedSpd ?? null;
+    const target = managed ?? s.fcc.fcu.spd;
+    const spdY = cy - (target - kias) * pxPerKt;
+    // V1 ("1") and VR (a circle) in cyan, when they are on the visible part of the tape.
+    const fms = this.x?.fms;
+    if (fms && s.onGround) {
+      g.fillStyle = CYAN;
+      g.strokeStyle = CYAN;
+      g.textAlign = "left";
+      g.font = "bold 13px ui-monospace, Menlo, monospace";
+      if (fms.v1 !== null) g.fillText("1", cx + w / 2 + 2, cy - (fms.v1 - kias) * pxPerKt);
+      if (fms.vr !== null) {
+        g.beginPath();
+        g.arc(cx + w / 2 + 5, cy - (fms.vr - kias) * pxPerKt, 3.5, 0, Math.PI * 2);
+        g.stroke();
+      }
+    }
+    g.fillStyle = managed !== null ? MAGENTA : CYAN;
     g.beginPath();
     g.moveTo(cx + w / 2 - 1, spdY);
     g.lineTo(cx + w / 2 + 10, spdY - 7);
@@ -262,15 +293,23 @@ export class Pfd {
     this.readout(Math.round(kias).toString(), cx - 2, cy, 50, YELLOW);
     const g2 = this.ctx;
     g2.save();
-    g2.fillStyle = CYAN;
+    g2.fillStyle = managed !== null ? MAGENTA : CYAN;
     g2.textAlign = "center";
     g2.font = "12px ui-monospace, Menlo, monospace";
-    g2.fillText(String(Math.round(s.fcc.fcu.spd)), cx, cy - h / 2 - 9);
+    g2.fillText(String(Math.round(target)), cx, cy - h / 2 - 9);
+    // V1 off the top of the tape: shown as a cyan number at the top, like the real display.
+    if (fms && s.onGround && fms.v1 !== null && (fms.v1 - kias) * pxPerKt > h / 2) {
+      g2.fillStyle = CYAN;
+      g2.textAlign = "left";
+      g2.font = "bold 13px ui-monospace, Menlo, monospace";
+      g2.fillText(String(fms.v1), cx + w / 2 + 2, cy - h / 2 + 8);
+    }
     g2.restore();
   }
 
   private altTape(s: SimState, cx: number, cy: number) {
-    const altFt = s.altFt;
+    // Indicated altitude depends on the baro setting: set today's QNH and it reads true altitude.
+    const altFt = this.x ? s.altFt + (baroSetting(this.x.efis) - this.x.worldQnh) * FT_PER_HPA : s.altFt;
     const g = this.ctx;
     const w = 70;
     const h = 250;
@@ -304,6 +343,21 @@ export class Pfd {
     g.textAlign = "center";
     g.font = "12px ui-monospace, Menlo, monospace";
     g.fillText(String(Math.round(s.fcc.fcu.alt)), cx, cy - h / 2 - 9);
+    // Baro reference under the tape.
+    if (this.x) {
+      const e = this.x.efis;
+      g.font = "bold 13px ui-monospace, Menlo, monospace";
+      if (e.std) {
+        g.strokeStyle = YELLOW;
+        g.strokeRect(cx - 22, cy + h / 2 + 4, 44, 18);
+        g.fillText("STD", cx, cy + h / 2 + 14);
+      } else {
+        g.fillStyle = WHITE;
+        g.fillText("QNH", cx - 18, cy + h / 2 + 14);
+        g.fillStyle = CYAN;
+        g.fillText(String(e.qnh), cx + 18, cy + h / 2 + 14);
+      }
+    }
     g.restore();
   }
 

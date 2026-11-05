@@ -3,7 +3,7 @@
 import type { JSBSimSdk } from "@0x62/jsbsim-wasm";
 import { FlightControlComputer, type FccStatus, type FcuAction, type PilotInput } from "./fcc.ts";
 import type { Controls, SimState, StartPosition, TouchdownReport } from "./types.ts";
-import { coldSwitches, runningSwitches, Systems } from "./systems.ts";
+import { startSwitches, Systems } from "./systems.ts";
 import { alongCross } from "../world/geo.ts";
 import { ILS_28 } from "../world/vidp.ts";
 
@@ -94,7 +94,7 @@ export class SimCore {
       this.set("ic/gamma-deg", start.gammaDeg ?? 0);
     }
     this.sdk.runIc();
-    if (!start.coldAndDark) this.set("propulsion/set-running", -1);
+    if (!start.coldAndDark && !start.powered) this.set("propulsion/set-running", -1);
     this.set("gear/gear-cmd-norm", start.gearDown ? 1 : 0);
     this.set("fcs/flap-cmd-norm", FLAP_CMD[start.flapLever]);
     // Move gear and flaps straight to the commanded position for the start.
@@ -124,7 +124,7 @@ export class SimCore {
       trim,
       fcu: start.fcu,
     });
-    this.systems.reset(!!start.coldAndDark, start.coldAndDark ? coldSwitches() : runningSwitches());
+    this.systems.reset(!!start.coldAndDark, startSwitches(start), !!start.powered);
     this.wasAirborne = !start.onGround;
     this.airborneFor = start.onGround ? 0 : 60;
     this.touchdown = null;

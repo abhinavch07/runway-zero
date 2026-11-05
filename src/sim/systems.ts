@@ -78,6 +78,29 @@ export function runningSwitches(): Switches {
   };
 }
 
+/** Switch positions at the gate before engine start: APU running and supplying air, engines off. */
+export function poweredSwitches(): Switches {
+  return {
+    ...runningSwitches(),
+    apuMaster: true,
+    apuBleed: true,
+    engBleed1: true,
+    engBleed2: true,
+    beacon: false,
+    strobe: false,
+    landingLights: false,
+    seatBelts: false,
+    engMaster1: false,
+    engMaster2: false,
+    parkBrake: true,
+  };
+}
+
+/** Switch positions that match a start position. */
+export function startSwitches(start: { coldAndDark?: boolean; powered?: boolean }): Switches {
+  return start.coldAndDark ? coldSwitches() : start.powered ? poweredSwitches() : runningSwitches();
+}
+
 /** Switch positions for a cold and dark aircraft, as the crew finds it before cockpit preparation. */
 export function coldSwitches(): Switches {
   return {
@@ -178,13 +201,19 @@ export class Systems {
   }
 
   /** Called after a start position is set. Cold: everything off. Otherwise: powered, aligned, running. */
-  reset(cold: boolean, switches: Switches) {
+  reset(cold: boolean, switches: Switches, powered = false) {
     this.st = this.blank();
     this.stoppedS = 30;
     this.apuPressesSeen = switches.apuStartPresses;
     this.apuFlapTime = 0;
     if (cold) {
       this.irTime = [0, 0, 0];
+    } else if (powered) {
+      this.irTime = [IR_ALIGN_SECONDS, IR_ALIGN_SECONDS, IR_ALIGN_SECONDS];
+      this.st.irAligned = [true, true, true];
+      this.st.apuN = 100;
+      this.st.apuAvail = true;
+      this.apuFlapTime = 5;
     } else {
       this.irTime = [IR_ALIGN_SECONDS, IR_ALIGN_SECONDS, IR_ALIGN_SECONDS];
       this.st.irAligned = [true, true, true];

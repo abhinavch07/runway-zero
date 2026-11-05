@@ -10,9 +10,10 @@ import { FcuPanel } from "./cockpit/fcu";
 import { LeverPanel } from "./cockpit/levers";
 import { OverheadPanel } from "./cockpit/overhead";
 import { LessonPanel } from "./cockpit/lessonPanel";
-import { Mcdu } from "./cockpit/mcdu";
+import { Mcdu, type FmsData } from "./cockpit/mcdu";
+import { EfisPanel } from "./cockpit/efis";
 import { LESSONS, type Lesson, type PanelName } from "./lessons/lessons";
-import { coldSwitches, runningSwitches } from "./sim/systems";
+import { coldSwitches, startSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
 import type { Controls, FromWorker, SimState, StartPosition, ToWorker } from "./sim/types";
 
@@ -29,7 +30,10 @@ const controls: Controls = {
   speedbrake: 0,
   brakes: 0,
   switches: coldSwitches(),
+  efis: { fd: true, qnh: 1013, std: false },
 };
+/** Today's QNH at Delhi in the lesson. The altimeter reads true altitude when the baro is set to it. */
+let worldQnh = 1013;
 
 // ---------- Flight model worker ----------
 const worker = new Worker(new URL("./sim/fdm.worker.ts", import.meta.url), { type: "module" });
@@ -88,10 +92,14 @@ function onReady(start: StartPosition, throttle: number) {
     gearDown: start.gearDown,
     speedbrake: 0,
     brakes: 0,
-    switches: start.coldAndDark ? coldSwitches() : runningSwitches(),
+    switches: startSwitches(start),
   });
   lesson?.switches?.(controls.switches);
   mcdu.reset();
+  if (lesson?.fms) Object.assign(mcdu.fms, structuredClone(lesson.fms));
+  mcdu.render();
+  controls.efis = { fd: true, qnh: 1013, std: false, ...lesson?.efis };
+  worldQnh = lesson?.qnh ?? 1013;
   for (const a of lesson?.fcuActions ?? []) fcuSend(a);
   if (lesson) lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
@@ -117,7 +125,11 @@ const pfd = new Pfd($<HTMLCanvasElement>("pfd"));
 const nd = new Nd($<HTMLCanvasElement>("nd"));
 const ewd = new Ewd($<HTMLCanvasElement>("ewd"));
 const ewdSmall = new Ewd($<HTMLCanvasElement>("ewd-small"));
-const fcu = new FcuPanel($("glareshield"), fcuSend, (step) => nd.changeRange(step));
+const gsInner = document.createElement("div");
+gsInner.id = "gs-inner";
+$("glareshield").appendChild(gsInner);
+const efis = new EfisPanel(gsInner, () => controls.efis!);
+const fcu = new FcuPanel(gsInner, fcuSend, (step) => nd.changeRange(step));
 const overhead = new OverheadPanel($("p-ovhd"), () => controls.switches);
 const levers = new LeverPanel($("ped-controls"), controls);
 const mcdu = new Mcdu($("mcdu-slot"));
@@ -131,8 +143,8 @@ function fit() {
   document.documentElement.style.setProperty("--disp", `${disp}px`);
   if (panel === "ovhd") overhead.fit();
   if (panel === "main") {
-    fcu.el.style.zoom = "1";
-    fcu.el.style.zoom = String(Math.min(1.25, (box.width - 50) / fcu.el.scrollWidth));
+    gsInner.style.zoom = "1";
+    gsInner.style.zoom = String(Math.min(1.25, (box.width - 50) / gsInner.scrollWidth));
   }
   if (panel === "ped") {
     const row = $("ped-row");
@@ -190,7 +202,7 @@ function frame() {
   // Screens need AC power. Without it they stay dark.
   if (s.systems.acPower) {
     if (panel === "main") {
-      pfd.draw(s);
+      pfd.draw(s, { fms: mcdu.fms, efis: controls.efis!, worldQnh, managedSpd: managedSpeed(s, mcdu.fms) });
       nd.draw(s, mcdu.fms);
       ewd.draw(s, controls);
     }
@@ -199,7 +211,8 @@ function frame() {
     for (const cv of [pfd.canvas, nd.canvas, ewd.canvas, ewdSmall.canvas]) blank(cv);
   }
   $("glareshield").classList.toggle("unpowered", !s.systems.dcPower);
-  fcu.update(s.fcc);
+  fcu.update(s.fcc, managedSpeed(s, mcdu.fms));
+  efis.update(controls.efis!);
   levers.update(s, controls);
   overhead.update(controls.switches, s.systems);
   mcdu.setPowered(s.systems.acPower);
@@ -209,6 +222,11 @@ function frame() {
   $("status").textContent = `Power: ${s.systems.acSource || (s.systems.dcPower ? "BAT" : "OFF")} · Engines: ${eng}`;
 }
 requestAnimationFrame(frame);
+
+/** On the ground with V2 entered, the speed target is managed: V2 from the MCDU. */
+function managedSpeed(s: SimState, f: FmsData): number | null {
+  return s.onGround && f.v2 !== null ? f.v2 : null;
+}
 
 function blank(cv: HTMLCanvasElement) {
   const g = cv.getContext("2d")!;

@@ -21,6 +21,8 @@ export interface Controls {
   brakes: number;
   /** Overhead and pedestal switch positions. */
   switches: Switches;
+  /** EFIS control panel: flight director, baro reference. Display only. */
+  efis?: { fd: boolean; qnh: number; std: boolean };
 }
 
 export interface TouchdownReport {
@@ -88,6 +90,8 @@ export interface StartPosition {
   onGround?: boolean;
   /** Cold and dark: everything off, engines stopped, parking brake set. */
   coldAndDark?: boolean;
+  /** At the gate: APU running, ADIRS aligned, engines off, parking brake set. */
+  powered?: boolean;
   flapLever: number;
   gearDown: boolean;
   /** Total fuel, pounds, split between the two wing tanks. */

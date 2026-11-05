@@ -8,6 +8,7 @@ import type { FcuAction } from "../sim/fcc";
 import type { Switches } from "../sim/systems";
 import type { Controls, SimState } from "../sim/types";
 import type { FmsData } from "../cockpit/mcdu";
+import type { EfisState } from "../cockpit/efis";
 
 export type PanelName = "ovhd" | "main" | "ped";
 
@@ -35,6 +36,12 @@ export interface Lesson {
   switches?: (sw: Switches) => void;
   /** FCU actions sent once the aircraft is placed (for example engaging the autopilot). */
   fcuActions?: FcuAction[];
+  /** MCDU entries already made when the lesson starts. */
+  fms?: Partial<FmsData>;
+  /** EFIS settings at the start (flight director, baro). */
+  efis?: Partial<EfisState>;
+  /** Today's QNH in hPa. The altimeter shows true altitude when the baro is set to it. */
+  qnh?: number;
   steps: LessonStep[];
   finished: string;
 }
@@ -400,6 +407,149 @@ export const LESSONS: Lesson[] = [
         why: "Go to the main panel. When the ADIRS are aligned the ND shows your route in green. Press ND + until the range is 40 to see RZ101. Then press Next.",
         targets: ["nd-range-up"],
         panel: "main",
+      },
+    ],
+  },
+  {
+    id: "beforestart",
+    title: "Before start and engine start",
+    summary: "At the gate with the MCDU ready for Delhi to Mumbai: flight directors, QNH, cleared altitude, check the PFD and ND, then start both engines.",
+    minutes: 8,
+    startId: "gate28",
+    efis: { fd: false, qnh: 1013, std: false },
+    qnh: 1008,
+    fms: {
+      page: "PERF",
+      from: "VIDP",
+      to: "VABB",
+      fltNbr: "RZ123",
+      costIndex: 30,
+      crzFl: 360,
+      crzTemp: -56,
+      depRwy: "28",
+      arrRwy: "27",
+      legs: ["RZ101", "RZ102", "RZ103"],
+      disco: false,
+      zfwCg: 27,
+      zfw: 60.5,
+      block: 8,
+      v1: 140,
+      vr: 141,
+      v2: 145,
+      flaps: 1,
+      ths: "UP0.8",
+      flex: 50,
+    },
+    finished: "Both engines are running, the APU is off and the aircraft is set up for a flap 1 take-off from runway 28. Ready for taxi.",
+    steps: [
+      {
+        title: "Look at the aircraft",
+        why: "You are at the gate. The APU is running and gives power and air. The ADIRS are aligned. The MCDU is already set up for Delhi to Mumbai (the MCDU lesson). Now the crew does the last checks before engine start. Press Next.",
+        targets: [],
+        panel: "ovhd",
+      },
+      {
+        title: "FD: ON",
+        why: "The flight directors show the pilot where to fly. They must be on for take-off. Press FD on the EFIS panel (left of the FCU). The FMA on the PFD now shows 1 FD 2.",
+        targets: ["efis-fd"],
+        want: true,
+        panel: "main",
+        done: (_s, c) => !!c.efis?.fd,
+      },
+      {
+        title: "BARO: set QNH 1008",
+        why: "The airport weather report (ATIS) gives today's pressure at Delhi: QNH 1008. Press − until the baro shows 1008. Watch the altitude on the PFD: with the right QNH it shows the airport elevation, about 780 ft.",
+        targets: ["efis-baro-down"],
+        panel: "main",
+        done: (_s, c) => !!c.efis && !c.efis.std && c.efis.qnh === 1008,
+      },
+      {
+        title: "FCU ALT: set 5000",
+        why: "Air traffic control clears you to climb to 5,000 ft after take-off. Set it on the FCU now, so the aircraft levels off there. Hold Shift and press + for 1,000 ft steps.",
+        targets: ["fcu-alt"],
+        panel: "main",
+        done: (s) => s.fcc.fcu.alt === 5000,
+      },
+      {
+        title: "Check the take-off speeds on the PFD",
+        why: "Compare the PFD with the MCDU PERF page. At the top of the speed tape: V1 (140) in cyan and the speed target V2 (145) in magenta. The FCU speed window shows dashes and a dot: the speed is managed by the flight computer. Press Next.",
+        targets: [],
+        panel: "main",
+      },
+      {
+        title: "Check the route on the ND",
+        why: "Press ND + until the range is 40. The green line goes from runway 28 to RZ101, as entered in the MCDU. Press Next.",
+        targets: ["nd-range-up"],
+        panel: "main",
+      },
+      {
+        title: "SEAT BELTS: ON",
+        why: "Everyone must be seated with belts fastened before the aircraft moves.",
+        targets: ["seatBelts"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.seatBelts,
+      },
+      {
+        title: "BEACON: ON",
+        why: "The red flashing beacon tells the ground crew that the engines are about to start. Ground staff keep away from the engines from now on.",
+        targets: ["beacon"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.beacon,
+      },
+      {
+        title: "Parking brake: SET, thrust levers: IDLE",
+        why: "Check both before engine start, so the aircraft cannot move when the engines come up to idle.",
+        targets: ["parkBrake", "thrust"],
+        want: true,
+        panel: "ped",
+        done: (_s, c) => c.switches.parkBrake && c.throttle < 0.02,
+      },
+      {
+        title: "ENG MODE: IGN/START",
+        why: "This arms the automatic start system.",
+        targets: ["engModeIgn"],
+        panel: "ped",
+        done: (_s, c) => c.switches.engMode === "IGN",
+      },
+      {
+        title: "ENG 2 MASTER: ON, wait for it to stabilise",
+        why: "Engine 2 usually starts first. Watch the engine display: N2 rises, fuel comes in, EGT rises, then the engine settles at idle.",
+        targets: ["engMaster2"],
+        want: true,
+        panel: "ped",
+        done: (s) => s.systems.engines[1].phase === "RUN",
+      },
+      {
+        title: "ENG 1 MASTER: ON, wait for it to stabilise",
+        why: "Now engine 1, the same way.",
+        targets: ["engMaster1"],
+        want: true,
+        panel: "ped",
+        done: (s) => s.systems.engines[0].phase === "RUN",
+      },
+      {
+        title: "ENG MODE: NORM",
+        why: "Both engines run, so the start system is not needed any more.",
+        targets: ["engModeNorm"],
+        panel: "ped",
+        done: (_s, c) => c.switches.engMode === "NORM",
+      },
+      {
+        title: "APU BLEED: OFF, APU MASTER SW: OFF",
+        why: "The engines now give power and air, so the APU is not needed. Turning it off saves fuel.",
+        targets: ["apuBleed", "apuMaster"],
+        want: false,
+        panel: "ovhd",
+        done: (_s, c) => !c.switches.apuBleed && !c.switches.apuMaster,
+      },
+      {
+        title: "Flaps: 1",
+        why: "Set the flaps you entered on the MCDU PERF page: FLAPS/THS 1. The flaps on the aircraft must match the take-off data.",
+        targets: ["flaps1"],
+        panel: "ped",
+        done: (_s, c) => c.flapLever === 1,
       },
     ],
   },

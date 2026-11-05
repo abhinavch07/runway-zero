@@ -355,6 +355,35 @@ kbd {
 .fcu-value.dim {
   color: #8a6a40;
 }
+#gs-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#efis {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 6px 12px 6px 10px;
+  border-right: 1px solid #333;
+}
+.efis-title {
+  color: #8a96a3;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.efis-value {
+  min-width: 46px;
+  text-align: center;
+  color: #3fd4ff;
+}
+#efis button.on {
+  background: #e9edf1;
+  color: #111;
+}
+#efis button,
 #fcu button {
   background: #1b1f27;
   color: #eee;
@@ -364,6 +393,7 @@ kbd {
   font-size: 12px;
   cursor: pointer;
 }
+#efis button:hover,
 #fcu button:hover {
   background: #262c36;
 }

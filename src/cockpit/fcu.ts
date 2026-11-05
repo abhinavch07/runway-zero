@@ -84,10 +84,11 @@ export class FcuPanel {
   }
 
   /** Updates the values and the button lights. */
-  update(st: FccStatus) {
+  update(st: FccStatus, managedSpd: number | null = null) {
     const v = st.fcu;
     this.last = { ...v };
-    this.values.spd.textContent = String(Math.round(v.spd));
+    // Managed speed: the window shows dashes and a dot, the target comes from the MCDU.
+    this.values.spd.textContent = managedSpd !== null ? "---•" : String(Math.round(v.spd));
     this.values.hdg.textContent = String(Math.round(v.hdg)).padStart(3, "0");
     this.values.alt.textContent = String(Math.round(v.alt)).padStart(5, "0");
     this.values.vs.textContent = (v.vs >= 0 ? "+" : "−") + String(Math.abs(v.vs)).padStart(4, "0");
