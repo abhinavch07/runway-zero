@@ -77,7 +77,23 @@ export class LeverPanel {
     this.thrText = document.createElement("span");
     this.brake = document.createElement("span");
     this.brake.className = "brake";
-    thr.append(bar, this.thrText, this.brake);
+    const thrBtns = document.createElement("div");
+    thrBtns.className = "flap-row";
+    thrBtns.style.marginTop = "4px";
+    for (const [label, fn] of [
+      ["IDLE", () => (controls.throttle = 0)],
+      ["−", () => (controls.throttle = Math.max(0, controls.throttle - 0.1))],
+      ["+", () => (controls.throttle = Math.min(1, controls.throttle + 0.1))],
+    ] as [string, () => void][]) {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        fn();
+        b.blur();
+      });
+      thrBtns.appendChild(b);
+    }
+    thr.append(bar, this.thrText, this.brake, thrBtns);
 
     // Engine master switches and mode selector.
     const eng = section("ENGINES");

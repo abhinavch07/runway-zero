@@ -29,6 +29,7 @@ export class FcuPanel {
     for (const f of ["spd", "hdg", "alt", "vs"] as Field[]) {
       const box = document.createElement("div");
       box.className = "fcu-field";
+      box.dataset.ctl = `fcu-${f}`;
       box.innerHTML = `<span class="fcu-label">${LABEL[f]}</span>`;
       const minus = button("−", () => this.nudge(f, -1, false));
       const value = document.createElement("span");
@@ -42,9 +43,14 @@ export class FcuPanel {
       minus.addEventListener("click", (e) => e.shiftKey && this.nudge(f, -1, true));
       plus.addEventListener("click", (e) => e.shiftKey && this.nudge(f, 1, true));
       box.append(minus, value, plus);
-      if (f === "hdg") box.append(button("PULL", () => send({ kind: "hdg" }), "Fly the selected heading"));
-      if (f === "alt") box.append(button("PUSH", () => send({ kind: "alt" }), "Level off here"));
-      if (f === "vs") box.append(button("PULL", () => send({ kind: "vs" }), "Fly the selected V/S"));
+      const knob = (label: string, action: FcuAction, tip: string, ctl: string) => {
+        const b = button(label, () => send(action), tip);
+        b.dataset.ctl = ctl;
+        box.append(b);
+      };
+      if (f === "hdg") knob("PULL", { kind: "hdg" }, "Fly the selected heading", "fcu-hdg-pull");
+      if (f === "alt") knob("PUSH", { kind: "alt" }, "Level off here", "fcu-alt-push");
+      if (f === "vs") knob("PULL", { kind: "vs" }, "Fly the selected V/S", "fcu-vs-pull");
       this.values[f] = value;
       this.el.appendChild(box);
     }
@@ -58,6 +64,7 @@ export class FcuPanel {
     ] as [string, string, FcuAction, string][]) {
       const b = button(label, () => send(action), tip);
       b.classList.add("fcu-push");
+      b.dataset.ctl = `fcu-${id}`;
       const light = document.createElement("i");
       b.prepend(light);
       this.lights[id] = light;

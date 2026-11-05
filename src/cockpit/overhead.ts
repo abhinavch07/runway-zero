@@ -156,7 +156,7 @@ export class OverheadPanel {
     const box = this.el.getBoundingClientRect();
     if (box.width === 0) return;
     const need = { w: this.inner.scrollWidth, h: this.inner.scrollHeight };
-    const zoom = Math.min(1, (box.width - 22) / need.w, (box.height - 22) / need.h);
+    const zoom = Math.min(1.8, (box.width - 22) / need.w, (box.height - 22) / need.h);
     this.inner.style.zoom = String(Math.max(0.5, zoom));
   }
 

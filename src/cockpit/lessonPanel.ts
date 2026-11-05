@@ -1,0 +1,106 @@
+// Lesson sidebar: shows the steps of the current lesson, explains the current one, highlights the
+// control to use, switches to the right panel, and ticks steps off in order.
+import type { Lesson, PanelName } from "../lessons/lessons";
+import type { Controls, SimState } from "../sim/types";
+
+export class LessonPanel {
+  readonly el: HTMLElement;
+  private header: HTMLElement;
+  private list: HTMLElement;
+  private footer: HTMLElement;
+  private lesson: Lesson | null = null;
+  private latched: boolean[] = [];
+  private lastCurrent = -1;
+  private nextPressed = false;
+  private showPanel: (p: PanelName) => void;
+  private getPanel: () => PanelName;
+
+  constructor(parent: HTMLElement, showPanel: (p: PanelName) => void, getPanel: () => PanelName) {
+    this.showPanel = showPanel;
+    this.getPanel = getPanel;
+    this.el = document.createElement("aside");
+    this.el.id = "lesson";
+    this.header = document.createElement("div");
+    this.header.className = "ls-header";
+    this.list = document.createElement("ol");
+    this.footer = document.createElement("div");
+    this.footer.className = "ls-footer";
+    this.el.append(this.header, this.list, this.footer);
+    parent.appendChild(this.el);
+  }
+
+  start(lesson: Lesson) {
+    this.lesson = lesson;
+    this.latched = lesson.steps.map(() => false);
+    this.lastCurrent = -1;
+    this.nextPressed = false;
+    this.list.innerHTML = lesson.steps
+      .map(
+        (st) =>
+          `<li><div class="ls-title">${st.title}</div><div class="ls-why">${st.why}</div>` +
+          `${st.done ? "" : '<button class="ls-next">Next</button>'}</li>`,
+      )
+      .join("");
+    this.list.querySelectorAll(".ls-next").forEach((b) =>
+      b.addEventListener("click", () => {
+        this.nextPressed = true;
+        (b as HTMLElement).blur();
+      }),
+    );
+  }
+
+  update(s: SimState, c: Controls) {
+    const lesson = this.lesson;
+    if (!lesson) return;
+    // Steps count in order: a step only ticks once all steps before it are done. Once ticked it
+    // stays ticked, even if a later step undoes it (APU MASTER goes ON, then OFF).
+    let current = -1;
+    for (let i = 0; i < lesson.steps.length; i++) {
+      const st = lesson.steps[i];
+      if (!this.latched[i] && (i === 0 || this.latched[i - 1])) {
+        const ok = st.done ? st.done(s, c) : this.nextPressed && i === this.lastCurrent;
+        if (ok) {
+          this.latched[i] = true;
+          this.nextPressed = false;
+        }
+      }
+      if (!this.latched[i]) {
+        current = i;
+        break;
+      }
+    }
+
+    const items = this.list.children;
+    for (let i = 0; i < items.length; i++) {
+      items[i].className = this.latched[i] ? "done" : i === current ? "current" : "";
+    }
+    const total = lesson.steps.length;
+    this.header.innerHTML = `<div class="ls-name">${lesson.title}</div><div class="ls-progress">${
+      current < 0 ? `All ${total} steps done` : `Step ${current + 1} of ${total}`
+    }</div><div class="ls-bar"><i style="width:${(100 * (current < 0 ? total : current)) / total}%"></i></div>`;
+    this.footer.innerHTML = current < 0 ? `<b>Lesson complete.</b> ${lesson.finished}` : "";
+
+    clearHighlights();
+    if (current < 0) return;
+    const step = lesson.steps[current];
+    if (current !== this.lastCurrent) {
+      this.lastCurrent = current;
+      this.nextPressed = false;
+      if (this.getPanel() !== step.panel) this.showPanel(step.panel);
+      (items[current] as HTMLElement).scrollIntoView({ block: "nearest" });
+    }
+    for (const t of step.targets) {
+      // A switch that is already where the step wants it does not need pressing again.
+      const pos = (c.switches as unknown as Record<string, unknown>)[t];
+      if (step.want !== undefined && pos === step.want) continue;
+      document.querySelectorAll(`[data-ctl="${t}"]`).forEach((el) => el.classList.add("next"));
+    }
+    if (this.getPanel() !== step.panel) {
+      document.querySelectorAll(`[data-ctl="tab-${step.panel}"]`).forEach((el) => el.classList.add("next"));
+    }
+  }
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".next").forEach((el) => el.classList.remove("next"));
+}

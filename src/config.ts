@@ -8,6 +8,8 @@ const final10 = rwy28Final(10);
 // Cold and dark: parked 90 m left of the runway 28 centreline, 200 m in from the threshold,
 // nose pointing 45 degrees towards the runway. A short taxi forward and a left turn lines up.
 const parked = destination(rwy28Along(200), (RWY28_COURSE_T + 270) % 360, 90);
+// FCU lesson: in level flight, well clear of the airport.
+const cruisePos = destination(thr28, 105, 30 * 1852);
 const final10AltFt =
   thr28.elevationFt + ILS_28.thresholdCrossingFt + (10 * 1852 * Math.tan((ILS_28.glidePathDeg * Math.PI) / 180)) / 0.3048;
 
@@ -28,6 +30,35 @@ export const STARTS: StartPosition[] = [
     gearDown: true,
     fuelLbs: 16000,
     fcu: { spd: 160, hdg: 285, alt: 5000, vs: 0 },
+  },
+  {
+    id: "parked28",
+    name: "Parked beside runway 28, engines running",
+    latDeg: parked.latDeg,
+    lonDeg: parked.lonDeg,
+    altFt: thr28.elevationFt,
+    kias: 0,
+    headingDeg: (RWY28_COURSE_T + 45) % 360,
+    terrainFt: thr28.elevationFt,
+    onGround: true,
+    flapLever: 0,
+    gearDown: true,
+    fuelLbs: 8000,
+    fcu: { spd: 160, hdg: 285, alt: 5000, vs: 0 },
+  },
+  {
+    id: "cruise10k",
+    name: "Cruise at 10,000 ft east of Delhi",
+    latDeg: cruisePos.latDeg,
+    lonDeg: cruisePos.lonDeg,
+    altFt: 10000,
+    kias: 250,
+    headingDeg: 285,
+    terrainFt: 700,
+    flapLever: 0,
+    gearDown: false,
+    fuelLbs: 14000,
+    fcu: { spd: 250, hdg: 285, alt: 10000, vs: 0 },
   },
   {
     id: "rwy28",
@@ -74,15 +105,3 @@ export const STARTS: StartPosition[] = [
     fcu: { spd: 220, hdg: 280, alt: 3000, vs: 0 },
   },
 ];
-
-/** Free Cesium ion token from the .env file (VITE_CESIUM_ION_TOKEN). Empty means no-token mode. */
-export const CESIUM_ION_TOKEN: string = (import.meta.env?.VITE_CESIUM_ION_TOKEN ?? "").trim();
-
-/** Your own Google Maps Platform key (VITE_GOOGLE_MAPS_KEY) for Google 3D scenery. Empty means off. */
-export const GOOGLE_MAPS_KEY: string = (import.meta.env?.VITE_GOOGLE_MAPS_KEY ?? "").trim();
-
-/** Captain's eye position from the aircraft reference point, metres. Rough figures for R0. */
-export const EYE_OFFSET_M = { forward: 15, right: -0.5, up: 2.2 };
-
-/** Field of view across the wider side of the screen, degrees. */
-export const FOV_DEG = 80;

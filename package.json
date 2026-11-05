@@ -12,8 +12,7 @@
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@0x62/jsbsim-wasm": "^1.2.4-beta.4",
-    "cesium": "^1.147.0"
+    "@0x62/jsbsim-wasm": "^1.2.4-beta.4"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

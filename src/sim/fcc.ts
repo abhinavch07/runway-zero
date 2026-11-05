@@ -108,6 +108,8 @@ export class FlightControlComputer {
   private lastCross = 0;
   private messageTimer = 0;
   private flightBlend = 0; // 0 = ground law, 1 = flight law
+  /** Altitude held in ALT mode. Changing the FCU altitude does not move it (pull V/S to change level). */
+  private altHold = 0;
   private fdm: Fdm;
 
   constructor(fdm: Fdm) {
@@ -199,6 +201,7 @@ export class FlightControlComputer {
       case "alt":
         if (s.vert.startsWith("G/S")) break;
         s.fcu.alt = Math.round(this.fdm.get("position/h-sl-ft") / 100) * 100;
+        this.altHold = s.fcu.alt;
         s.vert = "ALT";
         break;
       case "hdg":
@@ -301,10 +304,14 @@ export class FlightControlComputer {
         vsCmd = s.fcu.vs;
         const closing = Math.sign(altErr) === Math.sign(vsCmd) && vsCmd !== 0;
         if (closing && Math.abs(altErr) < Math.abs(vsCmd) / K.altToVs) s.vert = "ALT*";
-      } else if (s.vert === "ALT*" || s.vert === "ALT") {
+      } else if (s.vert === "ALT*") {
         vsCmd = clamp(K.altToVs * altErr, -2500, 2500);
-        if (s.vert === "ALT*" && Math.abs(altErr) < 20) s.vert = "ALT";
-        if (s.vert === "ALT") vsCmd = clamp(vsCmd, -800, 800);
+        if (Math.abs(altErr) < 20) {
+          s.vert = "ALT";
+          this.altHold = s.fcu.alt;
+        }
+      } else if (s.vert === "ALT") {
+        vsCmd = clamp(K.altToVs * (this.altHold - altFt), -800, 800);
       } else {
         s.vert = "V/S";
         s.fcu.vs = Math.round((f.get("velocities/h-dot-fps") * 60) / 100) * 100;

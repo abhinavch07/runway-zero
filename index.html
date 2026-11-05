@@ -7,55 +7,54 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   </head>
   <body>
-    <div id="globe"></div>
-
-    <div id="topbar" class="panel">
+    <header id="topbar">
       <span class="brand">RUNWAY ZERO</span>
-      <label>Start <select id="start"></select></label>
-      <span id="mode"></span>
-      <span class="hint">H keys · K checklist</span>
-      <label>Scenery
-        <select id="scenery">
-          <option value="standard">Standard</option>
-          <option value="buildings">3D buildings (free)</option>
-          <option value="google">Google 3D (free, 1,000 loads/month)</option>
-        </select>
-      </label>
-      <label>Quality
-        <select id="quality">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </label>
+      <button id="lessons-btn">Lessons</button>
+      <nav id="tabs">
+        <button data-panel="ovhd" data-ctl="tab-ovhd">Overhead <kbd>1</kbd></button>
+        <button data-panel="main" data-ctl="tab-main">Main panel <kbd>2</kbd></button>
+        <button data-panel="ped" data-ctl="tab-ped">Pedestal <kbd>3</kbd></button>
+      </nav>
+      <span id="status"></span>
+    </header>
+
+    <div id="layout">
+      <div id="lesson-slot"></div>
+      <main id="cockpit">
+        <section id="p-ovhd" class="cp-panel"></section>
+        <section id="p-main" class="cp-panel">
+          <div id="glareshield"></div>
+          <div id="displays">
+            <canvas id="pfd" title="PFD"></canvas>
+            <canvas id="nd" title="ND"></canvas>
+            <canvas id="ewd" title="Engine and warning display"></canvas>
+          </div>
+        </section>
+        <section id="p-ped" class="cp-panel">
+          <div id="ped-row">
+            <canvas id="ewd-small" title="Engine and warning display"></canvas>
+            <div id="ped-controls"></div>
+          </div>
+        </section>
+      </main>
     </div>
 
-    <div id="help" class="panel hidden">
-      <h3>Keys (H to hide)</h3>
-      <div id="help-list"></div>
-    </div>
+    <footer id="notice">
+      Runway Zero is an A320neo-type procedures trainer, for learning only. Not approved for flight training credit or
+      real-world operations. Not affiliated with Airbus or any airline. Lessons are simplified training flows, not
+      operator procedures.
+    </footer>
 
-    <div id="readout" class="panel"></div>
-
-    <div id="panel">
-      <div id="glareshield"></div>
-      <div id="instruments">
-        <canvas id="pfd" title="PFD"></canvas>
-        <canvas id="nd" title="ND"></canvas>
-        <canvas id="ewd" title="Engine and warning display"></canvas>
+    <div id="picker" class="hidden">
+      <div class="picker-box">
+        <h2>Choose a lesson</h2>
+        <div id="picker-list"></div>
       </div>
-      <div id="notice">
-        Runway Zero is an A320neo-type learning simulator, for learning and entertainment only. Not approved for
-        flight training credit or real-world operations. Not affiliated with Airbus or any airline. The ILS is a
-        training stand-in, not the published procedure.
-      </div>
     </div>
 
-    <div id="loading" class="panel">Loading the flight model…</div>
-    <div id="notice-msg" class="panel hidden"></div>
-    <div id="paused" class="panel hidden">Paused (P to resume)</div>
-    <div id="touchdown" class="panel hidden"></div>
-    <div id="error" class="panel hidden"></div>
+    <div id="loading">Loading the aircraft…</div>
+    <div id="notice-msg" class="hidden"></div>
+    <div id="error" class="hidden"></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

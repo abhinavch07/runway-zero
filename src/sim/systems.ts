@@ -147,7 +147,8 @@ export class Systems {
   private irTime: [number, number, number] = [0, 0, 0];
   private apuFlapTime = 0;
   private apuPressesSeen = 0;
-  private hasMoved = false;
+  /** Seconds stopped on the ground. Ground power is plugged in after 20 s stopped. */
+  private stoppedS = 30;
 
   constructor(fdm: Fdm) {
     this.fdm = fdm;
@@ -179,7 +180,7 @@ export class Systems {
   /** Called after a start position is set. Cold: everything off. Otherwise: powered, aligned, running. */
   reset(cold: boolean, switches: Switches) {
     this.st = this.blank();
-    this.hasMoved = false;
+    this.stoppedS = 30;
     this.apuPressesSeen = switches.apuStartPresses;
     this.apuFlapTime = 0;
     if (cold) {
@@ -204,17 +205,18 @@ export class Systems {
     const s = this.st;
     const onGround = f.get("gear/wow") > 0;
     const gsKt = f.get("velocities/vg-fps") * 0.5925;
-    if (gsKt > 3) this.hasMoved = true;
+    this.stoppedS = onGround && gsKt < 1 ? this.stoppedS + dt : 0;
 
     // ----- Engines (flight model) -----
     const running = [f.get("propulsion/engine[0]/set-running") > 0, f.get("propulsion/engine[1]/set-running") > 0];
 
     // ----- Electrics -----
-    s.extPwrAvail = onGround && !this.hasMoved;
+    s.extPwrAvail = this.stoppedS > 20;
     const genOn = [running[0] && sw.gen1, running[1] && sw.gen2];
     const ext = sw.extPwr && s.extPwrAvail;
     const apuGen = sw.apuGen && s.apuAvail;
-    s.acSource = genOn[0] || genOn[1] ? "GEN" : apuGen ? "APU" : ext ? "EXT" : "";
+    // Priority: engine generators, then external power, then the APU generator.
+    s.acSource = genOn[0] || genOn[1] ? "GEN" : ext ? "EXT" : apuGen ? "APU" : "";
     s.acPower = s.acSource !== "";
     s.dcPower = s.acPower || sw.bat1 || sw.bat2;
     const charging = s.acPower ? 28.2 : 25.5;
