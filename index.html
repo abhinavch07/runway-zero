@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Runway Zero</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div id="globe"></div>
+
+    <div id="topbar" class="panel">
+      <span class="brand">RUNWAY ZERO</span>
+      <span id="start-name"></span>
+      <span id="mode"></span>
+      <label>Quality
+        <select id="quality">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="help" class="panel">
+      <h3>Keys (H to hide)</h3>
+      <div id="help-list"></div>
+    </div>
+
+    <div id="pfd-wrap" class="panel"><canvas id="pfd"></canvas></div>
+    <div id="readout" class="panel"></div>
+
+    <div id="notice" class="panel">
+      Runway Zero is an A320neo-type learning simulator. For learning and entertainment only.
+      Not approved for flight training credit or real-world operations. Not affiliated with Airbus or any airline.
+    </div>
+
+    <div id="loading" class="panel">Loading the flight model…</div>
+    <div id="paused" class="panel hidden">Paused (P to resume)</div>
+    <div id="error" class="panel hidden"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
