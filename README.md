@@ -3,32 +3,41 @@
 An open source A320neo-type learning simulator that runs in a desktop browser.
 
 > For learning and entertainment only. Not approved for flight training credit or real-world operations.
-> Not affiliated with or endorsed by Airbus or any airline.
+> Not affiliated with or endorsed by Airbus or any airline. The ILS is a training stand-in, not the published procedure.
 
-## Status: R0 spike
+## Status: R1 (first flight)
 
-R0 proves that the browser can carry the globe and the flight model together.
-
-How the 3D cockpit lines up with the globe: the cockpit is built in the aircraft's own frame with its camera fixed at the pilot's eye. The globe camera gets the same eye position, attitude, field of view and head turn. So the two layers match without moving the cockpit through world coordinates.
+You can take off from Delhi (VIDP) runway 28, fly a circuit by hand or on the autopilot, fly the ILS back to runway 28 and land.
 
 What works now:
 
-- 3D globe starting near Delhi (VIDP), 3,000 ft, heading 280, trimmed for level flight
-- JSBSim flight model compiled to WebAssembly, running in a Web Worker at 120 Hz
-- Keyboard flying: stick, rudder, trim, thrust levers, flaps, gear, speedbrake, brakes
-- Simple PFD: attitude, speed tape, altitude tape, vertical speed, heading
-- Blockout 3D cockpit (Three.js) drawn over the globe: glareshield, FCU, live PFD screen, ND and ECAM placeholders, pedestal, sidestick and thrust levers that move with your input
-- Mouse look in the cockpit, and clickable gear and flap levers (the pattern every switch will follow)
-- Cockpit view and outside view (stand-in box aircraft)
-- Quality setting (Low, Medium, High), saved in the browser
-- Real terrain height under the aircraft when a Cesium ion token is set
+- **Start positions:** VIDP runway 28 ready for takeoff, 10 NM final on the runway 28 ILS, or in the air near Delhi.
+- **Simple normal law:** on the ground the sidestick moves the elevators directly. In flight it asks for a pitch rate and roll rate. Let go and the aircraft holds its flight path and bank, and trims itself. Bank is held up to 33° and limited to 67°. Pitch is limited to +30° / -15°.
+- **Autopilot (AP1):** HDG, ALT (with ALT* capture), V/S, LOC and G/S. Disconnects if you move the sidestick hard, and at 50 ft on the ILS ("LAND MANUALLY").
+- **Autothrust (A/THR):** holds the FCU speed, goes to idle in the flare ("RETARD") and switches off after touchdown.
+- **FCU panel:** SPD, HDG, ALT, V/S with PULL / PUSH, AP1, A/THR, LOC, APPR, ND range.
+- **PFD:** flight mode annunciator, attitude, speed and altitude tapes with FCU targets, V/S, heading, ILS diamonds, radio height.
+- **ND:** arc mode with VIDP runways, ILS 28 course, heading bug, track and range rings.
+- **3D cockpit (blockout):** live PFD, ND and FCU windows, sidestick and thrust levers that move, clickable gear and flap levers, mouse look.
+- **Touchdown report:** sink rate, distance past the threshold, distance off the centreline.
+- **Globe:** VIDP runways drawn on the ground. Real terrain with a free Cesium ion token.
 
-Known gaps in R0, planned for later releases:
+Known gaps, planned for later releases:
 
-- The flight model is JSBSim's public A320 model (CFM56 engines, simple direct controls, 737-style flap steps). No fly-by-wire laws yet.
-- The 3D cockpit is a blockout of plain shapes. The real model comes from Blender, panel by panel.
-- Starts in the air. Runway starts at VIDP come in R1 with runway data from the eAIP.
-- Altitude is height above the WGS84 ellipsoid, so it can differ from true altitude by about 50 m near Delhi. Fixed in R1.
+- The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP. Liftoff around 150 kt, approach speed around 140 kt.
+- No cold and dark start yet. That is R2.
+- All FCU values are "selected". Managed modes and the MCDU flight plan come in R4.
+- Headings and courses are true, not magnetic (about 1° difference at Delhi).
+- No wind or weather yet.
+
+## Try it
+
+1. Pick **10 NM final, runway 28 ILS**. Press **T** (autothrust) and **A** (autopilot), then click **APPR**.
+2. Watch LOC and G/S on the PFD. The autopilot flies down the glide path.
+3. At 50 ft it disconnects. Pull back gently on the sidestick (Arrow Down) to flare. Autothrust goes to idle.
+4. After touchdown hold **.** for brakes. The touchdown report pops up.
+
+For a takeoff: pick **VIDP runway 28**, hold **=** to full thrust, at about 150 kt pull back (Arrow Down) to about 12° pitch, then G for gear up.
 
 ## Run it
 
@@ -43,10 +52,11 @@ npm run dev               # open the address it prints, usually http://localhost
 Other commands:
 
 ```bash
-npm run build       # production build in dist/
-npm run preview     # serve the production build
-npm run typecheck   # TypeScript check
-npm run test:fdm    # run the flight model for 60 s in Node and print the state
+npm run build         # production build in dist/
+npm run preview       # serve the production build
+npm run typecheck     # TypeScript check
+npm run test:fdm      # run the flight model for 60 s in Node
+npm run test:flights  # scripted test flights: normal law, takeoff and climb, ILS and landing
 ```
 
 ### Cesium ion token (free)
@@ -55,51 +65,68 @@ npm run test:fdm    # run the flight model for 60 s in Node and print the state
 2. Open **Access Tokens** and copy the default token.
 3. Paste it into `.env` as `VITE_CESIUM_ION_TOKEN=...` and restart `npm run dev`.
 
-Never commit `.env`. It is already in `.gitignore`.
-
-Without a token the app still runs, with flat ground and OpenStreetMap imagery.
+Never commit `.env`. It is already in `.gitignore`. Without a token the app still runs, with flat ground and OpenStreetMap imagery.
 
 ## Keys
 
 | Key | Action |
 | --- | --- |
-| Arrow Up / Down | Pitch down / up |
-| Arrow Left / Right | Roll left / right |
-| Z / X | Rudder left / right |
-| [ / ] | Pitch trim down / up |
+| Arrow Up / Down | Sidestick forward / back |
+| Arrow Left / Right | Sidestick left / right |
+| Z / X | Rudder and nosewheel |
 | = / - | Thrust levers up / down |
 | F / R | Flaps one step down / up |
 | G | Gear lever |
 | / | Speedbrake |
 | . (hold) | Wheel brakes |
+| A | Autopilot on / off |
+| T | Autothrust on / off |
 | C | Cockpit or outside view |
-| V | 3D cockpit on or off (shows the flat PFD instead) |
+| V | 3D cockpit on / off (shows flat PFD and ND instead) |
 | Mouse drag | Look around in the cockpit, double-click to reset |
 | Click | Gear lever, flap lever in the 3D cockpit |
 | P | Pause |
-| Backspace | Reset |
-| H | Help on or off |
+| Backspace | Restart the current start position |
+| H | Help on / off |
+
+FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
 
 ## How it is built
 
 ```
 src/
-  main.ts              globe, camera, display loop, readouts
-  config.ts            start position and settings
-  sim/fdm.worker.ts    JSBSim in a Web Worker, fixed 120 Hz step
-  sim/types.ts         messages between page and worker
-  input/keyboard.ts    keyboard controls
-  cockpit/pfd.ts       canvas PFD
-  cockpit/cockpit3d.ts 3D cockpit layer (Three.js), mouse look, clickable levers
-public/jsbsim/         JSBSim aircraft and engine files
-scripts/               Node test scripts
+  main.ts               globe, camera, display loop, panels
+  config.ts             start positions and settings
+  sim/fdm.worker.ts     runs the simulation in a Web Worker at 120 Hz
+  sim/core.ts           JSBSim, start positions, touchdown report (shared with the Node tests)
+  sim/fcc.ts            normal law, autopilot and autothrust
+  sim/ils.ts            ILS deviations
+  sim/types.ts          messages between page and worker
+  world/vidp.ts         VIDP runway data and the training ILS 28
+  world/geo.ts          distance and bearing helpers
+  world/runways3d.ts    runways drawn on the globe
+  cockpit/pfd.ts        PFD
+  cockpit/nd.ts         ND
+  cockpit/fcu.ts        FCU panel and its 3D windows
+  cockpit/cockpit3d.ts  3D cockpit layer (Three.js)
+  input/keyboard.ts     keyboard controls
+public/jsbsim/          JSBSim aircraft and engine files
+scripts/                Node test scripts
 ```
+
+The 3D cockpit is built in the aircraft's own frame with its camera fixed at the pilot's eye. The globe camera gets the same eye position, attitude, field of view and head turn, so the two layers match.
+
+The flight model works in altitude above mean sea level. The globe uses height above the WGS84 ellipsoid. The difference is measured once at the runway 28 threshold and applied around Delhi.
+
+## Data sources
+
+- VIDP runway ends, headings and elevations: [OurAirports](https://github.com/davidmegginson/ourairports-data) (public domain).
+- ILS 28 is built from the runway geometry: localizer on the centreline, 3° glide path, 50 ft threshold crossing height. It is a training stand-in, not the published procedure.
 
 ## Licences
 
 - Runway Zero code: GPL v3 or later (see `LICENSE`).
-- JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold.
+- JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold. Our copy is modified: fuel tank position moved from 600 to 650 in, and CmDe changed from -1.5 to -2.0 so the model can be trimmed at normal approach speeds. The changes are noted at the top of `A320.xml`.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.
-- CesiumJS: Apache 2.0.
-- Three.js: MIT.
+- CesiumJS: Apache 2.0. Three.js: MIT.
 - Map data: Cesium ion (with token) or © OpenStreetMap contributors (without token).

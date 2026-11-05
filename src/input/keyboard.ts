@@ -1,30 +1,29 @@
-// Keyboard flight controls. Held keys move the stick smoothly; released keys let it centre again.
+// Keyboard flight controls. Held keys move the sidestick smoothly; released keys let it centre again.
 // Works on a laptop keyboard with no extra keys (no Page Up, Home or number pad needed).
 import type { Controls } from "../sim/types";
 
 export const KEY_HELP: Array<[string, string]> = [
-  ["Arrow Up / Down", "Pitch down / up"],
-  ["Arrow Left / Right", "Roll left / right"],
-  ["Z / X", "Rudder left / right"],
-  ["[ / ]", "Pitch trim down / up"],
+  ["Arrow Up / Down", "Sidestick forward / back"],
+  ["Arrow Left / Right", "Sidestick left / right"],
+  ["Z / X", "Rudder and nosewheel left / right"],
   ["= / -", "Thrust levers up / down"],
   ["F / R", "Flaps one step down / up"],
   ["G", "Gear lever up / down"],
   ["/", "Speedbrake in / out"],
-  [".", "Wheel brakes (hold)"],
+  [". (hold)", "Wheel brakes"],
+  ["A", "Autopilot on / off"],
+  ["T", "Autothrust on / off"],
   ["C", "Cockpit or outside view"],
-  ["V", "3D cockpit on or off"],
-  ["Mouse drag", "Look around (double-click to reset)"],
+  ["V", "3D cockpit on / off"],
+  ["Mouse drag", "Look around (double-click resets)"],
   ["Click", "Gear lever, flap lever"],
   ["P", "Pause"],
-  ["Backspace", "Reset to start position"],
-  ["H", "Show or hide this help"],
+  ["Backspace", "Restart this start position"],
+  ["H", "Show / hide this help"],
 ];
 
 const STICK_RATE = 1.6; // stick travel per second while a key is held
 const CENTRE_RATE = 2.5; // stick travel per second back to centre after release
-const STICK_LIMIT = 1;
-const TRIM_RATE = 0.15;
 const THROTTLE_RATE = 0.35;
 
 export interface KeyboardEvents {
@@ -33,6 +32,8 @@ export interface KeyboardEvents {
   onReset(): void;
   onToggleHelp(): void;
   onToggleCockpit(): void;
+  onAp(): void;
+  onAthr(): void;
 }
 
 export class KeyboardControls {
@@ -40,37 +41,38 @@ export class KeyboardControls {
     pitch: 0,
     roll: 0,
     yaw: 0,
-    pitchTrim: 0,
-    throttle: 0.3,
+    throttle: 0,
     flapLever: 0,
-    gearDown: false,
+    gearDown: true,
     speedbrake: 0,
     brakes: 0,
   };
   private held = new Set<string>();
+  private events: KeyboardEvents;
 
-  constructor(private events: KeyboardEvents) {
+  constructor(events: KeyboardEvents) {
+    this.events = events;
     window.addEventListener("keydown", (e) => this.down(e));
     window.addEventListener("keyup", (e) => this.held.delete(e.key.toLowerCase()));
     window.addEventListener("blur", () => this.held.clear());
   }
 
-  /** Sets thrust and trim to the values the trim routine found, after a start or reset. */
-  setTrimmed(throttle: number, pitchTrim: number) {
+  /** Matches the levers to a new start position. */
+  setStart(throttle: number, flapLever: number, gearDown: boolean) {
     Object.assign(this.controls, {
       pitch: 0,
       roll: 0,
       yaw: 0,
       throttle,
-      pitchTrim,
-      flapLever: 0,
-      gearDown: false,
+      flapLever,
+      gearDown,
       speedbrake: 0,
       brakes: 0,
     });
   }
 
   private down(e: KeyboardEvent) {
+    if ((e.target as HTMLElement)?.tagName === "SELECT") return;
     const key = e.key.toLowerCase();
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", "/", "backspace"].includes(key)) e.preventDefault();
     if (e.repeat) return;
@@ -104,27 +106,37 @@ export class KeyboardControls {
       case "v":
         this.events.onToggleCockpit();
         break;
+      case "a":
+        this.events.onAp();
+        break;
+      case "t":
+        this.events.onAthr();
+        break;
     }
   }
 
-  /** Moves the stick, rudder, trim and thrust for held keys. Call once per frame. */
-  update(dt: number) {
+  /**
+   * Moves the stick, rudder and thrust levers for held keys. Call once per frame.
+   * While autothrust is active, pass its lever position: the levers follow it.
+   */
+  update(dt: number, athrThrottle: number | null) {
     const c = this.controls;
     const h = (k: string) => this.held.has(k);
     c.pitch = axis(c.pitch, h("arrowdown"), h("arrowup"), dt);
     c.roll = axis(c.roll, h("arrowright"), h("arrowleft"), dt);
     c.yaw = axis(c.yaw, h("x"), h("z"), dt);
-    if (h("]")) c.pitchTrim = clamp(c.pitchTrim + TRIM_RATE * dt, -1, 1);
-    if (h("[")) c.pitchTrim = clamp(c.pitchTrim - TRIM_RATE * dt, -1, 1);
-    if (h("=") || h("+")) c.throttle = clamp(c.throttle + THROTTLE_RATE * dt, 0, 1);
-    if (h("-") || h("_")) c.throttle = clamp(c.throttle - THROTTLE_RATE * dt, 0, 1);
+    if (athrThrottle !== null) c.throttle = athrThrottle;
+    else {
+      if (h("=") || h("+")) c.throttle = clamp(c.throttle + THROTTLE_RATE * dt, 0, 1);
+      if (h("-") || h("_")) c.throttle = clamp(c.throttle - THROTTLE_RATE * dt, 0, 1);
+    }
     c.brakes = h(".") ? 1 : 0;
   }
 }
 
 function axis(value: number, plus: boolean, minus: boolean, dt: number): number {
-  if (plus && !minus) return clamp(value + STICK_RATE * dt, -STICK_LIMIT, STICK_LIMIT);
-  if (minus && !plus) return clamp(value - STICK_RATE * dt, -STICK_LIMIT, STICK_LIMIT);
+  if (plus && !minus) return clamp(value + STICK_RATE * dt, -1, 1);
+  if (minus && !plus) return clamp(value - STICK_RATE * dt, -1, 1);
   const step = CENTRE_RATE * dt;
   return Math.abs(value) <= step ? 0 : value - Math.sign(value) * step;
 }

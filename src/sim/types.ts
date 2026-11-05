@@ -1,14 +1,13 @@
 // Messages and values shared between the page and the simulation worker.
+import type { FccStatus, FcuAction, FcuValues } from "./fcc.ts";
 
 export interface Controls {
   /** Stick pitch, -1 full forward (nose down) to +1 full back (nose up). */
   pitch: number;
   /** Stick roll, -1 full left to +1 full right. */
   roll: number;
-  /** Rudder, -1 full left to +1 full right. */
+  /** Rudder pedals, -1 full left to +1 full right. Also steers the nosewheel on the ground. */
   yaw: number;
-  /** Pitch trim, -1 to +1. */
-  pitchTrim: number;
   /** Thrust levers, 0 idle to 1 full. */
   throttle: number;
   /** Flap lever detent: 0, 1, 2, 3 or 4 (FULL). */
@@ -21,18 +20,32 @@ export interface Controls {
   brakes: number;
 }
 
+export interface TouchdownReport {
+  vsFpm: number;
+  kias: number;
+  pitchDeg: number;
+  rollDeg: number;
+  /** Distance past the runway 28 threshold, metres. */
+  distPastThresholdM: number;
+  /** Distance right of the runway centreline, metres. */
+  offCentreM: number;
+  simTime: number;
+}
+
 export interface SimState {
   simTime: number;
   latDeg: number;
   lonDeg: number;
-  /** Height above the WGS84 ellipsoid used by the globe, metres. */
+  /** Height used to draw on the globe, metres (true altitude plus the globe offset). */
   heightM: number;
+  /** Altitude above mean sea level, feet. */
   altFt: number;
   /** Height above the terrain under the aircraft, feet. */
   aglFt: number;
   pitchDeg: number;
   rollDeg: number;
   headingDeg: number;
+  trackDeg: number;
   kias: number;
   groundSpeedKt: number;
   machNo: number;
@@ -43,30 +56,43 @@ export interface SimState {
   gearPos: number;
   speedbrakePos: number;
   onGround: boolean;
+  pitchTrim: number;
   /** How many sim seconds ran per real second over the last report. */
   simRate: number;
+  fcc: FccStatus;
+  touchdown: TouchdownReport | null;
 }
 
 export interface StartPosition {
+  id: string;
   name: string;
   latDeg: number;
   lonDeg: number;
+  /** Altitude above mean sea level, feet. Ignored for ground starts. */
   altFt: number;
   kias: number;
   headingDeg: number;
-  /** Terrain height to use until the globe sends a real sample, feet. */
+  gammaDeg?: number;
+  /** Terrain elevation above mean sea level under the start point, feet. */
   terrainFt: number;
+  onGround?: boolean;
+  flapLever: number;
+  gearDown: boolean;
+  /** Total fuel, pounds, split between the two wing tanks. */
+  fuelLbs: number;
+  fcu: FcuValues;
 }
 
 export type ToWorker =
-  | { type: "init"; baseUrl: string; start: StartPosition }
+  | { type: "init"; baseUrl: string; start: StartPosition; displayOffsetM: number }
   | { type: "controls"; controls: Controls }
   | { type: "terrain"; elevationFt: number }
   | { type: "pause"; paused: boolean }
-  | { type: "reset"; start: StartPosition };
+  | { type: "reset"; start: StartPosition; displayOffsetM: number }
+  | { type: "fcu"; action: FcuAction };
 
 export type FromWorker =
-  | { type: "ready"; trimmedThrottle: number; trimmedPitchTrim: number }
+  | { type: "ready"; throttle: number; start: StartPosition }
   | { type: "state"; state: SimState }
   | { type: "error"; message: string }
   | { type: "log"; message: string };

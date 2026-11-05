@@ -4,6 +4,13 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
 
+    <!--
+      Modified for Runway Zero (5 Nov 2026), under the LGPL 2.1 terms of the original:
+        - Fuel tank x location moved from 600 to 650 in, so the CG stays nearer the aero reference point.
+        - CmDe changed from -1.5 to -2.0, so pitch control (which in this model also stands in for the
+          trimmable horizontal stabiliser) can trim the aircraft at normal approach speeds with full flap.
+      Without these changes the model could not be trimmed below about 160 kt with flaps extended.
+    -->
     <fileheader>
       <author> Unknown </author>
       <filecreationdate>2003-01-01</filecreationdate>
@@ -278,7 +285,7 @@
         </engine>
         <tank type="FUEL">    <!-- Tank number 0 -->
             <location unit="IN">
-                <x> 600 </x>
+                <x> 650 </x>
                 <y> -90 </y>
                 <z> -20 </z>
             </location>
@@ -287,7 +294,7 @@
         </tank>
         <tank type="FUEL">    <!-- Tank number 1 -->
             <location unit="IN">
-                <x> 600 </x>
+                <x> 650 </x>
                 <y> 90 </y>
                 <z> -20 </z>
             </location>
@@ -772,7 +779,7 @@
                     <property>metrics/Sw-sqft</property>
                     <property>metrics/cbarw-ft</property>
                     <property>fcs/elevator-pos-rad</property>
-                    <value>-1.5000</value>
+                    <value>-2.0000</value>
                 </product>
             </function>
             <function name="aero/coefficient/Cmq">

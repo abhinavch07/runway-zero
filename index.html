@@ -11,7 +11,7 @@
 
     <div id="topbar" class="panel">
       <span class="brand">RUNWAY ZERO</span>
-      <span id="start-name"></span>
+      <label>Start <select id="start"></select></label>
       <span id="mode"></span>
       <label>Quality
         <select id="quality">
@@ -27,16 +27,21 @@
       <div id="help-list"></div>
     </div>
 
-    <div id="pfd-wrap" class="panel"><canvas id="pfd"></canvas></div>
+    <div id="displays" class="panel">
+      <canvas id="pfd"></canvas>
+      <canvas id="nd"></canvas>
+    </div>
     <div id="readout" class="panel"></div>
 
     <div id="notice" class="panel">
       Runway Zero is an A320neo-type learning simulator. For learning and entertainment only.
       Not approved for flight training credit or real-world operations. Not affiliated with Airbus or any airline.
+      The ILS is a training stand-in, not the published procedure.
     </div>
 
     <div id="loading" class="panel">Loading the flight model…</div>
     <div id="paused" class="panel hidden">Paused (P to resume)</div>
+    <div id="touchdown" class="panel hidden"></div>
     <div id="error" class="panel hidden"></div>
 
     <script type="module" src="/src/main.ts"></script>

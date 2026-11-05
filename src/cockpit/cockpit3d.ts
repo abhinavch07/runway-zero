@@ -27,6 +27,8 @@ export class Cockpit3D {
   private scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   private pfdTexture: THREE.CanvasTexture;
+  private ndTexture: THREE.CanvasTexture;
+  private fcuTexture: THREE.CanvasTexture;
   private sidestick!: THREE.Object3D;
   private thrustLevers: THREE.Object3D[] = [];
   private gearLever!: THREE.Object3D;
@@ -38,12 +40,15 @@ export class Cockpit3D {
   headPitch = DEFAULT_HEAD_PITCH;
   visible = true;
 
+  private handlers: CockpitClickHandlers;
+
   constructor(
     container: HTMLElement,
-    pfdCanvas: HTMLCanvasElement,
+    canvases: { pfd: HTMLCanvasElement; nd: HTMLCanvasElement; fcu: HTMLCanvasElement },
     fovDeg: number,
-    private handlers: CockpitClickHandlers,
+    handlers: CockpitClickHandlers,
   ) {
+    this.handlers = handlers;
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     this.renderer.setClearColor(0x000000, 0);
     this.canvas = this.renderer.domElement;
@@ -58,8 +63,15 @@ export class Cockpit3D {
     sun.position.set(-1, 2, -1);
     this.scene.add(sun);
 
-    this.pfdTexture = new THREE.CanvasTexture(pfdCanvas);
-    this.pfdTexture.colorSpace = THREE.SRGBColorSpace;
+    const tex = (c: HTMLCanvasElement) => {
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4;
+      return t;
+    };
+    this.pfdTexture = tex(canvases.pfd);
+    this.ndTexture = tex(canvases.nd);
+    this.fcuTexture = tex(canvases.fcu);
     this.build();
     this.bindMouse();
     this.resize();
@@ -91,7 +103,7 @@ export class Cockpit3D {
     };
   }
 
-  update(s: SimState, c: Controls) {
+  update(s: SimState, c: Controls, fcuChanged: boolean) {
     // Sidestick leans with the pilot's input, thrust levers follow the lever position.
     this.sidestick.rotation.x = -c.pitch * 0.35;
     this.sidestick.rotation.z = -c.roll * 0.35;
@@ -99,6 +111,8 @@ export class Cockpit3D {
     this.gearLever.position.y = c.gearDown ? -0.46 : -0.36;
     this.flapLever.position.z = -0.42 + c.flapLever * 0.04;
     this.pfdTexture.needsUpdate = true;
+    this.ndTexture.needsUpdate = true;
+    if (fcuChanged) this.fcuTexture.needsUpdate = true;
     void s;
   }
 
@@ -156,12 +170,17 @@ export class Cockpit3D {
     panel.rotation.x = -0.2;
     // Glareshield with the FCU in the middle.
     this.box("GLARESHIELD", 1.9, 0.04, 0.22, DARK, CENTRE_X, -0.25, -0.76);
-    this.box("FCU", 0.62, 0.05, 0.06, PANEL_COLOUR, CENTRE_X, -0.22, -0.84);
+    const fcu = this.box("FCU", 0.62, 0.08, 0.06, PANEL_COLOUR, CENTRE_X, -0.215, -0.84);
+    const fcuFace = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.075), new THREE.MeshBasicMaterial({ map: this.fcuTexture }));
+    fcuFace.name = "FCU_WINDOWS";
+    fcuFace.position.set(CENTRE_X, -0.215, -0.8095);
+    this.scene.add(fcuFace);
+    void fcu;
     this.box("EFIS_CAPT", 0.2, 0.05, 0.06, PANEL_COLOUR, -0.05, -0.22, -0.84);
 
     // Captain's displays: PFD (live) and ND, then the two ECAM screens on the centre panel.
     this.screen("PFD_CAPT", -0.12, -0.39, -0.74, this.pfdTexture);
-    this.screen("ND_CAPT", 0.08, -0.39, -0.74, undefined, "ND");
+    this.screen("ND_CAPT", 0.08, -0.39, -0.74, this.ndTexture);
     this.screen("ECAM_UPPER", CENTRE_X, -0.39, -0.74, undefined, "E/WD");
     this.screen("ND_FO", 0.98, -0.39, -0.74, undefined, "ND");
     this.screen("PFD_FO", 1.18, -0.39, -0.74, undefined, "PFD");

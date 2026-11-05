@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:fdm": "node scripts/fdm-smoke-test.mjs"
+    "test:fdm": "node scripts/fdm-smoke-test.mjs",
+    "test:flights": "node scripts/fcc-test.ts"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {

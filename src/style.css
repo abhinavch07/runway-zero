@@ -22,14 +22,96 @@ body {
   padding: 10px 12px;
   font-size: 13px;
 }
-#pfd-wrap {
+#displays {
   left: 12px;
-  bottom: 12px;
+  bottom: 96px;
   padding: 6px;
+  display: flex;
+  gap: 6px;
 }
-#pfd {
+#displays canvas {
   display: block;
   border-radius: 4px;
+  width: 320px !important;
+  height: 320px !important;
+}
+#fcu {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.fcu-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.fcu-label {
+  color: #cfd6de;
+  font-size: 11px;
+  margin-right: 2px;
+}
+.fcu-value {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 18px;
+  color: #ffb347;
+  background: #11151b;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 2px 6px;
+  min-width: 52px;
+  text-align: center;
+  cursor: ns-resize;
+}
+.fcu-value.dim {
+  color: #8a6a40;
+}
+#fcu button {
+  background: #1b1f27;
+  color: #eee;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+#fcu button:hover {
+  background: #262c36;
+}
+.fcu-buttons {
+  display: flex;
+  gap: 6px;
+}
+.fcu-push i {
+  display: block;
+  width: 26px;
+  height: 3px;
+  margin: 0 auto 3px;
+  border-radius: 2px;
+  background: #333;
+}
+.fcu-push i.on {
+  background: #2fd24a;
+  box-shadow: 0 0 6px #2fd24a;
+}
+#touchdown {
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  width: 360px;
+  cursor: pointer;
+}
+#touchdown h3 {
+  margin: 0 0 8px;
+}
+#touchdown p {
+  margin: 8px 0 0;
+  color: #999;
+  font-size: 11px;
 }
 #readout {
   right: 12px;
@@ -82,13 +164,11 @@ kbd {
   white-space: nowrap;
 }
 #notice {
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 12px;
-  font-size: 11px;
+  right: 12px;
+  bottom: 70px;
+  font-size: 10.5px;
   color: #aaa;
-  max-width: 420px;
-  text-align: center;
+  max-width: 300px;
   padding: 6px 10px;
 }
 #loading,
@@ -109,7 +189,9 @@ kbd {
   display: none !important;
 }
 .cesium-viewer-bottom {
-  left: 460px !important;
+  left: auto !important;
+  right: 12px !important;
+  bottom: 12px !important;
 }
 #cockpit3d {
   position: absolute;

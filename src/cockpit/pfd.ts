@@ -1,5 +1,6 @@
-// A simple primary flight display drawn on a canvas: attitude, speed tape, altitude tape,
-// vertical speed and heading. R0 version, not yet a full replica of the real display.
+// Primary flight display drawn on a canvas: flight mode annunciator, attitude, speed and altitude
+// tapes with the FCU targets, vertical speed, heading, ILS deviation scales and radio height.
+// A training display in the spirit of the real one, not a replica.
 import type { SimState } from "../sim/types";
 
 const SIZE = 420;
@@ -9,13 +10,20 @@ const WHITE = "#ffffff";
 const GREEN = "#2fd24a";
 const YELLOW = "#ffd400";
 const AMBER = "#ff9f1a";
+const CYAN = "#3fd4ff";
+const MAGENTA = "#ff4bd8";
+const RED = "#ff3b3b";
 const TAPE_BG = "#3b3b3b";
-const PX_PER_DEG = 6; // attitude: pixels per degree of pitch
+const PX_PER_DEG = 6;
+/** Height of the radio altimeter antenna above the ground with the aircraft on its wheels, feet. */
+export const RA_ZERO_FT = 8;
 
 export class Pfd {
+  readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
-  constructor(private canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = SIZE * dpr;
     canvas.height = SIZE * dpr;
@@ -32,19 +40,65 @@ export class Pfd {
     g.fillRect(0, 0, SIZE, SIZE);
     g.font = "14px ui-monospace, Menlo, monospace";
     g.textBaseline = "middle";
-    this.attitude(s, 210, 200);
-    this.speedTape(s.kias, 52, 200);
-    this.altTape(s.altFt, 352, 200);
-    this.vsi(s.vsFpm, 404, 200);
-    this.headingTape(s.headingDeg, 210, 388);
-    this.fma();
+    this.attitude(s, 210, 205);
+    this.ils(s, 210, 205);
+    this.speedTape(s, 52, 205);
+    this.altTape(s, 352, 205);
+    this.vsi(s.vsFpm, 404, 205);
+    this.headingTape(s, 210, 395);
+    this.radioHeight(s, 210, 300);
+    this.fma(s);
+    g.restore();
+  }
+
+  private fma(s: SimState) {
+    const g = this.ctx;
+    const f = s.fcc;
+    g.save();
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, SIZE, 52);
+    g.strokeStyle = "#555";
+    g.lineWidth = 1;
+    for (const x of [84, 168, 252, 336]) {
+      g.beginPath();
+      g.moveTo(x, 4);
+      g.lineTo(x, 48);
+      g.stroke();
+    }
+    g.textAlign = "center";
+    g.font = "bold 13px ui-monospace, Menlo, monospace";
+    const col = (i: number) => 42 + i * 84;
+    // Column 1: autothrust mode. Column 2: vertical. Column 3: lateral. Column 5: engagement.
+    if (f.athr) {
+      g.fillStyle = GREEN;
+      g.fillText(f.athrMode, col(0), 15);
+    }
+    g.fillStyle = GREEN;
+    if (f.vert) g.fillText(f.vert, col(1), 15);
+    if (f.lat) g.fillText(f.lat, col(2), 15);
+    g.fillStyle = CYAN;
+    if (f.vertArmed) g.fillText(f.vertArmed, col(1), 33);
+    if (f.latArmed) g.fillText(f.latArmed, col(2), 33);
+    g.fillStyle = WHITE;
+    if (f.ap) g.fillText("AP1", col(4), 15);
+    if (f.athr) g.fillText("A/THR", col(4), 33);
+    if (!f.ap && !f.athr && !f.vert) {
+      g.fillStyle = "#9aa";
+      g.font = "12px ui-monospace, Menlo, monospace";
+      g.fillText(s.fcc.law === "GROUND" ? "GROUND LAW" : "MANUAL", col(2), 15);
+    }
+    if (f.message) {
+      g.font = "bold 12px ui-monospace, Menlo, monospace";
+      g.fillStyle = f.message.startsWith("AP OFF") ? RED : AMBER;
+      g.fillText(f.message, 210, 46);
+    }
     g.restore();
   }
 
   private attitude(s: SimState, cx: number, cy: number) {
     const g = this.ctx;
     const w = 210;
-    const h = 230;
+    const h = 220;
     g.save();
     g.beginPath();
     g.rect(cx - w / 2, cy - h / 2, w, h);
@@ -62,7 +116,6 @@ export class Pfd {
     g.moveTo(-400, horizonY);
     g.lineTo(400, horizonY);
     g.stroke();
-    // Pitch ladder every 2.5 degrees, labels every 10.
     g.fillStyle = WHITE;
     g.textAlign = "center";
     g.lineWidth = 1.5;
@@ -81,16 +134,14 @@ export class Pfd {
     }
     g.restore();
 
-    // Roll scale (fixed) and roll pointer (moves with the aircraft).
     g.save();
     g.translate(cx, cy);
     g.strokeStyle = WHITE;
     g.lineWidth = 2;
-    const r = 100;
-    for (const a of [-45, -30, -20, -10, 0, 10, 20, 30, 45]) {
+    const r = 96;
+    for (const a of [-45, -30, -20, -10, 10, 20, 30, 45]) {
       const rad = ((a - 90) * Math.PI) / 180;
-      const len = a === 0 ? 0 : Math.abs(a) % 30 === 0 ? 12 : 7;
-      if (len === 0) continue;
+      const len = Math.abs(a) % 30 === 0 ? 12 : 7;
       g.beginPath();
       g.moveTo(Math.cos(rad) * r, Math.sin(rad) * r);
       g.lineTo(Math.cos(rad) * (r + len), Math.sin(rad) * (r + len));
@@ -113,10 +164,8 @@ export class Pfd {
     g.fill();
     g.restore();
 
-    // Fixed aircraft symbol.
     g.save();
     g.translate(cx, cy);
-    g.fillStyle = "#000";
     g.strokeStyle = YELLOW;
     g.lineWidth = 3;
     for (const side of [-1, 1]) {
@@ -131,10 +180,41 @@ export class Pfd {
     g.restore();
   }
 
-  private speedTape(kias: number, cx: number, cy: number) {
+  /** ILS scales: localizer under the attitude, glide slope to its right. Diamonds in magenta. */
+  private ils(s: SimState, cx: number, cy: number) {
+    const ils = s.fcc.ils;
+    if (!ils.valid || ils.distThrNm > 20 || ils.distThrNm < -2) return;
+    const g = this.ctx;
+    const dot = 22; // pixels per dot
+    g.save();
+    g.strokeStyle = WHITE;
+    g.fillStyle = WHITE;
+    for (const i of [-2, -1, 1, 2]) {
+      g.beginPath();
+      g.arc(cx + i * dot, cy + 100, 3, 0, Math.PI * 2);
+      g.stroke();
+      g.beginPath();
+      g.arc(cx + 114, cy + i * dot, 3, 0, Math.PI * 2);
+      g.stroke();
+    }
+    // Localizer: positive deviation = aircraft right, so the beam (diamond) is to the left.
+    const locDots = Math.max(-2.3, Math.min(2.3, -ils.locDevDeg / (2.5 / 2)));
+    const gsDots = Math.max(-2.3, Math.min(2.3, ils.gsDevDeg / (0.7 / 2)));
+    g.fillStyle = MAGENTA;
+    diamond(g, cx + locDots * dot, cy + 100, 7);
+    diamond(g, cx + 114, cy + gsDots * dot, 7);
+    g.font = "11px ui-monospace, Menlo, monospace";
+    g.fillStyle = MAGENTA;
+    g.textAlign = "left";
+    g.fillText(`ILS28 ${ils.distThrNm.toFixed(1)}NM`, cx - 104, cy - 100);
+    g.restore();
+  }
+
+  private speedTape(s: SimState, cx: number, cy: number) {
+    const kias = s.kias;
     const g = this.ctx;
     const w = 64;
-    const h = 260;
+    const h = 250;
     const pxPerKt = 3.2;
     g.save();
     g.fillStyle = TAPE_BG;
@@ -156,14 +236,31 @@ export class Pfd {
       g.stroke();
       if (v % 20 === 0) g.fillText(String(v), cx + w / 2 - 14, y);
     }
+    // Selected speed: cyan triangle on the right edge of the tape.
+    const spdY = cy - (s.fcc.fcu.spd - kias) * pxPerKt;
+    g.fillStyle = CYAN;
+    g.beginPath();
+    g.moveTo(cx + w / 2 - 1, spdY);
+    g.lineTo(cx + w / 2 + 10, spdY - 7);
+    g.lineTo(cx + w / 2 + 10, spdY + 7);
+    g.closePath();
+    g.fill();
     g.restore();
     this.readout(Math.round(kias).toString(), cx - 2, cy, 50, YELLOW);
+    const g2 = this.ctx;
+    g2.save();
+    g2.fillStyle = CYAN;
+    g2.textAlign = "center";
+    g2.font = "12px ui-monospace, Menlo, monospace";
+    g2.fillText(String(Math.round(s.fcc.fcu.spd)), cx, cy - h / 2 - 9);
+    g2.restore();
   }
 
-  private altTape(altFt: number, cx: number, cy: number) {
+  private altTape(s: SimState, cx: number, cy: number) {
+    const altFt = s.altFt;
     const g = this.ctx;
     const w = 70;
-    const h = 260;
+    const h = 250;
     const pxPerFt = 0.24;
     g.save();
     g.fillStyle = TAPE_BG;
@@ -184,8 +281,17 @@ export class Pfd {
       g.stroke();
       if (a % 500 === 0) g.fillText(String(a / 100).padStart(3, "0"), cx - w / 2 + 12, y);
     }
+    const altY = cy - (s.fcc.fcu.alt - altFt) * pxPerFt;
+    g.fillStyle = CYAN;
+    g.fillRect(cx - w / 2, altY - 2, 12, 4);
     g.restore();
     this.readout(Math.round(altFt).toString(), cx + 4, cy, 62, GREEN);
+    g.save();
+    g.fillStyle = CYAN;
+    g.textAlign = "center";
+    g.font = "12px ui-monospace, Menlo, monospace";
+    g.fillText(String(Math.round(s.fcc.fcu.alt)), cx, cy - h / 2 - 9);
+    g.restore();
   }
 
   private vsi(vsFpm: number, cx: number, cy: number) {
@@ -194,7 +300,7 @@ export class Pfd {
     g.fillStyle = TAPE_BG;
     g.fillRect(cx - 12, cy - 100, 24, 200);
     const clamped = Math.max(-6000, Math.min(6000, vsFpm));
-    const y = cy - (Math.sign(clamped) * Math.sqrt(Math.abs(clamped) / 6000)) * 95;
+    const y = cy - Math.sign(clamped) * Math.sqrt(Math.abs(clamped) / 6000) * 95;
     g.strokeStyle = Math.abs(vsFpm) > 6000 ? AMBER : GREEN;
     g.lineWidth = 3;
     g.beginPath();
@@ -210,7 +316,8 @@ export class Pfd {
     g.restore();
   }
 
-  private headingTape(hdg: number, cx: number, cy: number) {
+  private headingTape(s: SimState, cx: number, cy: number) {
+    const hdg = s.headingDeg;
     const g = this.ctx;
     const w = 210;
     const pxPerDeg = 5;
@@ -231,20 +338,34 @@ export class Pfd {
       g.moveTo(x, cy - 18);
       g.lineTo(x, cy - 18 + (d % 10 === 0 ? 10 : 6));
       g.stroke();
-      if (d % 10 === 0) g.fillText(String(((d % 360) + 360) % 360 / 10).padStart(2, "0"), x, cy + 6);
+      if (d % 10 === 0) g.fillText(String((((d % 360) + 360) % 360) / 10).padStart(2, "0"), x, cy + 6);
     }
+    // Selected heading: cyan triangle.
+    let rel = s.fcc.fcu.hdg - hdg;
+    rel = ((rel + 540) % 360) - 180;
+    const hx = cx + Math.max(-w / 2 + 6, Math.min(w / 2 - 6, rel * pxPerDeg));
+    g.fillStyle = CYAN;
+    g.beginPath();
+    g.moveTo(hx, cy - 18);
+    g.lineTo(hx - 6, cy - 6);
+    g.lineTo(hx + 6, cy - 6);
+    g.closePath();
+    g.fill();
     g.restore();
     g.fillStyle = YELLOW;
     g.fillRect(cx - 1.5, cy - 26, 3, 16);
   }
 
-  private fma() {
+  private radioHeight(s: SimState, cx: number, cy: number) {
+    const ra = s.aglFt - RA_ZERO_FT;
+    if (ra > 2500 || s.onGround) return;
     const g = this.ctx;
     g.save();
-    g.fillStyle = WHITE;
     g.textAlign = "center";
-    g.font = "12px ui-monospace, Menlo, monospace";
-    g.fillText("MANUAL  ·  NO AUTOPILOT IN R0", 210, 16);
+    g.font = "bold 16px ui-monospace, Menlo, monospace";
+    g.fillStyle = ra < 400 ? AMBER : GREEN;
+    const shown = ra < 50 ? Math.max(0, Math.round(ra)) : ra < 400 ? Math.round(ra / 5) * 5 : Math.round(ra / 10) * 10;
+    g.fillText(String(shown), cx, cy);
     g.restore();
   }
 
@@ -262,4 +383,14 @@ export class Pfd {
     g.fillText(text, cx, cy + 1);
     g.restore();
   }
+}
+
+function diamond(g: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  g.beginPath();
+  g.moveTo(x, y - r);
+  g.lineTo(x + r, y);
+  g.lineTo(x, y + r);
+  g.lineTo(x - r, y);
+  g.closePath();
+  g.fill();
 }
