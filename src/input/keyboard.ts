@@ -14,9 +14,9 @@ export const KEY_HELP: Array<[string, string]> = [
   ["A", "Autopilot on / off"],
   ["T", "Autothrust on / off"],
   ["C", "Cockpit or outside view"],
-  ["V", "3D cockpit on / off"],
+  ["V", "Instrument panel on / off"],
   ["Mouse drag", "Look around (double-click resets)"],
-  ["Click", "Gear lever, flap lever"],
+  ["Panel buttons", "Gear, flaps, speedbrake, FCU"],
   ["P", "Pause"],
   ["Backspace", "Restart this start position"],
   ["H", "Show / hide this help"],
@@ -31,7 +31,7 @@ export interface KeyboardEvents {
   onTogglePause(): void;
   onReset(): void;
   onToggleHelp(): void;
-  onToggleCockpit(): void;
+  onTogglePanel(): void;
   onAp(): void;
   onAthr(): void;
 }
@@ -104,7 +104,7 @@ export class KeyboardControls {
         this.events.onToggleHelp();
         break;
       case "v":
-        this.events.onToggleCockpit();
+        this.events.onTogglePanel();
         break;
       case "a":
         this.events.onAp();

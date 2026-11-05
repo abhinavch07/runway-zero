@@ -12,7 +12,10 @@ body {
 }
 #globe {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: var(--panel-h, 0px);
 }
 .panel {
   position: absolute;
@@ -21,29 +24,6 @@ body {
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
-}
-#displays {
-  left: 12px;
-  bottom: 96px;
-  padding: 6px;
-  display: flex;
-  gap: 6px;
-}
-#displays canvas {
-  display: block;
-  border-radius: 4px;
-  width: 320px !important;
-  height: 320px !important;
-}
-#fcu {
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 12px;
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  padding: 8px 12px;
-  white-space: nowrap;
 }
 .fcu-field {
   display: flex;
@@ -116,7 +96,8 @@ body {
 #readout {
   right: 12px;
   top: 12px;
-  width: 230px;
+  width: 190px;
+  font-size: 12px;
 }
 .row {
   display: flex;
@@ -150,6 +131,8 @@ body {
   left: 12px;
   top: 64px;
   width: 300px;
+  max-height: calc(100vh - var(--panel-h, 0px) - 90px);
+  overflow: auto;
 }
 #help h3 {
   margin: 0 0 6px;
@@ -162,14 +145,6 @@ kbd {
   border-radius: 4px;
   padding: 0 5px;
   white-space: nowrap;
-}
-#notice {
-  right: 12px;
-  bottom: 70px;
-  font-size: 10.5px;
-  color: #aaa;
-  max-width: 300px;
-  padding: 6px 10px;
 }
 #loading,
 #paused,
@@ -190,14 +165,8 @@ kbd {
 }
 .cesium-viewer-bottom {
   left: auto !important;
-  right: 12px !important;
-  bottom: 12px !important;
-}
-#cockpit3d {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  cursor: grab;
+  right: 8px !important;
+  bottom: 4px !important;
 }
 .panel {
   z-index: 2;
@@ -208,4 +177,150 @@ kbd {
   transform: translateX(-50%);
   border-color: #b8860b;
   color: #ffd27a;
+}
+
+/* ---------- 2D instrument panel ---------- */
+#panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--panel-h, 360px);
+  background: linear-gradient(#4a5560, #3b444d 40%, #343c44);
+  border-top: 3px solid #1d2227;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+#glareshield {
+  background: #1d2227;
+  height: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid #11151a;
+}
+#fcu {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+}
+#instruments {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+}
+#instruments canvas {
+  width: var(--disp, 280px);
+  height: var(--disp, 280px);
+  border-radius: 6px;
+  border: 6px solid #22282e;
+  box-shadow: inset 0 0 0 1px #000, 0 2px 6px rgba(0, 0, 0, 0.6);
+  background: #000;
+}
+#levers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 210px;
+  font-size: 12px;
+}
+.lever-section {
+  background: #2a3138;
+  border: 1px solid #1d2227;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.lever-title {
+  color: #cfd6de;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+#levers button {
+  background: #1b1f27;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+#levers button.on {
+  background: #e9edf1;
+  color: #111;
+  border-color: #fff;
+}
+.gear-lever {
+  width: 100%;
+  font-weight: 700;
+}
+.gear-lever.down {
+  background: #e9edf1 !important;
+  color: #111 !important;
+}
+.gear-lights {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+.gear-lights i {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  background: #222;
+  border: 1px solid #111;
+}
+.gear-lights.down i {
+  background: #2fd24a;
+  box-shadow: 0 0 5px #2fd24a;
+}
+.gear-lights.moving i {
+  background: #ff3b3b;
+  box-shadow: 0 0 5px #ff3b3b;
+}
+.flap-row {
+  display: flex;
+  gap: 4px;
+}
+.flap-row button {
+  flex: 1;
+  padding: 3px 0 !important;
+}
+.thr-bar {
+  display: inline-block;
+  width: 14px;
+  height: 36px;
+  background: #111;
+  border: 1px solid #555;
+  border-radius: 3px;
+  position: relative;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.thr-bar div {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #3fd4ff;
+  border-radius: 2px;
+}
+.brake {
+  color: #ff9f1a;
+  margin-left: 8px;
+  font-weight: 700;
+}
+#notice {
+  font-size: 10px;
+  color: #aab3bc;
+  text-align: center;
+  padding: 0 12px 6px;
+  line-height: 1.3;
 }

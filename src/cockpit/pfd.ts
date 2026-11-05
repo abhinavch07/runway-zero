@@ -27,8 +27,6 @@ export class Pfd {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = SIZE * dpr;
     canvas.height = SIZE * dpr;
-    canvas.style.width = `${SIZE}px`;
-    canvas.style.height = `${SIZE}px`;
     this.ctx = canvas.getContext("2d")!;
     this.ctx.scale(dpr, dpr);
   }

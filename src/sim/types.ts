@@ -51,6 +51,12 @@ export interface SimState {
   machNo: number;
   vsFpm: number;
   n1: [number, number];
+  n2: [number, number];
+  egtC: [number, number];
+  /** Fuel flow per engine, kg per hour. */
+  fuelFlowKgH: [number, number];
+  /** Fuel on board, kg. */
+  fuelKg: number;
   throttlePos: number;
   flapDeg: number;
   gearPos: number;

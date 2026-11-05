@@ -1,4 +1,4 @@
-// Flight control unit panel (on screen) plus a canvas copy of its windows for the 3D cockpit.
+// Flight control unit panel, on the glareshield strip of the 2D panel.
 //
 // R1 keeps it simple: every value is "selected" (no managed modes yet).
 // Turn a value with the mouse wheel or the - / + buttons (hold Shift for big steps).
@@ -15,19 +15,15 @@ const LABEL: Record<Field, string> = { spd: "SPD", hdg: "HDG", alt: "ALT", vs: "
 
 export class FcuPanel {
   readonly el: HTMLElement;
-  readonly canvas: HTMLCanvasElement;
   private values: Record<Field, HTMLElement> = {} as Record<Field, HTMLElement>;
   private lights: Record<string, HTMLElement> = {};
-  private ctx: CanvasRenderingContext2D;
   private send: (a: FcuAction) => void;
   private last: FcuValues = { spd: 0, hdg: 0, alt: 0, vs: 0 };
-  private lastVert = "";
 
   constructor(parent: HTMLElement, send: (a: FcuAction) => void, onRange: (step: number) => void) {
     this.send = send;
     this.el = document.createElement("div");
     this.el.id = "fcu";
-    this.el.className = "panel";
     parent.appendChild(this.el);
 
     for (const f of ["spd", "hdg", "alt", "vs"] as Field[]) {
@@ -69,11 +65,6 @@ export class FcuPanel {
     }
     btns.append(button("ND −", () => onRange(-1), "ND range down"), button("ND +", () => onRange(1), "ND range up"));
     this.el.appendChild(btns);
-
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = 512;
-    this.canvas.height = 64;
-    this.ctx = this.canvas.getContext("2d")!;
   }
 
   private nudge(f: Field, dir: number, big: boolean) {
@@ -81,12 +72,9 @@ export class FcuPanel {
     this.send({ kind: "set", field: f, value: v });
   }
 
-  /** Updates the panel and the 3D cockpit's FCU windows. Returns true when the windows changed. */
-  update(st: FccStatus): boolean {
+  /** Updates the values and the button lights. */
+  update(st: FccStatus) {
     const v = st.fcu;
-    const changed =
-      v.spd !== this.last.spd || v.hdg !== this.last.hdg || v.alt !== this.last.alt || v.vs !== this.last.vs || st.vert !== this.lastVert;
-    this.lastVert = st.vert;
     this.last = { ...v };
     this.values.spd.textContent = String(Math.round(v.spd));
     this.values.hdg.textContent = String(Math.round(v.hdg)).padStart(3, "0");
@@ -97,29 +85,6 @@ export class FcuPanel {
     this.lights.athr.classList.toggle("on", st.athr);
     this.lights.loc.classList.toggle("on", st.latArmed === "LOC" || st.lat.startsWith("LOC"));
     this.lights.appr.classList.toggle("on", st.vertArmed === "G/S" || st.vert.startsWith("G/S"));
-    if (changed) this.drawWindows(st);
-    return changed;
-  }
-
-  private drawWindows(st: FccStatus) {
-    const g = this.ctx;
-    g.fillStyle = "#11151b";
-    g.fillRect(0, 0, 512, 64);
-    g.font = "bold 30px ui-monospace, Menlo, monospace";
-    g.textBaseline = "middle";
-    g.textAlign = "center";
-    g.fillStyle = "#ffb347";
-    const v = st.fcu;
-    g.fillText(String(Math.round(v.spd)), 64, 34);
-    g.fillText(String(Math.round(v.hdg)).padStart(3, "0"), 192, 34);
-    g.fillText(String(Math.round(v.alt)).padStart(5, "0"), 320, 34);
-    g.fillText(st.vert === "V/S" ? (v.vs >= 0 ? "+" : "-") + String(Math.abs(v.vs) / 100).padStart(2, "0") + "oo" : "-----", 448, 34);
-    g.font = "12px ui-monospace, Menlo, monospace";
-    g.fillStyle = "#cfd6de";
-    g.fillText("SPD", 64, 8);
-    g.fillText("HDG", 192, 8);
-    g.fillText("ALT", 320, 8);
-    g.fillText("V/S", 448, 8);
   }
 }
 

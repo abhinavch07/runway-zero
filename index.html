@@ -27,16 +27,20 @@
       <div id="help-list"></div>
     </div>
 
-    <div id="displays" class="panel">
-      <canvas id="pfd"></canvas>
-      <canvas id="nd"></canvas>
-    </div>
     <div id="readout" class="panel"></div>
 
-    <div id="notice" class="panel">
-      Runway Zero is an A320neo-type learning simulator. For learning and entertainment only.
-      Not approved for flight training credit or real-world operations. Not affiliated with Airbus or any airline.
-      The ILS is a training stand-in, not the published procedure.
+    <div id="panel">
+      <div id="glareshield"></div>
+      <div id="instruments">
+        <canvas id="pfd" title="PFD"></canvas>
+        <canvas id="nd" title="ND"></canvas>
+        <canvas id="ewd" title="Engine and warning display"></canvas>
+      </div>
+      <div id="notice">
+        Runway Zero is an A320neo-type learning simulator, for learning and entertainment only. Not approved for
+        flight training credit or real-world operations. Not affiliated with Airbus or any airline. The ILS is a
+        training stand-in, not the published procedure.
+      </div>
     </div>
 
     <div id="loading" class="panel">Loading the flight model…</div>

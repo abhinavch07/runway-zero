@@ -1,4 +1,4 @@
-// Runway Zero, R1: VIDP runway 28, normal law, autopilot and autothrust, PFD, ND, FCU, 3D cockpit.
+// Runway Zero, R1: VIDP runway 28, normal law, autopilot and autothrust, PFD, ND, E/WD, FCU on a 2D panel.
 import * as Cesium from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./style.css";
@@ -7,7 +7,8 @@ import { KEY_HELP, KeyboardControls } from "./input/keyboard";
 import { Pfd, RA_ZERO_FT } from "./cockpit/pfd";
 import { Nd } from "./cockpit/nd";
 import { FcuPanel } from "./cockpit/fcu";
-import { Cockpit3D } from "./cockpit/cockpit3d";
+import { Ewd } from "./cockpit/ewd";
+import { LeverPanel } from "./cockpit/levers";
 import { addRunways } from "./world/runways3d";
 import { ILS_28 } from "./world/vidp";
 import type { FcuAction } from "./sim/fcc";
@@ -69,25 +70,56 @@ const frustum = scene.camera.frustum as Cesium.PerspectiveFrustum;
 frustum.near = 0.5;
 addRunways(viewer, hasToken);
 
-let cockpit3d: Cockpit3D | null = null;
+frustum.fov = rad(FOV_DEG);
 
-// Cesium's fov is the wider of the two screen directions. Three.js uses the vertical one.
-function syncFov() {
-  const aspect = window.innerWidth / window.innerHeight;
-  frustum.fov = rad(FOV_DEG);
-  const wide = rad(FOV_DEG);
-  const vertical = aspect >= 1 ? 2 * Math.atan(Math.tan(wide / 2) / aspect) : wide;
-  if (cockpit3d) {
-    cockpit3d.camera.fov = Cesium.Math.toDegrees(vertical);
-    cockpit3d.camera.updateProjectionMatrix();
-  }
+// ---------- Panel layout: outside window on top, instrument panel below ----------
+let panelShown = true;
+function layout() {
+  const panelH = panelShown ? Math.round(Math.min(460, Math.max(300, window.innerHeight * 0.4))) : 0;
+  const root = document.documentElement.style;
+  root.setProperty("--panel-h", `${panelH}px`);
+  // Display size: panel height minus the glareshield (FCU) strip and padding, and never so wide
+  // that three displays plus the levers overflow the screen.
+  const byHeight = panelH - 74;
+  const byWidth = Math.floor((window.innerWidth - 300) / 3) - 12;
+  root.setProperty("--disp", `${Math.max(180, Math.min(byHeight, byWidth))}px`);
+  $("panel").classList.toggle("hidden", !panelShown);
 }
-window.addEventListener("resize", syncFov);
+window.addEventListener("resize", layout);
+layout();
+
+// Head turn in the cockpit view: drag on the window, double-click to look ahead again.
+const HEAD_PITCH_DEFAULT = -0.06;
+let headYaw = 0;
+let headPitch = HEAD_PITCH_DEFAULT;
+{
+  const el = $("globe");
+  let dragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  el.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    headYaw = Math.max(-2.4, Math.min(2.4, headYaw + (e.clientX - lastX) * 0.004));
+    headPitch = Math.max(-1.2, Math.min(1.2, headPitch - (e.clientY - lastY) * 0.004));
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+  el.addEventListener("pointerup", () => (dragging = false));
+  el.addEventListener("dblclick", () => {
+    headYaw = 0;
+    headPitch = HEAD_PITCH_DEFAULT;
+  });
+}
 
 function applyQuality(q: Quality) {
   const s = QUALITY[q];
   viewer.resolutionScale = s.scale;
-  cockpit3d?.setPixelRatio(s.scale);
   scene.globe.maximumScreenSpaceError = s.sse;
   scene.postProcessStages.fxaa.enabled = s.fxaa;
   try {
@@ -176,7 +208,6 @@ const fcuSend = (action: FcuAction) => send({ type: "fcu", action });
 let ready = false;
 let paused = false;
 let view: "cockpit" | "outside" = "cockpit";
-let show3dCockpit = true;
 let shownTouchdown: TouchdownReport | null = null;
 
 const keys = new KeyboardControls({
@@ -184,7 +215,6 @@ const keys = new KeyboardControls({
     view = view === "cockpit" ? "outside" : "cockpit";
     fuselage.show = wing.show = view === "outside";
     if (view === "cockpit") scene.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
-    updateLayers();
   },
   onTogglePause: () => {
     paused = !paused;
@@ -192,9 +222,9 @@ const keys = new KeyboardControls({
   },
   onReset: () => resetTo(currentStart),
   onToggleHelp: () => $("help").classList.toggle("hidden"),
-  onToggleCockpit: () => {
-    show3dCockpit = !show3dCockpit;
-    updateLayers();
+  onTogglePanel: () => {
+    panelShown = !panelShown;
+    layout();
   },
   onAp: () => fcuSend({ kind: "ap" }),
   onAthr: () => fcuSend({ kind: "athr" }),
@@ -269,22 +299,9 @@ setInterval(async () => {
 // ---------- Cockpit displays ----------
 const pfd = new Pfd($<HTMLCanvasElement>("pfd"));
 const nd = new Nd($<HTMLCanvasElement>("nd"));
-const fcu = new FcuPanel(document.body, fcuSend, (step) => nd.changeRange(step));
-cockpit3d = new Cockpit3D(document.body, { pfd: pfd.canvas, nd: nd.canvas, fcu: fcu.canvas }, FOV_DEG, {
-  onGearLever: () => (keys.controls.gearDown = !keys.controls.gearDown),
-  onFlapLever: () => (keys.controls.flapLever = (keys.controls.flapLever + 1) % 5),
-});
-cockpit3d.setPixelRatio(QUALITY[qualitySelect.value as Quality].scale);
-syncFov();
-
-/** The 3D cockpit shows in cockpit view. The flat PFD and ND show when the 3D cockpit is hidden. */
-function updateLayers() {
-  const cockpitOn = view === "cockpit" && show3dCockpit;
-  cockpit3d!.setVisible(cockpitOn);
-  $("displays").classList.toggle("hidden", cockpitOn);
-}
-updateLayers();
-scene.postRender.addEventListener(() => cockpit3d!.render());
+const ewd = new Ewd($<HTMLCanvasElement>("ewd"));
+const fcu = new FcuPanel($("glareshield"), fcuSend, (step) => nd.changeRange(step));
+const levers = new LeverPanel($("instruments"), keys.controls);
 
 // ---------- Camera ----------
 const scratchEnu = new Cesium.Matrix4();
@@ -322,8 +339,10 @@ function setCockpitCamera(s: SimState) {
     combine(f, r, u, EYE_OFFSET_M.forward, EYE_OFFSET_M.right, EYE_OFFSET_M.up),
     new Cesium.Cartesian3(),
   );
-  const d = cockpit3d!.headDirection();
-  const hu = cockpit3d!.headUp();
+  const cp = Math.cos(headPitch);
+  const sp = Math.sin(headPitch);
+  const d = { forward: cp * Math.cos(headYaw), right: cp * Math.sin(headYaw), up: sp };
+  const hu = { forward: -sp * Math.cos(headYaw), right: -sp * Math.sin(headYaw), up: cp };
   scene.camera.setView({
     destination: eye,
     orientation: {
@@ -334,7 +353,6 @@ function setCockpitCamera(s: SimState) {
 }
 
 // ---------- Frame loop ----------
-const FLAP_LABEL = ["0", "1", "2", "3", "FULL"];
 let lastFrame = performance.now();
 let frames = 0;
 let fps = 0;
@@ -365,19 +383,13 @@ scene.preRender.addEventListener(() => {
 
   pfd.draw(s);
   nd.draw(s);
-  const fcuChanged = fcu.update(s.fcc);
-  cockpit3d!.update(s, keys.controls, fcuChanged);
-
   const c = keys.controls;
-  const gear = s.gearPos > 0.99 ? "DOWN" : s.gearPos < 0.01 ? "UP" : "MOVING";
+  ewd.draw(s, c.flapLever, c.throttle);
+  fcu.update(s.fcc);
+  levers.update(s, c);
+
   const ra = s.aglFt - RA_ZERO_FT;
   $("readout").innerHTML = [
-    row("Thrust levers", `${Math.round(c.throttle * 100)}%${s.fcc.athr ? " (A/THR)" : ""}`),
-    row("N1", `${s.n1[0].toFixed(1)} / ${s.n1[1].toFixed(1)}`),
-    row("Flaps", `${FLAP_LABEL[c.flapLever]} (${s.flapDeg.toFixed(0)}°)`),
-    row("Gear", gear),
-    row("Speedbrake", s.speedbrakePos > 0.05 ? "OUT" : "IN"),
-    row("Brakes", c.brakes > 0 ? "ON" : "OFF"),
     row("Radio height", ra < 2500 && !s.onGround ? `${Math.max(0, Math.round(ra))} ft` : "–"),
     row("Ground speed", `${Math.round(s.groundSpeedKt)} kt`),
     row("Frame rate", `${Math.round(fps)} fps`),

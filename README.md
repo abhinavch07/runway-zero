@@ -15,10 +15,12 @@ What works now:
 - **Simple normal law:** on the ground the sidestick moves the elevators directly. In flight it asks for a pitch rate and roll rate. Let go and the aircraft holds its flight path and bank, and trims itself. Bank is held up to 33° and limited to 67°. Pitch is limited to +30° / -15°.
 - **Autopilot (AP1):** HDG, ALT (with ALT* capture), V/S, LOC and G/S. Disconnects if you move the sidestick hard, and at 50 ft on the ILS ("LAND MANUALLY").
 - **Autothrust (A/THR):** holds the FCU speed, goes to idle in the flare ("RETARD") and switches off after touchdown.
-- **FCU panel:** SPD, HDG, ALT, V/S with PULL / PUSH, AP1, A/THR, LOC, APPR, ND range.
+- **2D glass cockpit:** a big outside window on top, and an instrument panel below with the FCU on the glareshield, PFD, ND, engine and warning display, and the gear, flap, speedbrake and thrust levers.
+- **FCU:** SPD, HDG, ALT, V/S with PULL / PUSH, AP1, A/THR, LOC, APPR, ND range.
 - **PFD:** flight mode annunciator, attitude, speed and altitude tapes with FCU targets, V/S, heading, ILS diamonds, radio height.
 - **ND:** arc mode with VIDP runways, ILS 28 course, heading bug, track and range rings.
-- **3D cockpit (blockout):** live PFD, ND and FCU windows, sidestick and thrust levers that move, clickable gear and flap levers, mouse look.
+- **Engine and warning display:** N1 dials with thrust lever position, N2, fuel flow, fuel on board, flap position, simple memos.
+- **Gear ground safety:** the gear stays down while there is weight on the wheels.
 - **Touchdown report:** sink rate, distance past the threshold, distance off the centreline.
 - **Globe:** VIDP runways drawn on the ground. Real terrain with a free Cesium ion token.
 
@@ -82,9 +84,9 @@ Never commit `.env`. It is already in `.gitignore`. Without a token the app stil
 | A | Autopilot on / off |
 | T | Autothrust on / off |
 | C | Cockpit or outside view |
-| V | 3D cockpit on / off (shows flat PFD and ND instead) |
-| Mouse drag | Look around in the cockpit, double-click to reset |
-| Click | Gear lever, flap lever in the 3D cockpit |
+| V | Instrument panel on / off (full screen outside view) |
+| Mouse drag | Look around from the seat, double-click to reset |
+| Panel buttons | Gear, flaps, speedbrake, FCU |
 | P | Pause |
 | Backspace | Restart the current start position |
 | H | Help on / off |
@@ -107,14 +109,13 @@ src/
   world/runways3d.ts    runways drawn on the globe
   cockpit/pfd.ts        PFD
   cockpit/nd.ts         ND
-  cockpit/fcu.ts        FCU panel and its 3D windows
-  cockpit/cockpit3d.ts  3D cockpit layer (Three.js)
+  cockpit/ewd.ts        engine and warning display
+  cockpit/fcu.ts        FCU on the glareshield
+  cockpit/levers.ts     gear, flap, speedbrake and thrust levers
   input/keyboard.ts     keyboard controls
 public/jsbsim/          JSBSim aircraft and engine files
 scripts/                Node test scripts
 ```
-
-The 3D cockpit is built in the aircraft's own frame with its camera fixed at the pilot's eye. The globe camera gets the same eye position, attitude, field of view and head turn, so the two layers match.
 
 The flight model works in altitude above mean sea level. The globe uses height above the WGS84 ellipsoid. The difference is measured once at the runway 28 threshold and applied around Delhi.
 
@@ -128,5 +129,5 @@ The flight model works in altitude above mean sea level. The globe uses height a
 - Runway Zero code: GPL v3 or later (see `LICENSE`).
 - JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold. Our copy is modified: fuel tank position moved from 600 to 650 in, and CmDe changed from -1.5 to -2.0 so the model can be trimmed at normal approach speeds. The changes are noted at the top of `A320.xml`.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.
-- CesiumJS: Apache 2.0. Three.js: MIT.
+- CesiumJS: Apache 2.0.
 - Map data: Cesium ion (with token) or © OpenStreetMap contributors (without token).

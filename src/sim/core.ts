@@ -130,13 +130,14 @@ export class SimCore {
   step(c: Controls) {
     const input: PilotInput = { pitch: c.pitch, roll: c.roll, yaw: c.yaw, throttle: c.throttle };
     this.set("fcs/flap-cmd-norm", FLAP_CMD[Math.max(0, Math.min(4, c.flapLever))]);
-    this.set("gear/gear-cmd-norm", c.gearDown ? 1 : 0);
+    // Ground safety: with weight on the wheels the gear cannot retract, whatever the lever says.
+    const onWheels = this.get("gear/wow") > 0;
+    this.set("gear/gear-cmd-norm", c.gearDown || onWheels ? 1 : 0);
     this.set("fcs/speedbrake-cmd-norm", c.speedbrake);
     this.set("fcs/left-brake-cmd-norm", c.brakes);
     this.set("fcs/right-brake-cmd-norm", c.brakes);
     // On the wheels the ground may only move slowly, like driving up a gentle slope. A fast change
     // pushes the gear through the ground and the flight model breaks down.
-    const onWheels = this.get("gear/wow") > 0;
     const maxStep = (onWheels ? GROUND_RATE_ON_WHEELS : GROUND_RATE_AIRBORNE) / STEP_HZ;
     this.terrainFt += Math.max(-maxStep, Math.min(maxStep, this.terrainTargetFt - this.terrainFt));
     this.set("position/terrain-elevation-asl-ft", this.terrainFt);
@@ -198,6 +199,10 @@ export class SimCore {
       machNo: g("velocities/mach"),
       vsFpm: g("velocities/h-dot-fps") * 60,
       n1: [g("propulsion/engine[0]/n1"), g("propulsion/engine[1]/n1")],
+      n2: [g("propulsion/engine[0]/n2"), g("propulsion/engine[1]/n2")],
+      egtC: [g("propulsion/engine[0]/egt-degC"), g("propulsion/engine[1]/egt-degC")],
+      fuelFlowKgH: [g("propulsion/engine[0]/fuel-flow-rate-pps") * 1633, g("propulsion/engine[1]/fuel-flow-rate-pps") * 1633],
+      fuelKg: g("propulsion/total-fuel-lbs") * 0.4536,
       throttlePos: g("fcs/throttle-pos-norm[0]"),
       flapDeg: g("fcs/flap-pos-deg"),
       gearPos: g("gear/gear-pos-norm"),
