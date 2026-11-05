@@ -201,17 +201,22 @@ let displayOffsetM = -ILS_28.threshold.elevationFt * FT_TO_M; // no token: flat 
 let offsetMeasured = false;
 async function measureOffset() {
   await Promise.all([terrainReady, googleReady]);
-  if (!terrainLoaded && googleTiles) {
-    // No terrain service: measure the ground height from the Google tiles at the threshold instead.
+  if (googleTiles) {
+    // With Google 3D scenery the visible ground is the Google mesh, so measure the runway height
+    // from it. Wait a moment for the tiles around the threshold to load first.
+    await new Promise((r) => setTimeout(r, 1500));
     try {
       const [c] = await scene.sampleHeightMostDetailed([
         Cesium.Cartographic.fromDegrees(ILS_28.threshold.lonDeg, ILS_28.threshold.latDeg),
       ]);
-      if (c && Number.isFinite(c.height)) displayOffsetM = c.height - ILS_28.threshold.elevationFt * FT_TO_M;
+      if (c && Number.isFinite(c.height)) {
+        displayOffsetM = c.height - ILS_28.threshold.elevationFt * FT_TO_M;
+        offsetMeasured = terrainLoaded;
+        return;
+      }
     } catch {
-      /* keep the default */
+      /* fall back to the terrain measurement below */
     }
-    return;
   }
   if (!terrainLoaded) return;
   try {
