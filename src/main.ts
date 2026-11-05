@@ -34,13 +34,18 @@ const QUALITY: Record<Quality, { scale: number; retina: boolean; sse: number; fx
 const hasToken = CESIUM_ION_TOKEN.length > 0;
 if (hasToken) Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN;
 
-// Scenery: "standard" (globe imagery and terrain) or "google" (Google Photorealistic 3D Tiles,
-// with the user's own Google Maps key). Changing it reloads the page.
-type Scenery = "standard" | "google";
+// Scenery: "standard" (globe imagery and terrain), "buildings" (standard plus free OpenStreetMap
+// 3D buildings from Cesium ion) or "google" (Google Photorealistic 3D Tiles). Google 3D comes free
+// through Cesium ion (1,000 loads a month on the free plan), or through the user's own Google key.
+// Changing the scenery reloads the page.
+type Scenery = "standard" | "buildings" | "google";
 const hasGoogleKey = GOOGLE_MAPS_KEY.length > 0;
+const googleAvailable = hasToken || hasGoogleKey;
 let scenery: Scenery = "standard";
 try {
-  if (localStorage.getItem("rz-scenery") === "google" && hasGoogleKey) scenery = "google";
+  const saved = localStorage.getItem("rz-scenery");
+  if (saved === "google" && googleAvailable) scenery = "google";
+  if (saved === "buildings" && hasToken) scenery = "buildings";
 } catch {
   /* ignore */
 }
@@ -71,7 +76,11 @@ scene.globe.preloadSiblings = true;
 let googleTiles: Cesium.Cesium3DTileset | null = null;
 const googleReady: Promise<void> =
   scenery === "google"
-    ? Cesium.createGooglePhotorealistic3DTileset({ key: GOOGLE_MAPS_KEY, onlyUsingWithGoogleGeocoder: true })
+    ? Cesium.createGooglePhotorealistic3DTileset(
+        hasGoogleKey
+          ? { key: GOOGLE_MAPS_KEY, onlyUsingWithGoogleGeocoder: true }
+          : { onlyUsingWithGoogleGeocoder: true }, // no key: loads through the Cesium ion token
+      )
         .then((tileset) => {
           googleTiles = tileset;
           scene.primitives.add(tileset);
@@ -83,6 +92,13 @@ const googleReady: Promise<void> =
           if (!hasToken) addRunways(viewer, false);
         })
     : Promise.resolve();
+
+// Free OpenStreetMap 3D buildings from Cesium ion, on top of the standard globe.
+if (scenery === "buildings") {
+  Cesium.createOsmBuildingsAsync()
+    .then((tileset) => scene.primitives.add(tileset))
+    .catch((e) => showNotice(`3D buildings failed to load (${e?.message ?? e}).`));
+}
 
 // Real terrain loads in the background. Until it is ready the globe is flat, so nothing that
 // measures the ground (the height offset, the terrain under the aircraft) may run before it.
@@ -550,11 +566,20 @@ $("touchdown").addEventListener("click", () => $("touchdown").classList.add("hid
 // ---------- Help ----------
 $("help-list").innerHTML = KEY_HELP.map(([k, v]) => `<div class="row"><kbd>${k}</kbd><span>${v}</span></div>`).join("");
 $("mode").textContent =
-  scenery === "google" ? "Google 3D scenery" : hasToken ? "Real terrain" : "No token: flat ground";
+  scenery === "google"
+    ? hasGoogleKey
+      ? "Google 3D scenery"
+      : "Google 3D via Cesium ion"
+    : scenery === "buildings"
+      ? "Real terrain + 3D buildings"
+      : hasToken
+        ? "Real terrain"
+        : "No token: flat ground";
 const scenerySelect = $<HTMLSelectElement>("scenery");
 scenerySelect.value = scenery;
-(scenerySelect.querySelector('option[value="google"]') as HTMLOptionElement).disabled = !hasGoogleKey;
-if (!hasGoogleKey) scenerySelect.title = "Add VITE_GOOGLE_MAPS_KEY to .env to use Google 3D scenery";
+(scenerySelect.querySelector('option[value="google"]') as HTMLOptionElement).disabled = !googleAvailable;
+(scenerySelect.querySelector('option[value="buildings"]') as HTMLOptionElement).disabled = !hasToken;
+if (!hasToken) scenerySelect.title = "Add your free Cesium ion token to .env for 3D buildings and Google 3D";
 scenerySelect.addEventListener("change", () => {
   try {
     localStorage.setItem("rz-scenery", scenerySelect.value);

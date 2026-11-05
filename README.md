@@ -17,7 +17,7 @@ New in R2:
 - **Engine start:** ENG MODE IGN/START and ENG MASTER switches on the pedestal. Automatic start with crank, fuel at 22% N2, light up and idle, shown on the engine display (START, IGN A, AVAIL).
 - **Screens need power:** dark without AC power. PFD shows ATT / HDG flags and the ND shows MAP NOT AVAIL until the ADIRS are aligned.
 - **Parking brake (B)** and nosewheel steering for taxi.
-- **Scenery:** sharper settings (High quality draws at full Retina resolution), no fake runway strips over real imagery, and optional Google Photorealistic 3D scenery with your own key.
+- **Scenery:** sharper settings (High quality draws at full Retina resolution), no fake runway strips over real imagery, free 3D buildings, and free Google Photorealistic 3D scenery through Cesium ion.
 
 R1 features:
 
@@ -84,11 +84,13 @@ npm run test:flights  # scripted test flights: cold start and taxi, ground, norm
 
 Never commit `.env`. It is already in `.gitignore`. Without a token the app still runs, with flat ground and OpenStreetMap imagery.
 
-### Google 3D scenery (optional, may cost money)
+### Scenery (top bar)
 
-1. In Google Cloud, create a project with billing, enable the **Map Tiles API** and create an API key. Restrict the key to the Map Tiles API and to your site.
-2. Set a budget alert and a daily quota cap. Google gives a free monthly amount, then charges per session.
-3. Paste the key into `.env` as `VITE_GOOGLE_MAPS_KEY=...`, restart, and choose **Scenery: Google 3D** at the top.
+- **Standard:** Cesium World Terrain with Bing aerial imagery (needs the free Cesium ion token).
+- **3D buildings (free):** Standard plus Cesium OSM Buildings, simple 3D buildings from OpenStreetMap.
+- **Google 3D (free, 1,000 loads/month):** Google Photorealistic 3D Tiles. With only the Cesium ion token it streams through Cesium ion, which allows 1,000 loads a month on the free plan. Each page load or scenery change uses about one.
+
+Optionally you can use your own Google Maps key instead (`VITE_GOOGLE_MAPS_KEY` in `.env`, Map Tiles API enabled). Google charges after its free monthly amount, so set a budget and a daily quota cap first.
 
 Google's logo and data attribution appear in the bottom right corner and must stay visible. Before a public launch, the site needs a privacy policy that says it uses Google Maps APIs and links to Google's privacy policy (a Google Maps Platform requirement).
 
