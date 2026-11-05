@@ -384,7 +384,9 @@ export class FlightControlComputer {
     f.set("fcs/pitch-trim-cmd-norm", clamp(this.trim, -1, 1));
     f.set("fcs/aileron-cmd-norm", aileron);
     f.set("fcs/rudder-cmd-norm", clamp(rudder, -1, 1));
-    f.set("fcs/steer-cmd-norm", clamp(-rudder, -1, 1));
+    // Nosewheel: full steering (like the tiller) at taxi speed, only a few degrees (like the pedals) when fast.
+    const steerScale = gs * 0.5925 <= 15 ? 1 : Math.max(0.09, 1 - (gs * 0.5925 - 15) / 40);
+    f.set("fcs/steer-cmd-norm", clamp(input.yaw * steerScale, -1, 1));
     f.set("fcs/throttle-cmd-norm[0]", throttle);
     f.set("fcs/throttle-cmd-norm[1]", throttle);
   }

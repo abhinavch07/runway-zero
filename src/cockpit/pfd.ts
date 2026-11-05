@@ -38,13 +38,28 @@ export class Pfd {
     g.fillRect(0, 0, SIZE, SIZE);
     g.font = "14px ui-monospace, Menlo, monospace";
     g.textBaseline = "middle";
-    this.attitude(s, 210, 205);
-    this.ils(s, 210, 205);
-    this.speedTape(s, 52, 205);
-    this.altTape(s, 352, 205);
-    this.vsi(s.vsFpm, 404, 205);
-    this.headingTape(s, 210, 395);
-    this.radioHeight(s, 210, 300);
+    const sys = s.systems;
+    // Attitude and heading need an aligned inertial reference. Speed and altitude (air data) work
+    // as soon as an ADIRS is switched on.
+    const att = sys.irAligned[0] || sys.irAligned[2];
+    const adr = sys.irAligning.some(Boolean) || sys.irAligned.some(Boolean);
+    if (att) {
+      this.attitude(s, 210, 205);
+      this.ils(s, 210, 205);
+      this.headingTape(s, 210, 395);
+    } else {
+      flag(g, "ATT", 210, 205);
+      flag(g, "HDG", 210, 395);
+    }
+    if (adr) {
+      this.speedTape(s, 52, 205);
+      this.altTape(s, 352, 205);
+      this.vsi(s.vsFpm, 404, 205);
+    } else {
+      flag(g, "SPD", 52, 205);
+      flag(g, "ALT", 352, 205);
+    }
+    if (att) this.radioHeight(s, 210, 300);
     this.fma(s);
     g.restore();
   }
@@ -381,6 +396,16 @@ export class Pfd {
     g.fillText(text, cx, cy + 1);
     g.restore();
   }
+}
+
+function flag(g: CanvasRenderingContext2D, text: string, x: number, y: number) {
+  g.save();
+  g.fillStyle = RED;
+  g.font = "bold 20px ui-monospace, Menlo, monospace";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText(text, x, y);
+  g.restore();
 }
 
 function diamond(g: CanvasRenderingContext2D, x: number, y: number, r: number) {

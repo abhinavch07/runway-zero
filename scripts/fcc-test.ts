@@ -7,6 +7,7 @@ import { STARTS } from "../src/config.ts";
 import { destination } from "../src/world/geo.ts";
 import { ILS_28, RWY28_COURSE_T, rwy28Final } from "../src/world/vidp.ts";
 import type { Controls } from "../src/sim/types.ts";
+import { coldSwitches, runningSwitches, type Switches } from "../src/sim/systems.ts";
 
 const root = new URL("../public/jsbsim/", import.meta.url);
 const wasmDir = new URL("../node_modules/@0x62/jsbsim-wasm/dist/wasm/", import.meta.url);
@@ -25,7 +26,8 @@ async function makeCore() {
 }
 
 const start = (id: string) => STARTS.find((s) => s.id === id)!;
-const neutral = (throttle: number, flapLever: number, gearDown: boolean): Controls => ({
+const neutral = (throttle: number, flapLever: number, gearDown: boolean, switches: Switches = runningSwitches()): Controls => ({
+  switches,
   pitch: 0,
   roll: 0,
   yaw: 0,
@@ -171,7 +173,70 @@ async function groundTest() {
   if (!ok) process.exitCode = 1;
 }
 
+async function coldStartTest() {
+  console.log("\n=== Cold and dark: power up, APU, ADIRS, engine 2 then engine 1 start ===");
+  const core = await makeCore();
+  core.place(start("cold28"));
+  const sw = coldSwitches();
+  const c = () => neutral(0, 0, true, sw);
+  const sys = () => core.systems.status();
+  const say = (label: string) => {
+    const s = sys();
+    const e = s.engines;
+    console.log(
+      `${label.padEnd(22)} DC=${s.dcPower ? 1 : 0} AC=${s.acSource || "-"} APU=${s.apuN.toFixed(0)}%${s.apuAvail ? " AVAIL" : ""} bleed=${s.bleedPsi} IR=${s.irAligned.map((a) => (a ? "A" : "-")).join("")}(${s.irSecondsLeft}s) ` +
+        `E1 ${e[0].phase} n2=${e[0].n2.toFixed(0)} egt=${e[0].egtC.toFixed(0)} | E2 ${e[1].phase} n2=${e[1].n2.toFixed(0)} egt=${e[1].egtC.toFixed(0)} n1=${e[1].n1.toFixed(0)} | moved=${core.get("velocities/vg-fps").toFixed(2)}`,
+    );
+  };
+  say("cold");
+  sw.bat1 = sw.bat2 = true;
+  fly(core, 1, c, 0);
+  say("batteries on");
+  sw.extPwr = true;
+  sw.ir1 = sw.ir2 = sw.ir3 = true;
+  sw.fuelL1 = sw.fuelL2 = sw.fuelR1 = sw.fuelR2 = true;
+  sw.apuMaster = true;
+  fly(core, 4, c, 0);
+  say("ext pwr, IRs, APU master");
+  sw.apuStartPresses++;
+  fly(core, 50, c, 0);
+  say("APU start +50 s");
+  sw.apuBleed = true;
+  sw.extPwr = false;
+  fly(core, 15, c, 0);
+  say("APU bleed, ext off");
+  sw.beacon = true;
+  sw.engMaster2 = true; // mode still NORM: must not start
+  fly(core, 5, c, 0);
+  say("master 2 in NORM");
+  sw.engMode = "IGN";
+  for (let t = 0; t < 40; t += 10) {
+    fly(core, 10, c, 0);
+    say(`IGN, engine 2 +${t + 10}s`);
+  }
+  sw.engMaster1 = true;
+  fly(core, 40, c, 0);
+  say("engine 1 +40s");
+  sw.engMode = "NORM";
+  sw.apuBleed = false;
+  sw.apuMaster = false;
+  fly(core, 20, c, 0);
+  say("after start");
+  // Taxi: release the brake, a little thrust, then a left turn with the nosewheel.
+  sw.parkBrake = false;
+  const hdg0 = core.get("attitude/psi-deg");
+  fly(core, 20, () => ({ ...neutral(core.get("velocities/vg-fps") * 0.5925 < 10 ? 0.3 : 0.05, 2, true, sw) }), 0);
+  const gs = core.get("velocities/vg-fps") * 0.5925;
+  fly(core, 15, () => ({ ...neutral(core.get("velocities/vg-fps") * 0.5925 < 8 ? 0.25 : 0.05, 2, true, sw), yaw: -0.7 }), 0);
+  const turned = ((hdg0 - core.get("attitude/psi-deg") + 540) % 360) - 180;
+  console.log(`taxi: ground speed after 20 s ${gs.toFixed(1)} kt, turned left ${turned.toFixed(0)} deg in 15 s`);
+  const ok = core.systems.status().engines.every((e) => e.phase === "RUN") && core.healthy() && gs > 3 && turned > 30;
+  console.log(ok ? "COLD START OK" : "COLD START FAILED");
+  if (!ok) process.exitCode = 1;
+}
+
 const which = process.argv[2] ?? "all";
+if (which === "cold" || which === "all") await coldStartTest();
 if (which === "ground" || which === "all") await groundTest();
 if (which === "law" || which === "all") await lawTest();
 if (which === "takeoff" || which === "all") await takeoffTest();

@@ -1,6 +1,6 @@
-// Engine and warning display (upper ECAM), simplified: N1 dials, N2, fuel flow,
+// Engine and warning display (upper ECAM), simplified: N1 dials, EGT (approximate), N2, fuel flow,
 // fuel on board, flap position and a memo line. A training display, not a replica.
-import type { SimState } from "../sim/types";
+import type { Controls, SimState } from "../sim/types";
 
 const SIZE = 420;
 const WHITE = "#ffffff";
@@ -24,7 +24,9 @@ export class Ewd {
     this.ctx.scale(dpr, dpr);
   }
 
-  draw(s: SimState, flapLever: number, throttle: number) {
+  draw(s: SimState, c: Controls) {
+    const flapLever = c.flapLever;
+    const throttle = c.throttle;
     const g = this.ctx;
     g.save();
     g.fillStyle = "#000";
@@ -34,6 +36,20 @@ export class Ewd {
 
     this.n1Dial(105, 90, s.n1[0], throttle);
     this.n1Dial(315, 90, s.n1[1], throttle);
+    // Engine start annunciations above each dial.
+    s.systems.engines.forEach((e, i) => {
+      const x = i === 0 ? 105 : 315;
+      g.textAlign = "center";
+      g.font = "bold 13px ui-monospace, Menlo, monospace";
+      if (e.availTimer > 0) {
+        g.fillStyle = GREEN;
+        g.fillText("AVAIL", x, 22);
+      } else if (e.phase === "CRANK" || e.phase === "LIGHT") {
+        g.fillStyle = WHITE;
+        g.fillText(e.phase === "CRANK" ? "START" : "IGN A", x, 22);
+      }
+      g.font = "13px ui-monospace, Menlo, monospace";
+    });
     g.fillStyle = GREY;
     g.textAlign = "center";
     g.fillText("N1", 210, 70);
@@ -44,8 +60,9 @@ export class Ewd {
       ["N2", "%", [s.n2[0].toFixed(1), s.n2[1].toFixed(1)]],
       ["FF", "KG/H", [fmt(s.fuelFlowKgH[0], 20), fmt(s.fuelFlowKgH[1], 20)]],
     ];
+    rows.unshift(["EGT", "°C", [fmt(s.egtC[0]), fmt(s.egtC[1])]]);
     rows.forEach(([label, unit, [a, b]], i) => {
-      const y = 190 + i * 34;
+      const y = 176 + i * 30;
       g.textAlign = "center";
       g.fillStyle = GREY;
       g.fillText(label, 210, y);
@@ -94,7 +111,7 @@ export class Ewd {
     g.lineTo(410, 346);
     g.stroke();
     g.textAlign = "left";
-    const memo = memoLines(s, flapLever);
+    const memo = memoLines(s, c);
     memo.forEach(([text, colour], i) => {
       g.fillStyle = colour;
       g.fillText(text, 18, 366 + i * 20);
@@ -162,11 +179,19 @@ function fmt(v: number, step = 5) {
   return String(Math.max(0, Math.round(v / step) * step));
 }
 
-function memoLines(s: SimState, flapLever: number): [string, string][] {
+function memoLines(s: SimState, c: Controls): [string, string][] {
+  const flapLever = c.flapLever;
+  const sw = c.switches;
+  const sys = s.systems;
   const out: [string, string][] = [];
   const f = s.fcc;
   if (f.message.startsWith("AP OFF")) out.push([f.message, RED]);
   else if (f.message) out.push([f.message, AMBER]);
+  const running = sys.engines.map((e) => e.phase === "RUN");
+  if (running.some(Boolean) && (!sys.fuelPressL || !sys.fuelPressR)) out.push(["FUEL TK PUMPS LO PR", AMBER]);
+  if (sw.engMode === "IGN") out.push(["IGNITION", GREEN]);
+  if (sys.apuAvail) out.push([sw.apuBleed ? "APU AVAIL   APU BLEED" : "APU AVAIL", GREEN]);
+  if (sw.parkBrake && s.onGround) out.push(["PARK BRK", GREEN]);
   if (s.onGround && s.groundSpeedKt < 40) {
     out.push([flapLever >= 1 && flapLever <= 3 ? "T.O FLAPS ........ OK" : "T.O FLAPS ...... CONFIG", flapLever >= 1 && flapLever <= 3 ? GREEN : CYAN]);
   } else if (!s.onGround && s.aglFt < 2000 && s.vsFpm < -300) {
@@ -174,5 +199,6 @@ function memoLines(s: SimState, flapLever: number): [string, string][] {
     out.push([flapLever === 4 ? "FLAPS .......... FULL" : "FLAPS ......... FULL", flapLever === 4 ? GREEN : CYAN]);
   }
   if (s.speedbrakePos > 0.05) out.push(["SPEED BRK", GREEN]);
+  if (sw.seatBelts && out.length < 3) out.push(["SEAT BELTS", GREEN]);
   return out.slice(0, 3);
 }

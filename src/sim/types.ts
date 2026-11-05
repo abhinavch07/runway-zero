@@ -1,5 +1,6 @@
 // Messages and values shared between the page and the simulation worker.
 import type { FccStatus, FcuAction, FcuValues } from "./fcc.ts";
+import type { Switches, SystemsStatus } from "./systems.ts";
 
 export interface Controls {
   /** Stick pitch, -1 full forward (nose down) to +1 full back (nose up). */
@@ -18,6 +19,8 @@ export interface Controls {
   speedbrake: number;
   /** Wheel brakes, 0 off to 1 full. */
   brakes: number;
+  /** Overhead and pedestal switch positions. */
+  switches: Switches;
 }
 
 export interface TouchdownReport {
@@ -66,6 +69,7 @@ export interface SimState {
   /** How many sim seconds ran per real second over the last report. */
   simRate: number;
   fcc: FccStatus;
+  systems: SystemsStatus;
   touchdown: TouchdownReport | null;
 }
 
@@ -82,6 +86,8 @@ export interface StartPosition {
   /** Terrain elevation above mean sea level under the start point, feet. */
   terrainFt: number;
   onGround?: boolean;
+  /** Cold and dark: everything off, engines stopped, parking brake set. */
+  coldAndDark?: boolean;
   flapLever: number;
   gearDown: boolean;
   /** Total fuel, pounds, split between the two wing tanks. */

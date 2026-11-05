@@ -2,13 +2,15 @@
 import * as Cesium from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./style.css";
-import { CESIUM_ION_TOKEN, EYE_OFFSET_M, FOV_DEG, STARTS } from "./config";
+import { CESIUM_ION_TOKEN, EYE_OFFSET_M, FOV_DEG, GOOGLE_MAPS_KEY, STARTS } from "./config";
 import { KEY_HELP, KeyboardControls } from "./input/keyboard";
 import { Pfd, RA_ZERO_FT } from "./cockpit/pfd";
 import { Nd } from "./cockpit/nd";
 import { FcuPanel } from "./cockpit/fcu";
 import { Ewd } from "./cockpit/ewd";
 import { LeverPanel } from "./cockpit/levers";
+import { OverheadPanel } from "./cockpit/overhead";
+import { GuidedChecklist, type PanelName } from "./cockpit/checklist";
 import { addRunways } from "./world/runways3d";
 import { ILS_28 } from "./world/vidp";
 import type { FcuAction } from "./sim/fcc";
@@ -20,15 +22,28 @@ const M_TO_FT = 3.28084;
 const FT_TO_M = 0.3048;
 
 type Quality = "low" | "medium" | "high";
-const QUALITY: Record<Quality, { scale: number; sse: number; fxaa: boolean }> = {
-  low: { scale: 0.6, sse: 4, fxaa: false },
-  medium: { scale: 0.85, sse: 2, fxaa: true },
-  high: { scale: 1, sse: 1.5, fxaa: true },
+// retina: draw at the screen's full pixel density (sharp on Retina screens, heavier on the GPU).
+// sse: how much ground detail to load (lower = sharper, more downloads).
+const QUALITY: Record<Quality, { scale: number; retina: boolean; sse: number; fxaa: boolean }> = {
+  low: { scale: 0.75, retina: false, sse: 3, fxaa: false },
+  medium: { scale: 1, retina: false, sse: 1.5, fxaa: true },
+  high: { scale: 1, retina: true, sse: 1, fxaa: true },
 };
 
 // ---------- Globe ----------
 const hasToken = CESIUM_ION_TOKEN.length > 0;
 if (hasToken) Cesium.Ion.defaultAccessToken = CESIUM_ION_TOKEN;
+
+// Scenery: "standard" (globe imagery and terrain) or "google" (Google Photorealistic 3D Tiles,
+// with the user's own Google Maps key). Changing it reloads the page.
+type Scenery = "standard" | "google";
+const hasGoogleKey = GOOGLE_MAPS_KEY.length > 0;
+let scenery: Scenery = "standard";
+try {
+  if (localStorage.getItem("rz-scenery") === "google" && hasGoogleKey) scenery = "google";
+} catch {
+  /* ignore */
+}
 
 const viewer = new Cesium.Viewer("globe", {
   animation: false,
@@ -48,6 +63,26 @@ const viewer = new Cesium.Viewer("globe", {
     : new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({ url: "https://tile.openstreetmap.org/" })),
 });
 const scene = viewer.scene;
+scene.globe.tileCacheSize = 500;
+scene.globe.preloadSiblings = true;
+
+// Google Photorealistic 3D Tiles replace the globe surface. Attribution and the Google logo are
+// shown by Cesium in the bottom right corner and must stay visible.
+let googleTiles: Cesium.Cesium3DTileset | null = null;
+const googleReady: Promise<void> =
+  scenery === "google"
+    ? Cesium.createGooglePhotorealistic3DTileset({ key: GOOGLE_MAPS_KEY, onlyUsingWithGoogleGeocoder: true })
+        .then((tileset) => {
+          googleTiles = tileset;
+          scene.primitives.add(tileset);
+          scene.globe.show = false;
+        })
+        .catch((e) => {
+          showNotice(`Google 3D scenery failed to load (${e?.message ?? e}). Using standard scenery.`);
+          $("mode").textContent = hasToken ? "Real terrain (Google 3D failed)" : "Flat ground (Google 3D failed)";
+          if (!hasToken) addRunways(viewer, false);
+        })
+    : Promise.resolve();
 
 // Real terrain loads in the background. Until it is ready the globe is flat, so nothing that
 // measures the ground (the height offset, the terrain under the aircraft) may run before it.
@@ -68,7 +103,9 @@ scene.fog.enabled = true;
 if (scene.skyAtmosphere) scene.skyAtmosphere.show = true;
 const frustum = scene.camera.frustum as Cesium.PerspectiveFrustum;
 frustum.near = 0.5;
-addRunways(viewer, hasToken);
+// Our own runway drawing only on the flat no-token globe. On real imagery it would sit on top of the
+// real runways slightly out of place.
+if (!hasToken && scenery === "standard") addRunways(viewer, false);
 
 frustum.fov = rad(FOV_DEG);
 
@@ -81,12 +118,16 @@ function layout() {
   // Display size: panel height minus the glareshield (FCU) strip and padding, and never so wide
   // that three displays plus the levers overflow the screen.
   const byHeight = panelH - 74;
-  const byWidth = Math.floor((window.innerWidth - 300) / 3) - 12;
+  const byWidth = Math.floor((window.innerWidth - 470) / 3) - 12;
   root.setProperty("--disp", `${Math.max(180, Math.min(byHeight, byWidth))}px`);
   $("panel").classList.toggle("hidden", !panelShown);
 }
-window.addEventListener("resize", layout);
+window.addEventListener("resize", () => {
+  layout();
+  requestAnimationFrame(() => overheadFit());
+});
 layout();
+let overheadFit = () => {};
 
 // Head turn in the cockpit view: drag on the window, double-click to look ahead again.
 const HEAD_PITCH_DEFAULT = -0.06;
@@ -119,6 +160,7 @@ let headPitch = HEAD_PITCH_DEFAULT;
 
 function applyQuality(q: Quality) {
   const s = QUALITY[q];
+  viewer.useBrowserRecommendedResolution = !s.retina;
   viewer.resolutionScale = s.scale;
   scene.globe.maximumScreenSpaceError = s.sse;
   scene.postProcessStages.fxaa.enabled = s.fxaa;
@@ -158,7 +200,19 @@ startSelect.addEventListener("change", () => {
 let displayOffsetM = -ILS_28.threshold.elevationFt * FT_TO_M; // no token: flat ground at height 0
 let offsetMeasured = false;
 async function measureOffset() {
-  await terrainReady;
+  await Promise.all([terrainReady, googleReady]);
+  if (!terrainLoaded && googleTiles) {
+    // No terrain service: measure the ground height from the Google tiles at the threshold instead.
+    try {
+      const [c] = await scene.sampleHeightMostDetailed([
+        Cesium.Cartographic.fromDegrees(ILS_28.threshold.lonDeg, ILS_28.threshold.latDeg),
+      ]);
+      if (c && Number.isFinite(c.height)) displayOffsetM = c.height - ILS_28.threshold.elevationFt * FT_TO_M;
+    } catch {
+      /* keep the default */
+    }
+    return;
+  }
   if (!terrainLoaded) return;
   try {
     const [c] = await Cesium.sampleTerrainMostDetailed(scene.terrainProvider, [
@@ -228,6 +282,10 @@ const keys = new KeyboardControls({
   },
   onAp: () => fcuSend({ kind: "ap" }),
   onAthr: () => fcuSend({ kind: "athr" }),
+  onOverhead: () => showPanel(panelName === "ovhd" ? "main" : "ovhd"),
+});
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "k" && (e.target as HTMLElement)?.tagName !== "SELECT") checklist.toggle();
 });
 
 function resetTo(start: StartPosition) {
@@ -241,7 +299,14 @@ worker.onmessage = (ev: MessageEvent<FromWorker>) => {
   const msg = ev.data;
   switch (msg.type) {
     case "ready":
-      keys.setStart(msg.throttle, msg.start.flapLever, msg.start.gearDown);
+      keys.setStart(msg.throttle, msg.start.flapLever, msg.start.gearDown, !!msg.start.coldAndDark);
+      if (msg.start.coldAndDark) {
+        checklist.start();
+        showPanel("ovhd");
+      } else {
+        checklist.stop();
+        showPanel("main");
+      }
       ready = true;
       $("loading").classList.add("hidden");
       break;
@@ -302,6 +367,36 @@ const nd = new Nd($<HTMLCanvasElement>("nd"));
 const ewd = new Ewd($<HTMLCanvasElement>("ewd"));
 const fcu = new FcuPanel($("glareshield"), fcuSend, (step) => nd.changeRange(step));
 const levers = new LeverPanel($("instruments"), keys.controls);
+const overhead = new OverheadPanel($("instruments"), () => keys.controls.switches);
+$("instruments").insertBefore(overhead.el, $("ewd"));
+overheadFit = () => overhead.fit();
+
+// Panel tabs on the glareshield: MAIN shows PFD and ND, OVHD shows the overhead panel.
+let panelName: PanelName = "main";
+const tabs = document.createElement("div");
+tabs.id = "panel-tabs";
+for (const [name, label] of [
+  ["main", "MAIN"],
+  ["ovhd", "OVHD (O)"],
+] as [PanelName, string][]) {
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.dataset.ctl = `tab-${name}`;
+  b.addEventListener("click", () => {
+    showPanel(name);
+    b.blur();
+  });
+  tabs.appendChild(b);
+}
+$("glareshield").prepend(tabs);
+function showPanel(name: PanelName) {
+  panelName = name;
+  $("instruments").dataset.view = name;
+  requestAnimationFrame(() => overhead.fit());
+  tabs.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.ctl === `tab-${name}`));
+}
+showPanel("main");
+const checklist = new GuidedChecklist(document.body, showPanel, () => panelName);
 
 // ---------- Camera ----------
 const scratchEnu = new Cesium.Matrix4();
@@ -381,12 +476,21 @@ scene.preRender.addEventListener(() => {
     scene.camera.lookAt(centre, new Cesium.HeadingPitchRange(rad(s.headingDeg), rad(-12), 90));
   }
 
-  pfd.draw(s);
-  nd.draw(s);
   const c = keys.controls;
-  ewd.draw(s, c.flapLever, c.throttle);
+  // Screens need AC power. Without it they stay dark.
+  const powered = s.systems.acPower;
+  if (powered) {
+    pfd.draw(s);
+    nd.draw(s);
+    ewd.draw(s, c);
+  } else {
+    for (const cv of [pfd.canvas, nd.canvas, ewd.canvas]) blank(cv);
+  }
+  $("glareshield").classList.toggle("unpowered", !s.systems.dcPower);
   fcu.update(s.fcc);
   levers.update(s, c);
+  overhead.update(c.switches, s.systems);
+  checklist.update(s, c);
 
   const ra = s.aglFt - RA_ZERO_FT;
   $("readout").innerHTML = [
@@ -402,6 +506,15 @@ scene.preRender.addEventListener(() => {
     showTouchdown(s.touchdown);
   }
 });
+
+function blank(cv: HTMLCanvasElement) {
+  const g = cv.getContext("2d")!;
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = "#050607";
+  g.fillRect(0, 0, cv.width, cv.height);
+  g.restore();
+}
 
 function row(label: string, value: string) {
   return `<div class="row"><span>${label}</span><b>${value}</b></div>`;
@@ -431,7 +544,20 @@ $("touchdown").addEventListener("click", () => $("touchdown").classList.add("hid
 
 // ---------- Help ----------
 $("help-list").innerHTML = KEY_HELP.map(([k, v]) => `<div class="row"><kbd>${k}</kbd><span>${v}</span></div>`).join("");
-$("mode").textContent = hasToken ? "Real terrain" : "No token: flat ground";
+$("mode").textContent =
+  scenery === "google" ? "Google 3D scenery" : hasToken ? "Real terrain" : "No token: flat ground";
+const scenerySelect = $<HTMLSelectElement>("scenery");
+scenerySelect.value = scenery;
+(scenerySelect.querySelector('option[value="google"]') as HTMLOptionElement).disabled = !hasGoogleKey;
+if (!hasGoogleKey) scenerySelect.title = "Add VITE_GOOGLE_MAPS_KEY to .env to use Google 3D scenery";
+scenerySelect.addEventListener("change", () => {
+  try {
+    localStorage.setItem("rz-scenery", scenerySelect.value);
+  } catch {
+    /* ignore */
+  }
+  location.reload();
+});
 
 // Read-only hook for automated browser tests.
 (window as unknown as { __runwayZero: () => SimState | null }).__runwayZero = () => latest;

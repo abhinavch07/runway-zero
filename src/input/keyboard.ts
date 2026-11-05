@@ -1,6 +1,7 @@
 // Keyboard flight controls. Held keys move the sidestick smoothly; released keys let it centre again.
 // Works on a laptop keyboard with no extra keys (no Page Up, Home or number pad needed).
 import type { Controls } from "../sim/types";
+import { coldSwitches, runningSwitches } from "../sim/systems";
 
 export const KEY_HELP: Array<[string, string]> = [
   ["Arrow Up / Down", "Sidestick forward / back"],
@@ -11,6 +12,8 @@ export const KEY_HELP: Array<[string, string]> = [
   ["G", "Gear lever up / down"],
   ["/", "Speedbrake in / out"],
   [". (hold)", "Wheel brakes"],
+  ["B", "Parking brake on / off"],
+  ["O", "Overhead panel / main panel"],
   ["A", "Autopilot on / off"],
   ["T", "Autothrust on / off"],
   ["C", "Cockpit or outside view"],
@@ -34,6 +37,7 @@ export interface KeyboardEvents {
   onTogglePanel(): void;
   onAp(): void;
   onAthr(): void;
+  onOverhead(): void;
 }
 
 export class KeyboardControls {
@@ -46,6 +50,7 @@ export class KeyboardControls {
     gearDown: true,
     speedbrake: 0,
     brakes: 0,
+    switches: runningSwitches(),
   };
   private held = new Set<string>();
   private events: KeyboardEvents;
@@ -58,7 +63,8 @@ export class KeyboardControls {
   }
 
   /** Matches the levers to a new start position. */
-  setStart(throttle: number, flapLever: number, gearDown: boolean) {
+  setStart(throttle: number, flapLever: number, gearDown: boolean, cold: boolean) {
+    this.controls.switches = cold ? coldSwitches() : runningSwitches();
     Object.assign(this.controls, {
       pitch: 0,
       roll: 0,
@@ -111,6 +117,12 @@ export class KeyboardControls {
         break;
       case "t":
         this.events.onAthr();
+        break;
+      case "b":
+        c.switches.parkBrake = !c.switches.parkBrake;
+        break;
+      case "o":
+        this.events.onOverhead();
         break;
     }
   }

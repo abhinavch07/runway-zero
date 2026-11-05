@@ -34,6 +34,25 @@ export class Nd {
 
   draw(s: SimState) {
     const g = this.ctx;
+    const sys = s.systems;
+    if (!(sys.irAligned[0] || sys.irAligned[2])) {
+      g.save();
+      g.fillStyle = "#000";
+      g.fillRect(0, 0, SIZE, SIZE);
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.font = "bold 20px ui-monospace, Menlo, monospace";
+      g.fillStyle = "#ff3b3b";
+      g.fillText("HDG", SIZE / 2, 60);
+      g.fillText("MAP NOT AVAIL", SIZE / 2, SIZE / 2);
+      if (sys.irSecondsLeft > 0) {
+        g.font = "14px ui-monospace, Menlo, monospace";
+        g.fillStyle = "#ffffff";
+        g.fillText(`IR ALIGN ${sys.irSecondsLeft} s`, SIZE / 2, SIZE / 2 + 30);
+      }
+      g.restore();
+      return;
+    }
     const cx = SIZE / 2;
     const cy = 340; // aircraft symbol position
     const radius = 290; // pixels for the full range

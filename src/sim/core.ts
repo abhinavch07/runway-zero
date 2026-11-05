@@ -3,6 +3,7 @@
 import type { JSBSimSdk } from "@0x62/jsbsim-wasm";
 import { FlightControlComputer, type FccStatus, type FcuAction, type PilotInput } from "./fcc.ts";
 import type { Controls, SimState, StartPosition, TouchdownReport } from "./types.ts";
+import { coldSwitches, runningSwitches, Systems } from "./systems.ts";
 import { alongCross } from "../world/geo.ts";
 import { ILS_28 } from "../world/vidp.ts";
 
@@ -20,6 +21,7 @@ export const MODEL_FILES = ["aircraft/A320/A320.xml", "engine/CFM56_5.xml", "eng
 
 export class SimCore {
   readonly fcc: FlightControlComputer;
+  readonly systems: Systems;
   private terrainFt = 0;
   private terrainTargetFt = 0;
   private wasAirborne = false;
@@ -30,10 +32,12 @@ export class SimCore {
 
   constructor(sdk: JSBSimSdk) {
     this.sdk = sdk;
-    this.fcc = new FlightControlComputer({
-      get: (p) => sdk.getPropertyValue(p),
-      set: (p, v) => sdk.setPropertyValue(p, v),
-    });
+    const fdm = {
+      get: (p: string) => sdk.getPropertyValue(p),
+      set: (p: string, v: number) => sdk.setPropertyValue(p, v),
+    };
+    this.fcc = new FlightControlComputer(fdm);
+    this.systems = new Systems(fdm);
   }
 
   get(p: string) {
@@ -90,7 +94,7 @@ export class SimCore {
       this.set("ic/gamma-deg", start.gammaDeg ?? 0);
     }
     this.sdk.runIc();
-    this.set("propulsion/set-running", -1);
+    if (!start.coldAndDark) this.set("propulsion/set-running", -1);
     this.set("gear/gear-cmd-norm", start.gearDown ? 1 : 0);
     this.set("fcs/flap-cmd-norm", FLAP_CMD[start.flapLever]);
     // Move gear and flaps straight to the commanded position for the start.
@@ -120,6 +124,7 @@ export class SimCore {
       trim,
       fcu: start.fcu,
     });
+    this.systems.reset(!!start.coldAndDark, start.coldAndDark ? coldSwitches() : runningSwitches());
     this.wasAirborne = !start.onGround;
     this.airborneFor = start.onGround ? 0 : 60;
     this.touchdown = null;
@@ -134,8 +139,10 @@ export class SimCore {
     const onWheels = this.get("gear/wow") > 0;
     this.set("gear/gear-cmd-norm", c.gearDown || onWheels ? 1 : 0);
     this.set("fcs/speedbrake-cmd-norm", c.speedbrake);
-    this.set("fcs/left-brake-cmd-norm", c.brakes);
-    this.set("fcs/right-brake-cmd-norm", c.brakes);
+    const brakes = Math.max(c.brakes, c.switches.parkBrake ? 1 : 0);
+    this.set("fcs/left-brake-cmd-norm", brakes);
+    this.set("fcs/right-brake-cmd-norm", brakes);
+    this.systems.step(1 / STEP_HZ, c.switches);
     // On the wheels the ground may only move slowly, like driving up a gentle slope. A fast change
     // pushes the gear through the ground and the flight model breaks down.
     const maxStep = (onWheels ? GROUND_RATE_ON_WHEELS : GROUND_RATE_AIRBORNE) / STEP_HZ;
@@ -200,7 +207,7 @@ export class SimCore {
       vsFpm: g("velocities/h-dot-fps") * 60,
       n1: [g("propulsion/engine[0]/n1"), g("propulsion/engine[1]/n1")],
       n2: [g("propulsion/engine[0]/n2"), g("propulsion/engine[1]/n2")],
-      egtC: [g("propulsion/engine[0]/egt-degC"), g("propulsion/engine[1]/egt-degC")],
+      egtC: [this.systems.status().engines[0].egtC, this.systems.status().engines[1].egtC],
       fuelFlowKgH: [g("propulsion/engine[0]/fuel-flow-rate-pps") * 1633, g("propulsion/engine[1]/fuel-flow-rate-pps") * 1633],
       fuelKg: g("propulsion/total-fuel-lbs") * 0.4536,
       throttlePos: g("fcs/throttle-pos-norm[0]"),
@@ -211,6 +218,7 @@ export class SimCore {
       pitchTrim: g("fcs/pitch-trim-cmd-norm"),
       simRate,
       fcc: structuredClone(this.fcc.getStatus()),
+      systems: structuredClone(this.systems.status()),
       touchdown: this.touchdown,
     };
   }
