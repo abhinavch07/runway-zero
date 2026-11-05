@@ -15,6 +15,9 @@ export class LessonPanel {
   private nextPressed = false;
   /** Called when a step ticks off. complete is true when it was the last step. */
   onTick?: (complete: boolean) => void;
+  /** Called when the learner presses "Take the quiz" at the end of the lesson. */
+  onQuiz?: () => void;
+  private footerHtml = "";
   private showPanel: (p: PanelName) => void;
   private getPanel: () => PanelName;
 
@@ -37,6 +40,8 @@ export class LessonPanel {
     this.latched = lesson.steps.map(() => false);
     this.lastCurrent = -1;
     this.nextPressed = false;
+    this.footerHtml = "";
+    this.footer.innerHTML = "";
     this.list.innerHTML = lesson.steps
       .map(
         (st) =>
@@ -82,7 +87,16 @@ export class LessonPanel {
     this.header.innerHTML = `<div class="ls-name">${esc(lesson.title)}</div><div class="ls-progress">${
       current < 0 ? `All ${total} steps done` : `Step ${current + 1} of ${total}`
     }</div><div class="ls-bar"><i style="width:${(100 * (current < 0 ? total : current)) / total}%"></i></div>`;
-    this.footer.innerHTML = current < 0 ? `<b>Lesson complete.</b> ${esc(lesson.finished)}` : "";
+    const footer =
+      current < 0
+        ? `<b>Lesson complete.</b> ${esc(lesson.finished)}<br><button class="ls-quiz">Take the quiz (5 questions)</button>`
+        : "";
+    // Only rebuild the footer when it changes, so its button can be clicked.
+    if (footer !== this.footerHtml) {
+      this.footerHtml = footer;
+      this.footer.innerHTML = footer;
+      this.footer.querySelector(".ls-quiz")?.addEventListener("click", () => this.onQuiz?.());
+    }
 
     clearHighlights();
     if (current < 0) return;

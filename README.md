@@ -39,6 +39,12 @@ Known gaps:
 - No real SIDs, STARs, approaches or airways in the MCDU.
 - Headings are true, not magnetic (about 1° difference at Delhi).
 
+## Try it online
+
+https://abhinavch07.github.io/runway-zero/ (published from `main` by GitHub Actions, see `.github/workflows/pages.yml`).
+
+After each lesson there is a 5-question quiz, with the answer and the reason after each question. 4 out of 5 passes. The lesson list shows a green tick when a lesson is finished and its quiz is passed, and a half tick when the lesson is finished but the quiz is not passed yet. Progress is saved in the browser only.
+
 ## Run it
 
 You need Node.js 20 or newer.
@@ -79,6 +85,8 @@ src/
   main.ts               page, panels, lesson picker, display loop
   config.ts             start positions for the lessons
   lessons/lessons.ts    the lessons and their steps
+  lessons/quizzes.ts    five quiz questions for each lesson
+  lessons/progress.ts   lesson ticks and best quiz scores, saved in the browser
   sim/fdm.worker.ts     runs the simulation in a Web Worker at 120 Hz
   sim/core.ts           JSBSim and start positions (shared with the Node tests)
   sim/fcc.ts            normal law, autopilot and autothrust
@@ -89,6 +97,7 @@ src/
   world/geo.ts          distance and bearing helpers
   world/route.ts        small navigation database: VIDP, VABB and the training waypoints
   cockpit/lessonPanel.ts  lesson list, highlights and step checking
+  cockpit/quiz.ts       the quiz dialog
   cockpit/mcdu.ts       MCDU: INIT A, INIT B, F-PLN, LAT REV, departure and arrival, PERF TAKE OFF
   cockpit/pfd.ts        PFD
   cockpit/nd.ts         ND
@@ -108,7 +117,7 @@ Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps
 
 ## Data sources
 
-- Lessons are our own simplified training flows, written from general public knowledge of the A320 family. A type-rated pilot should review them.
+- Lessons and quiz questions are our own simplified training flows, written from general public knowledge of the A320 family. A type-rated pilot should review them.
 - VIDP runway ends, headings and elevations: [OurAirports](https://github.com/davidmegginson/ourairports-data) (public domain).
 - The MCDU is a small training version. Its pages follow the general A320 family idea but are not a copy of the real software. The RZ101, RZ102 and RZ103 waypoints are made up for training. VABB is listed by runway ident only. Take-off speeds in the lesson are training numbers, not performance data.
 - ILS 28 is built from the runway geometry: a training stand-in, not the published procedure.

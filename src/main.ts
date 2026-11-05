@@ -13,6 +13,9 @@ import { LessonPanel } from "./cockpit/lessonPanel";
 import { Mcdu, type FmsData } from "./cockpit/mcdu";
 import { EfisPanel } from "./cockpit/efis";
 import { Sound } from "./audio/sound";
+import { QuizDialog } from "./cockpit/quiz";
+import { PASS_MARK, QUIZZES } from "./lessons/quizzes";
+import { loadProgress, markFinished, passed, recordScore, resetProgress } from "./lessons/progress";
 import { LESSONS, type Lesson, type PanelName } from "./lessons/lessons";
 import { coldSwitches, startSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
@@ -138,7 +141,11 @@ const lessonPanel = new LessonPanel($("lesson-slot"), showPanel, () => panel);
 
 // ---------- Sound ----------
 const sound = new Sound();
-lessonPanel.onTick = (complete) => sound.chime(complete);
+lessonPanel.onTick = (complete) => {
+  sound.chime(complete);
+  if (complete && currentLesson) markFinished(currentLesson.id);
+};
+lessonPanel.onQuiz = () => currentLesson && startQuiz(currentLesson);
 const soundBtn = $<HTMLButtonElement>("sound-btn");
 const soundVol = $<HTMLInputElement>("sound-vol");
 function showSound() {
@@ -180,7 +187,7 @@ window.addEventListener("resize", () => requestAnimationFrame(fit));
 
 // ---------- Keys ----------
 window.addEventListener("keydown", (e) => {
-  if (e.repeat) return;
+  if (e.repeat || quiz.open) return;
   const k = e.key.toLowerCase();
   if (k === "1") showPanel("ovhd");
   if (k === "2") showPanel("main");
@@ -192,23 +199,64 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-// ---------- Lesson picker ----------
-$("picker-list").innerHTML = LESSONS.map(
-  (l, i) => `<button class="picker-item" data-lesson="${l.id}">
-      <span class="picker-num">${i + 1}</span>
-      <span><b>${l.title}</b><br><span class="picker-sum">${l.summary.replace(/</g, "&lt;")}</span></span>
-      <span class="picker-min">about ${l.minutes} min</span>
-    </button>`,
-).join("");
-document.querySelectorAll<HTMLElement>(".picker-item").forEach((b) =>
-  b.addEventListener("click", () => {
-    const lesson = LESSONS.find((l) => l.id === b.dataset.lesson);
-    if (lesson) startLesson(lesson);
-  }),
-);
+// ---------- Lesson picker, progress and quiz ----------
+const quiz = new QuizDialog();
+function renderPicker() {
+  const progress = loadProgress();
+  $("picker-list").innerHTML = LESSONS.map((l, i) => {
+    const p = progress[l.id];
+    const status = passed(p)
+      ? `<span class="picker-status ok" title="Lesson finished and quiz passed">✓ Done · quiz ${p!.bestScore}/5</span>`
+      : p?.finished
+        ? `<span class="picker-status half" title="Lesson finished, quiz not passed yet">◐ Finished · ${
+            p.bestScore ? `quiz ${p.bestScore}/5` : "take the quiz"
+          }</span>`
+        : "";
+    const quizBtn = p?.finished ? `<button class="picker-quiz" data-quiz="${l.id}">Quiz</button>` : "";
+    return `<div class="picker-row">
+      <button class="picker-item" data-lesson="${l.id}">
+        <span class="picker-num">${i + 1}</span>
+        <span><b>${l.title}</b><br><span class="picker-sum">${l.summary.replace(/</g, "&lt;")}</span>${status ? "<br>" + status : ""}</span>
+        <span class="picker-min">about ${l.minutes} min</span>
+      </button>${quizBtn}</div>`;
+  }).join("");
+  document.querySelectorAll<HTMLElement>(".picker-item").forEach((b) =>
+    b.addEventListener("click", () => {
+      const lesson = LESSONS.find((l) => l.id === b.dataset.lesson);
+      if (lesson) startLesson(lesson);
+    }),
+  );
+  document.querySelectorAll<HTMLElement>(".picker-quiz").forEach((b) =>
+    b.addEventListener("click", () => {
+      const lesson = LESSONS.find((l) => l.id === b.dataset.quiz);
+      if (lesson) startQuiz(lesson);
+    }),
+  );
+}
+function startQuiz(lesson: Lesson) {
+  const qs = QUIZZES[lesson.id];
+  if (!qs) return;
+  $("picker").classList.add("hidden");
+  quiz.start(
+    lesson.title,
+    qs,
+    (score) => {
+      recordScore(lesson.id, score);
+      if (score >= PASS_MARK) sound.chime(true);
+    },
+    openPicker,
+  );
+}
 function openPicker() {
+  renderPicker();
   $("picker").classList.remove("hidden");
 }
+$("reset-progress").addEventListener("click", () => {
+  if (window.confirm("Clear your lesson ticks and quiz scores in this browser?")) {
+    resetProgress();
+    renderPicker();
+  }
+});
 $("lessons-btn").addEventListener("click", (e) => {
   openPicker();
   (e.currentTarget as HTMLElement).blur();
