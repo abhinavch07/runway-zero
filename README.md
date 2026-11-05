@@ -13,7 +13,7 @@ Pick a lesson. The lesson list on the left tells you what to do and why. The con
 
 Lessons:
 
-1. **Power up and engine start** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, beacon, engine start, ready for taxi.
+1. **Power up** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, until the APU powers the aircraft and the ADIRS are aligned. Lesson 3 picks up from here.
 2. **MCDU setup: Delhi to Mumbai** (cold and dark): power up, then INIT A (FROM/TO, flight number, cost index, cruise level), the flight plan (departure runway 28, arrival runway 27, three training waypoints, clearing a discontinuity), INIT B (zero fuel weight and block fuel) and PERF TAKE OFF (V1, VR, V2, flaps, FLEX). The route then shows on the ND.
 3. **Before start and engine start** (at the gate, APU running, MCDU already set up): flight directors on, QNH 1008 on the baro, FCU altitude 5000, check V1 and V2 on the PFD and the route on the ND, seat belts and beacon, start both engines, APU off, flaps 1.
 4. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed and heading, climb and descend with V/S, watch ALT* and ALT, disconnect and engage the autopilot.

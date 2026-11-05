@@ -38,19 +38,24 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "Attitude, heading and position come from the inertial reference. Until it has aligned, those displays have nothing to show.",
     },
     {
-      q: "What does the red flashing beacon tell the ground crew?",
+      q: "What does APU MASTER SW ON do before you press APU START?",
       options: [
-        "The engines are about to start or are running",
-        "Boarding can begin",
-        "Fuelling is complete",
-        "A door is open",
+        "Opens the APU air intake flap and powers the APU computer",
+        "Starts the main engines",
+        "Connects ground power",
+        "Turns on the fuel pumps",
       ],
-      why: "Beacon on means stay clear of the engines. It goes on before start and off only after the engines have stopped.",
+      why: "The master switch gets the APU ready. Wait a few seconds for the intake flap to open, then press START.",
     },
     {
-      q: "Both engines are running and stable. Where does ENG MODE go?",
-      options: ["NORM", "IGN/START", "CRANK", "It stays where it is"],
-      why: "IGN/START is only for starting. With both engines running, the selector goes back to NORM.",
+      q: "The APU is running. Why switch EXT PWR off?",
+      options: [
+        "The APU generator takes over, and ground power must be off before the aircraft moves",
+        "Ground power would stop the APU",
+        "The batteries need to charge from the APU only",
+        "The ADIRS stop aligning on ground power",
+      ],
+      why: "With the APU generator ready, ground power is no longer needed. The cable is removed before pushback or taxi.",
     },
   ],
   mcdu: [
@@ -127,9 +132,9 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "Dashes and a dot mean managed. The flight computer gives the target, which is V2 for take-off.",
     },
     {
-      q: "On the PFD speed tape before take-off, which colour is V1?",
-      options: ["Cyan", "Magenta", "Amber", "Red"],
-      why: "V1 is shown in cyan. The managed speed target (V2 here) is magenta.",
+      q: "Both engines are running and stable. Where does ENG MODE go?",
+      options: ["NORM", "IGN/START", "CRANK", "It stays where it is"],
+      why: "IGN/START is only for starting. With both engines running, the selector goes back to NORM.",
     },
     {
       q: "Which flap setting do you select for this take-off?",
