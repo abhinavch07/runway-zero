@@ -13,6 +13,8 @@ export class LessonPanel {
   private latched: boolean[] = [];
   private lastCurrent = -1;
   private nextPressed = false;
+  /** Called when a step ticks off. complete is true when it was the last step. */
+  onTick?: (complete: boolean) => void;
   private showPanel: (p: PanelName) => void;
   private getPanel: () => PanelName;
 
@@ -63,6 +65,7 @@ export class LessonPanel {
         if (ok) {
           this.latched[i] = true;
           this.nextPressed = false;
+          this.onTick?.(i === lesson.steps.length - 1);
         }
       }
       if (!this.latched[i]) {

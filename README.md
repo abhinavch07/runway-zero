@@ -28,6 +28,8 @@ Panels:
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
+Sound: cockpit hum when powered, APU, engine start and idle, switch clicks and a chime for each finished step. All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
+
 Known gaps:
 
 - The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP.
@@ -66,6 +68,7 @@ npm run test:flights  # scripted test flights: cold start and taxi, ground, norm
 | 2 | Main panel |
 | 3 | Pedestal |
 | L | Lesson list |
+| M | Sound on / off |
 
 Click switches and buttons with the mouse. MCDU: click it once, then you can type on your keyboard (Backspace is CLR, arrow keys scroll, Esc stops typing). FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
 
@@ -92,6 +95,7 @@ src/
   cockpit/ewd.ts        engine and warning display
   cockpit/fcu.ts        FCU on the glareshield
   cockpit/efis.ts       EFIS: flight director and baro (QNH / STD)
+  audio/sound.ts        cockpit sound made with Web Audio
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel
 public/jsbsim/          JSBSim aircraft and engine files

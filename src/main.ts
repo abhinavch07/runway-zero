@@ -12,6 +12,7 @@ import { OverheadPanel } from "./cockpit/overhead";
 import { LessonPanel } from "./cockpit/lessonPanel";
 import { Mcdu, type FmsData } from "./cockpit/mcdu";
 import { EfisPanel } from "./cockpit/efis";
+import { Sound } from "./audio/sound";
 import { LESSONS, type Lesson, type PanelName } from "./lessons/lessons";
 import { coldSwitches, startSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
@@ -135,6 +136,28 @@ const levers = new LeverPanel($("ped-controls"), controls);
 const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel($("lesson-slot"), showPanel, () => panel);
 
+// ---------- Sound ----------
+const sound = new Sound();
+lessonPanel.onTick = (complete) => sound.chime(complete);
+const soundBtn = $<HTMLButtonElement>("sound-btn");
+const soundVol = $<HTMLInputElement>("sound-vol");
+function showSound() {
+  soundBtn.textContent = sound.on ? "🔊" : "🔇";
+  soundBtn.classList.toggle("off", !sound.on);
+  soundVol.value = String(Math.round(sound.volume * 100));
+}
+soundBtn.addEventListener("click", () => {
+  sound.setOn(!sound.on);
+  showSound();
+  soundBtn.blur();
+});
+soundVol.addEventListener("input", () => {
+  sound.setVolume(Number(soundVol.value) / 100);
+  if (!sound.on) sound.setOn(true);
+  showSound();
+});
+showSound();
+
 /** Sizes the active panel to fill the space it has. */
 function fit() {
   const box = $("cockpit").getBoundingClientRect();
@@ -163,6 +186,10 @@ window.addEventListener("keydown", (e) => {
   if (k === "2") showPanel("main");
   if (k === "3") showPanel("ped");
   if (k === "l") openPicker();
+  if (k === "m") {
+    sound.setOn(!sound.on);
+    showSound();
+  }
 });
 
 // ---------- Lesson picker ----------
@@ -217,6 +244,7 @@ function frame() {
   overhead.update(controls.switches, s.systems);
   mcdu.setPowered(s.systems.acPower);
   lessonPanel.update(s, controls, mcdu.fms);
+  sound.update(s);
 
   const eng = s.systems.engines.map((e) => e.phase).join(" / ");
   $("status").textContent = `Power: ${s.systems.acSource || (s.systems.dcPower ? "BAT" : "OFF")} · Engines: ${eng}`;
@@ -262,6 +290,7 @@ const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
 w.__runwayZeroFcu = fcuSend;
 w.__runwayZeroFms = () => mcdu.fms;
+w.__runwayZeroSound = () => sound.debug();
 w.__runwayZeroLesson = (id: string) => {
   const l = LESSONS.find((x) => x.id === id);
   if (l) startLesson(l);
