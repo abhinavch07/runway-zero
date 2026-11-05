@@ -1,5 +1,5 @@
 // Scripted test flights in Node: takeoff, climb on autopilot, ILS approach and landing.
-// Run with: node scripts/fcc-test.ts [scenario]   (scenarios: law, takeoff, ils, all)
+// Run with: node scripts/fcc-test.ts [scenario]   (scenarios: ground, law, takeoff, ils, all)
 import { readFileSync } from "node:fs";
 import { JSBSimSdk } from "@0x62/jsbsim-wasm";
 import { MODEL_FILES, SimCore, STEP_HZ } from "../src/sim/core.ts";
@@ -156,7 +156,23 @@ async function ilsTest() {
   void ILS_28;
 }
 
+async function groundTest() {
+  console.log("\n=== Ground height changes under the parked aircraft (real terrain differs from runway data) ===");
+  let ok = true;
+  for (const d of [-40, -10, 10, 20, 40]) {
+    const core = await makeCore();
+    core.place(start("rwy28"));
+    core.setTerrain(778 + d);
+    fly(core, 40, () => neutral(0, 2, true), 0);
+    const fine = core.healthy();
+    ok &&= fine;
+    console.log(`ground moves ${String(d).padStart(3)} ft: ${fine ? "OK" : "BROKE"}, height on wheels ${core.get("position/h-agl-ft").toFixed(1)} ft`);
+  }
+  if (!ok) process.exitCode = 1;
+}
+
 const which = process.argv[2] ?? "all";
+if (which === "ground" || which === "all") await groundTest();
 if (which === "law" || which === "all") await lawTest();
 if (which === "takeoff" || which === "all") await takeoffTest();
 if (which === "ils" || which === "all") await ilsTest();

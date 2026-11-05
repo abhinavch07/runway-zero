@@ -8,6 +8,9 @@ import { ILS_28 } from "../world/vidp.ts";
 
 export const STEP_HZ = 120;
 const FT_TO_M = 0.3048;
+/** How fast the flight model's ground height may follow the globe, feet per second. */
+export const GROUND_RATE_ON_WHEELS = 2;
+const GROUND_RATE_AIRBORNE = 100;
 
 // Flap lever detents mapped to the stand-in model's flap command (0 to 1 covers 0 to 40 degrees).
 // 0, 1 (10 deg), 2 (15 deg), 3 (20 deg), FULL (40 deg).
@@ -50,6 +53,11 @@ export class SimCore {
     const onWheels = this.get("gear/wow") > 0;
     if (onWheels && Math.abs(ft - this.terrainFt) > 50) return;
     this.terrainTargetFt = ft;
+  }
+
+  /** Short text for the browser console when something goes wrong. */
+  debugInfo(): string {
+    return `ground ${this.terrainFt.toFixed(1)} ft (target ${this.terrainTargetFt.toFixed(1)}), alt ${this.get("position/h-sl-ft")}, agl ${this.get("position/h-agl-ft")}, kias ${this.get("velocities/vc-kts")}, wow ${this.get("gear/wow")}`;
   }
 
   /** True when the flight model's numbers are all valid. False means it has broken down. */
@@ -126,7 +134,10 @@ export class SimCore {
     this.set("fcs/speedbrake-cmd-norm", c.speedbrake);
     this.set("fcs/left-brake-cmd-norm", c.brakes);
     this.set("fcs/right-brake-cmd-norm", c.brakes);
-    const maxStep = 100 / STEP_HZ;
+    // On the wheels the ground may only move slowly, like driving up a gentle slope. A fast change
+    // pushes the gear through the ground and the flight model breaks down.
+    const onWheels = this.get("gear/wow") > 0;
+    const maxStep = (onWheels ? GROUND_RATE_ON_WHEELS : GROUND_RATE_AIRBORNE) / STEP_HZ;
     this.terrainFt += Math.max(-maxStep, Math.min(maxStep, this.terrainTargetFt - this.terrainFt));
     this.set("position/terrain-elevation-asl-ft", this.terrainFt);
     this.fcc.step(1 / STEP_HZ, input);

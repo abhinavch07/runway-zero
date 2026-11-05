@@ -50,6 +50,7 @@ function tick() {
     for (let i = 0; i < steps; i++) core.step(controls);
     if (!core.healthy() && lastStart) {
       // The flight model broke down. Start again rather than send broken numbers to the page.
+      console.warn("[runway-zero] flight model broke down:", core.debugInfo());
       controls = null;
       const { throttle } = core.place(lastStart);
       post({ type: "ready", throttle, start: lastStart });
