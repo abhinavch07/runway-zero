@@ -33,12 +33,21 @@
             <canvas id="nd" title="ND"></canvas>
             <canvas id="ewd" title="Engine and warning display"></canvas>
           </div>
+          <div id="stick" data-ctl="sidestick" title="Sidestick: hold a button, or use the arrow keys">
+            <span class="stick-title">SIDESTICK</span>
+            <button data-stick="left" data-ctl="stick-left">◀</button>
+            <button data-stick="up" data-ctl="stick-pull">PULL ▼</button>
+            <button data-stick="down" data-ctl="stick-push">PUSH ▲</button>
+            <button data-stick="right" data-ctl="stick-right">▶</button>
+            <span class="stick-hint">or arrow keys</span>
+          </div>
         </section>
         <section id="p-ped" class="cp-panel">
           <div id="ped-row">
             <div id="mcdu-slot"></div>
             <div id="ped-side">
-              <canvas id="ewd-small" title="Engine and warning display"></canvas>
+              <canvas id="sd" title="Lower ECAM (system display)"></canvas>
+            <div id="ecam-cp"></div>
               <div id="ped-controls"></div>
             </div>
           </div>

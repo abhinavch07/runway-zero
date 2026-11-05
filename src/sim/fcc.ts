@@ -254,7 +254,10 @@ export class FlightControlComputer {
     }
     const inFlight = this.airborneTime > 0.5 || (!wowAny && this.flightBlend > 0);
     const target = inFlight ? 1 : this.groundTime > 1 ? 0 : this.flightBlend;
-    this.flightBlend += clamp(target - this.flightBlend, -dt / 5, dt / 5); // blend over 5 s
+    // Into flight law within about a second once airborne, so the attitude holds when the stick is
+    // released after lift-off. Back to ground law over 5 s after touchdown.
+    const rate = inFlight ? dt / 1.2 : dt / 5;
+    this.flightBlend += clamp(target - this.flightBlend, -rate, rate);
     s.law = this.flightBlend > 0.5 ? "FLIGHT" : "GROUND";
 
     // ----- Autopilot safety: disconnect on strong stick input or on the ground -----
@@ -415,7 +418,9 @@ export class FlightControlComputer {
     let qCmd: number;
     if (!ap && Math.abs(input.pitch) > 0.05) {
       qCmd = input.pitch * K.stickQ + bankComp;
-      this.gammaHold = gamma;
+      // Just after lift-off the flight path lags the attitude. Hold the climb the attitude will
+      // give (pitch minus about 6° of wing angle), so releasing the stick keeps the aircraft climbing.
+      this.gammaHold = this.airborneTime < 15 ? Math.max(gamma, theta - 6) : gamma;
     } else {
       const target = ap ? gammaCmd : this.gammaHold;
       qCmd = clamp(K.gammaHold * (target - gamma), -4, 4) + bankComp;

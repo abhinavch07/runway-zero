@@ -1,7 +1,12 @@
-// Pedestal controls on the 2D panel: gear lever, flap lever, speedbrake, thrust levers,
-// engine master switches, engine mode selector and parking brake.
+// Pedestal controls on the 2D panel: gear lever, autobrake, flap lever, speedbrake (with ground
+// spoiler ARM), thrust levers with detents, engine master switches, engine mode selector, parking
+// brake, rudder trim, pitch trim wheel, nosewheel tiller and toe brakes.
 // Click to operate. The keyboard keys do the same things.
-import type { Controls, SimState } from "../sim/types";
+import type { A320Extras, Controls, SimState } from "../sim/types";
+import { thsText } from "./ecam";
+
+/** Thrust lever detents (lever position 0 to 1). */
+export const DETENT = { CL: 0.75, FLX: 0.88, TOGA: 1 };
 
 const FLAP_LABEL = ["0", "1", "2", "3", "FULL"];
 
@@ -18,6 +23,10 @@ export class LeverPanel {
   private modeBtns: HTMLButtonElement[] = [];
   private parkBtn: HTMLButtonElement;
   private engLights: HTMLElement[] = [];
+  private sbBtns: HTMLButtonElement[] = [];
+  private abBtns: HTMLButtonElement[] = [];
+  private rudText!: HTMLElement;
+  private thsText!: HTMLElement;
 
   constructor(parent: HTMLElement, controls: Controls) {
     this.el = document.createElement("div");
@@ -57,15 +66,74 @@ export class LeverPanel {
     });
     flaps.appendChild(row);
 
-    // Speedbrake.
+    // Speedbrake: RET, ARM (ground spoilers armed for take-off and landing), FULL.
+    const x = () => controls.extras as A320Extras;
     const sb = section("SPEED BRAKE");
     this.sbBtn = document.createElement("button");
-    this.sbBtn.title = "Speedbrake (/)";
-    this.sbBtn.addEventListener("click", () => {
-      controls.speedbrake = controls.speedbrake > 0 ? 0 : 1;
-      this.sbBtn.blur();
-    });
-    sb.appendChild(this.sbBtn);
+    const sbRow = row3([
+      ["RET", "spd-ret", () => ((controls.speedbrake = 0), (x().spoilersArmed = false))],
+      ["ARM", "spd-arm", () => ((controls.speedbrake = 0), (x().spoilersArmed = true))],
+      ["FULL", "spd-full", () => ((controls.speedbrake = 1), (x().spoilersArmed = false))],
+    ]);
+    this.sbBtns = [...sbRow.querySelectorAll("button")] as HTMLButtonElement[];
+    sb.appendChild(sbRow);
+
+    // Autobrake (on the main panel in the aircraft).
+    const ab = section("AUTO BRK");
+    const abRow = row3(
+      (["LO", "MED", "MAX"] as const).map((m) => [m, `abrk-${m}`, () => (x().autobrake = x().autobrake === m ? "OFF" : m)] as [string, string, () => void]),
+    );
+    this.abBtns = [...abRow.querySelectorAll("button")] as HTMLButtonElement[];
+    ab.appendChild(abRow);
+
+    // Rudder trim and pitch trim.
+    const trims = section("RUD TRIM");
+    this.rudText = document.createElement("div");
+    this.rudText.className = "trim-text";
+    trims.dataset.ctl = "rud-trim";
+    trims.append(
+      this.rudText,
+      row3([
+        ["◀ L", "rud-left", () => (x().rudderTrim = Math.max(-20, Math.round((x().rudderTrim - 0.5) * 10) / 10))],
+        ["RESET", "rud-reset", () => (x().rudderTrim = 0)],
+        ["R ▶", "rud-right", () => (x().rudderTrim = Math.min(20, Math.round((x().rudderTrim + 0.5) * 10) / 10))],
+      ]),
+    );
+    const pitch = section("PITCH TRIM");
+    pitch.dataset.ctl = "pitch-trim";
+    this.thsText = document.createElement("div");
+    this.thsText.className = "trim-text";
+    pitch.append(
+      this.thsText,
+      row3([
+        ["NOSE DN", "ths-dn", () => (x().ths = Math.max(-4, Math.round((x().ths - 0.1) * 10) / 10))],
+        ["0", "ths-zero", () => (x().ths = 0)],
+        ["NOSE UP", "ths-up", () => (x().ths = Math.min(13, Math.round((x().ths + 0.1) * 10) / 10))],
+      ]),
+    );
+
+    // Tiller and toe brakes: hold to use.
+    const taxi = section("TILLER AND BRAKES");
+    const hold = (label: string, ctl: string, down: () => void, up: () => void) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.dataset.ctl = ctl;
+      b.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        down();
+      });
+      for (const ev of ["pointerup", "pointerleave"]) b.addEventListener(ev, up);
+      return b;
+    };
+    const tillerRow = document.createElement("div");
+    tillerRow.className = "flap-row";
+    tillerRow.append(
+      hold("◀ TILLER", "tiller-left", () => (controls.yaw = -1), () => (controls.yaw = 0)),
+      hold("TILLER ▶", "tiller-right", () => (controls.yaw = 1), () => (controls.yaw = 0)),
+    );
+    const brakeBtn = hold("BRAKES (hold)", "brakes", () => (controls.brakes = 1), () => (controls.brakes = 0));
+    brakeBtn.className = "gear-lever";
+    taxi.append(tillerRow, brakeBtn);
 
     // Thrust levers (shown, moved with = and -).
     const thr = section("THRUST LEVERS");
@@ -80,20 +148,27 @@ export class LeverPanel {
     const thrBtns = document.createElement("div");
     thrBtns.className = "flap-row";
     thrBtns.style.marginTop = "4px";
-    for (const [label, fn] of [
-      ["IDLE", () => (controls.throttle = 0)],
-      ["−", () => (controls.throttle = Math.max(0, controls.throttle - 0.1))],
-      ["+", () => (controls.throttle = Math.min(1, controls.throttle + 0.1))],
-    ] as [string, () => void][]) {
+    for (const [label, fn, ctl] of [
+      ["IDLE", () => (controls.throttle = 0), "thr-idle"],
+      ["−", () => (controls.throttle = Math.max(0, Math.round((controls.throttle - 0.05) * 100) / 100)), "thr-down"],
+      ["+", () => (controls.throttle = Math.min(1, Math.round((controls.throttle + 0.05) * 100) / 100)), "thr-up"],
+    ] as [string, () => void, string][]) {
       const b = document.createElement("button");
       b.textContent = label;
+      b.dataset.ctl = ctl;
       b.addEventListener("click", () => {
         fn();
         b.blur();
       });
       thrBtns.appendChild(b);
     }
-    thr.append(bar, this.thrText, this.brake, thrBtns);
+    const detents = row3([
+      ["CL", "thr-cl", () => (controls.throttle = DETENT.CL)],
+      ["FLX/MCT", "thr-flx", () => (controls.throttle = DETENT.FLX)],
+      ["TOGA", "thr-toga", () => (controls.throttle = DETENT.TOGA)],
+    ]);
+    detents.style.marginTop = "4px";
+    thr.append(bar, this.thrText, this.brake, thrBtns, detents);
 
     // Engine master switches and mode selector.
     const eng = section("ENGINES");
@@ -148,11 +223,30 @@ export class LeverPanel {
 
     const col1 = document.createElement("div");
     col1.className = "lever-col";
-    col1.append(gear, flaps, sb);
+    col1.append(gear, ab, flaps, sb);
     const col2 = document.createElement("div");
     col2.className = "lever-col";
     col2.append(eng, park, thr);
-    this.el.append(col1, col2);
+    const col3 = document.createElement("div");
+    col3.className = "lever-col";
+    col3.append(trims, pitch, taxi);
+    this.el.append(col1, col2, col3);
+
+    function row3(items: [string, string, () => void][]) {
+      const r = document.createElement("div");
+      r.className = "flap-row";
+      for (const [label, ctl, fn] of items) {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.dataset.ctl = ctl;
+        b.addEventListener("click", () => {
+          fn();
+          b.blur();
+        });
+        r.appendChild(b);
+      }
+      return r;
+    }
 
     function section(title: string) {
       const d = document.createElement("div");
@@ -168,8 +262,15 @@ export class LeverPanel {
     const state = s.gearPos > 0.99 ? "down" : s.gearPos < 0.01 ? "up" : "moving";
     this.gearLights.className = `gear-lights ${state}`;
     this.flapBtns.forEach((b, i) => b.classList.toggle("on", i === c.flapLever));
-    this.sbBtn.textContent = c.speedbrake > 0 ? "EXTENDED" : "RETRACTED";
-    this.sbBtn.classList.toggle("on", c.speedbrake > 0);
+    const x = c.extras;
+    if (x) {
+      const sbState = c.speedbrake > 0 ? 2 : x.spoilersArmed ? 1 : 0;
+      this.sbBtns.forEach((b, i) => b.classList.toggle("on", i === sbState));
+      this.abBtns.forEach((b) => b.classList.toggle("on", b.textContent === x.autobrake));
+      const r = x.rudderTrim;
+      this.rudText.textContent = Math.abs(r) < 0.05 ? "0.0" : `${r < 0 ? "L" : "R"} ${Math.abs(r).toFixed(1)}`;
+      this.thsText.textContent = thsText(x.ths);
+    }
     this.thrFill.style.height = `${Math.round(c.throttle * 100)}%`;
     this.thrText.textContent = `${Math.round(c.throttle * 100)}%${s.fcc.athr ? " A/THR" : ""}`;
     this.brake.textContent = c.brakes > 0 ? "BRAKES ON" : "";

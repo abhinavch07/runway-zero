@@ -1,4 +1,5 @@
-// Simplified aircraft systems for R2: electrics, APU, ADIRS, fuel pumps, bleed air and engine start.
+// Simplified aircraft systems: electrics, APU, ADIRS, fuel pumps, bleed air, packs, hydraulics,
+// anti-ice, doors and engine start, plus one failure a lesson can trigger (GEN 1).
 //
 // A training model in the spirit of the A320 family, written from public descriptions. It is not the
 // real logic. Times are shortened where the real wait is long (ADIRS alignment), and this is said
@@ -40,6 +41,17 @@ export interface Switches {
   engMaster2: boolean;
   engMode: EngMode;
   parkBrake: boolean;
+  /** HYD panel. The engine pumps and the blue pump are normally on (no light), PTU in AUTO. */
+  hydEng1Pump: boolean;
+  hydEng2Pump: boolean;
+  hydBlueElec: boolean;
+  hydPtu: boolean;
+  /** Yellow electric pump, normally off. Used on the ground without engines. */
+  hydYellowElec: boolean;
+  /** ANTI ICE panel. */
+  wingAntiIce: boolean;
+  engAntiIce1: boolean;
+  engAntiIce2: boolean;
 }
 
 /** Switch positions for an aircraft that is powered up with both engines running. */
@@ -75,6 +87,14 @@ export function runningSwitches(): Switches {
     engMaster2: true,
     engMode: "NORM",
     parkBrake: false,
+    hydEng1Pump: true,
+    hydEng2Pump: true,
+    hydBlueElec: true,
+    hydPtu: true,
+    hydYellowElec: false,
+    wingAntiIce: false,
+    engAntiIce1: false,
+    engAntiIce2: false,
   };
 }
 
@@ -154,6 +174,19 @@ export interface SystemsStatus {
   fuelPressR: boolean;
   engines: [EngineStatus, EngineStatus];
   parkBrake: boolean;
+  /** Generators actually supplying power. */
+  genOn: [boolean, boolean];
+  apuGenOn: boolean;
+  /** GEN 1 has failed (a lesson failure). */
+  gen1Failed: boolean;
+  /** Hydraulic pressure, psi: green, blue, yellow. */
+  hydPsi: [number, number, number];
+  ptuRunning: boolean;
+  packFlow: [boolean, boolean];
+  wingAntiIceOn: boolean;
+  engAntiIceOn: [boolean, boolean];
+  /** All passenger and cargo doors closed and slides armed. */
+  doorsClosed: boolean;
 }
 
 const IR_ALIGN_SECONDS = 60; // real alignment takes several minutes
@@ -197,12 +230,22 @@ export class Systems {
       fuelPressR: false,
       engines: [blankEngine(), blankEngine()],
       parkBrake: false,
+      genOn: [false, false],
+      apuGenOn: false,
+      gen1Failed: false,
+      hydPsi: [0, 0, 0],
+      ptuRunning: false,
+      packFlow: [false, false],
+      wingAntiIceOn: false,
+      engAntiIceOn: [false, false],
+      doorsClosed: false,
     };
   }
 
   /** Called after a start position is set. Cold: everything off. Otherwise: powered, aligned, running. */
   reset(cold: boolean, switches: Switches, powered = false) {
     this.st = this.blank();
+    this.st.doorsClosed = !cold;
     this.stoppedS = 30;
     this.apuPressesSeen = switches.apuStartPresses;
     this.apuFlapTime = 0;
@@ -224,6 +267,11 @@ export class Systems {
     }
   }
 
+  /** Triggers a failure for a lesson. */
+  fail(what: "gen1") {
+    if (what === "gen1") this.st.gen1Failed = true;
+  }
+
   status(): SystemsStatus {
     return this.st;
   }
@@ -241,11 +289,14 @@ export class Systems {
 
     // ----- Electrics -----
     s.extPwrAvail = this.stoppedS > 20;
-    const genOn = [running[0] && sw.gen1, running[1] && sw.gen2];
+    const genOn: [boolean, boolean] = [running[0] && sw.gen1 && !s.gen1Failed, running[1] && sw.gen2];
+    s.genOn = genOn;
     const ext = sw.extPwr && s.extPwrAvail;
     const apuGen = sw.apuGen && s.apuAvail;
     // Priority: engine generators, then external power, then the APU generator.
     s.acSource = genOn[0] || genOn[1] ? "GEN" : ext ? "EXT" : apuGen ? "APU" : "";
+    // The APU generator fills in for a generator that is not supplying (or for both).
+    s.apuGenOn = apuGen && !ext && (!genOn[0] || !genOn[1]);
     s.acPower = s.acSource !== "";
     s.dcPower = s.acPower || sw.bat1 || sw.bat2;
     const charging = s.acPower ? 28.2 : 25.5;
@@ -290,6 +341,35 @@ export class Systems {
     // ----- Fuel pumps (need AC power) -----
     s.fuelPressL = s.acPower && (sw.fuelL1 || sw.fuelL2);
     s.fuelPressR = s.acPower && (sw.fuelR1 || sw.fuelR2);
+
+    // ----- Packs -----
+    s.packFlow = [sw.pack1 && s.bleedPsi >= 20, sw.pack2 && s.bleedPsi >= 20];
+
+    // ----- Hydraulics: green (engine 1), yellow (engine 2 or electric pump), blue (electric) -----
+    const target = [0, 0, 0];
+    if (running[0] && sw.hydEng1Pump) target[0] = 3000;
+    if ((running[1] && sw.hydEng2Pump) || (sw.hydYellowElec && s.acPower)) target[2] = 3000;
+    if (sw.hydBlueElec && s.acPower && (running[0] || running[1])) target[1] = 3000;
+    // The PTU moves power between green and yellow when one side is low (not with only one engine
+    // running on the ground with the parking brake off, which is simplified away here).
+    s.ptuRunning = false;
+    if (sw.hydPtu) {
+      if (target[0] >= 2500 && target[2] < 1500) {
+        target[2] = 2800;
+        s.ptuRunning = true;
+      } else if (target[2] >= 2500 && target[0] < 1500) {
+        target[0] = 2800;
+        s.ptuRunning = true;
+      }
+    }
+    for (let i = 0; i < 3; i++) {
+      const d = target[i] - s.hydPsi[i];
+      s.hydPsi[i] += Math.sign(d) * Math.min(Math.abs(d), (d > 0 ? 1500 : 400) * dt);
+    }
+
+    // ----- Anti-ice -----
+    s.wingAntiIceOn = sw.wingAntiIce && s.bleedPsi >= 20;
+    s.engAntiIceOn = [sw.engAntiIce1 && running[0], sw.engAntiIce2 && running[1]];
 
     // ----- Parking brake -----
     s.parkBrake = sw.parkBrake;

@@ -101,6 +101,9 @@ self.onmessage = async (ev: MessageEvent<ToWorker>) => {
       case "fcu":
         core?.command(msg.action);
         break;
+      case "fail":
+        core?.systems.fail(msg.what);
+        break;
     }
   } catch (err) {
     if (ticker) clearInterval(ticker);

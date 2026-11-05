@@ -165,6 +165,26 @@ export class Sound {
     this.ramp(this.engFilter.frequency, 150 + r * 1100, 0.15);
   }
 
+  /** Single chime for a caution, or a sharper repeated one for a configuration warning. */
+  caution(warning: boolean) {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const times = warning ? [0, 0.25, 0.5] : [0];
+    for (const dt of times) {
+      const t = ctx.currentTime + dt;
+      const o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.value = warning ? 1400 : 1250;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.2, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + (warning ? 0.2 : 0.9));
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + 1);
+    }
+  }
+
   click() {
     const ctx = this.ctx;
     if (!ctx) return;

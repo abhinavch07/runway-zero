@@ -1,4 +1,4 @@
-// Overhead panel (2D), simplified: ADIRS, ELEC, FUEL, AIR, APU, exterior lights and signs.
+// Overhead panel (2D), simplified: ADIRS, HYD, ELEC, FUEL, AIR, ANTI ICE, APU, exterior lights and signs.
 // Pushbuttons follow the "dark cockpit" idea: no light means normal. A white OFF light means switched
 // off, blue ON means switched on (for buttons that are normally off), green AVAIL means ready.
 import type { Switches, SystemsStatus } from "../sim/systems";
@@ -23,6 +23,17 @@ const SECTIONS: { title: string; cols: number; items: (Pb | { key: "sep" } | { k
       { key: "ir3", label: "IR 3", onLight: false, offLight: true },
       { key: "ir2", label: "IR 2", onLight: false, offLight: true },
       { key: "irInfo" },
+    ],
+  },
+  {
+    title: "HYD",
+    cols: 5,
+    items: [
+      { key: "hydEng1Pump", label: "ENG 1 PUMP", onLight: false, offLight: true },
+      { key: "hydBlueElec", label: "BLUE ELEC PUMP", onLight: false, offLight: true },
+      { key: "hydPtu", label: "PTU", onLight: false, offLight: true },
+      { key: "hydYellowElec", label: "YELLOW ELEC PUMP", onLight: true, offLight: false },
+      { key: "hydEng2Pump", label: "ENG 2 PUMP", onLight: false, offLight: true },
     ],
   },
   {
@@ -58,6 +69,15 @@ const SECTIONS: { title: string; cols: number; items: (Pb | { key: "sep" } | { k
       { key: "engBleed1", label: "ENG 1 BLEED", onLight: false, offLight: true },
       { key: "engBleed2", label: "ENG 2 BLEED", onLight: false, offLight: true },
       { key: "apuBleed", label: "APU BLEED", onLight: true, offLight: false },
+    ],
+  },
+  {
+    title: "ANTI ICE",
+    cols: 3,
+    items: [
+      { key: "wingAntiIce", label: "WING", onLight: true, offLight: false },
+      { key: "engAntiIce1", label: "ENG 1", onLight: true, offLight: false },
+      { key: "engAntiIce2", label: "ENG 2", onLight: true, offLight: false },
     ],
   },
   {
@@ -185,6 +205,15 @@ export class OverheadPanel {
         } else if (item.key.startsWith("ir")) {
           const i = Number(item.key.slice(2)) - 1;
           set(item.key, sys.irAligning[i] ? ["ALIGN", "white"] : null, offLight(on));
+        } else if (item.key === "gen1") {
+          // FAULT when GEN 1 has failed with its engine running and the switch still on.
+          const fault = sys.gen1Failed && on && sys.engines[0].phase === "RUN";
+          set("gen1", fault ? ["FAULT", "amber"] : null, offLight(on));
+        } else if (item.key === "hydEng1Pump" || item.key === "hydEng2Pump") {
+          // Low pressure FAULT, not shown with the engine stopped (as on the aircraft).
+          const i = item.key === "hydEng1Pump" ? 0 : 1;
+          const fault = on && sys.engines[i].phase === "RUN" && sys.hydPsi[i === 0 ? 0 : 2] < 1450;
+          set(item.key, fault ? ["FAULT", "amber"] : null, offLight(on));
         } else if (item.key.startsWith("fuel")) {
           const side = item.key.startsWith("fuelL") ? sys.fuelPressL : sys.fuelPressR;
           set(item.key, on && !side ? ["FAULT", "amber"] : null, offLight(on));

@@ -21,8 +21,54 @@ export interface Controls {
   brakes: number;
   /** Overhead and pedestal switch positions. */
   switches: Switches;
+  /** Cockpit items the page keeps for displays and lessons (not sent to the flight model). */
+  extras?: A320Extras;
   /** EFIS control panel: flight director, baro reference. Display only. */
   efis?: { fd: boolean; qnh: number; std: boolean };
+}
+
+export type EcamPage = "ENG" | "BLEED" | "ELEC" | "HYD" | "FUEL" | "DOOR" | "F/CTL";
+
+export interface A320Extras {
+  /** Ground spoilers armed (speedbrake lever in ARM). */
+  spoilersArmed: boolean;
+  /** Rudder trim, degrees, left negative. */
+  rudderTrim: number;
+  /** Pitch trim (THS) set on the trim wheel, degrees, nose up positive. */
+  ths: number;
+  autobrake: "OFF" | "LO" | "MED" | "MAX";
+  /** Directions the sidestick has reached during the flight control check. */
+  fctl: { up: boolean; down: boolean; left: boolean; right: boolean };
+  /** Last T.O CONFIG test passed. */
+  toConfigNormal: boolean;
+  /** MASTER CAUT light on (a new caution not yet acknowledged). */
+  masterCaution: boolean;
+  /** Alerts the crew has cleared with CLR. */
+  cleared: string[];
+  /** GEN 1 was switched off and on again after it failed. */
+  gen1Cycled: boolean;
+  /** Lower ECAM page chosen on the ECAM control panel. */
+  ecamPage: EcamPage;
+  /** Result of the last T.O CONFIG test, shown for a few seconds (page clock, ms). */
+  toConfigProblems: string[];
+  toConfigUntil: number;
+}
+
+export function defaultExtras(): A320Extras {
+  return {
+    spoilersArmed: false,
+    rudderTrim: 0,
+    ths: 0,
+    autobrake: "OFF",
+    fctl: { up: false, down: false, left: false, right: false },
+    toConfigNormal: false,
+    masterCaution: false,
+    cleared: [],
+    gen1Cycled: false,
+    ecamPage: "DOOR",
+    toConfigProblems: [],
+    toConfigUntil: 0,
+  };
 }
 
 export interface TouchdownReport {
@@ -68,6 +114,8 @@ export interface SimState {
   speedbrakePos: number;
   onGround: boolean;
   pitchTrim: number;
+  /** Flight control surface positions, -1 to 1, for the F/CTL page. */
+  surfaces: { elevator: number; aileron: number; rudder: number };
   /** How many sim seconds ran per real second over the last report. */
   simRate: number;
   fcc: FccStatus;
@@ -105,7 +153,8 @@ export type ToWorker =
   | { type: "terrain"; elevationFt: number }
   | { type: "pause"; paused: boolean }
   | { type: "reset"; start: StartPosition; displayOffsetM: number }
-  | { type: "fcu"; action: FcuAction };
+  | { type: "fcu"; action: FcuAction }
+  | { type: "fail"; what: "gen1" };
 
 export type FromWorker =
   | { type: "ready"; throttle: number; start: StartPosition }

@@ -216,6 +216,11 @@ export class SimCore {
       speedbrakePos: g("fcs/speedbrake-pos-norm"),
       onGround: g("gear/wow") > 0,
       pitchTrim: g("fcs/pitch-trim-cmd-norm"),
+      surfaces: {
+        elevator: g("fcs/elevator-pos-norm"),
+        aileron: g("fcs/left-aileron-pos-norm"),
+        rudder: g("fcs/rudder-pos-norm"),
+      },
       simRate,
       fcc: structuredClone(this.fcc.getStatus()),
       systems: structuredClone(this.systems.status()),

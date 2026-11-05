@@ -13,18 +13,20 @@ Pick a lesson. The lesson list on the left tells you what to do and why. The con
 
 Lessons:
 
-1. **Power up** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, until the APU powers the aircraft and the ADIRS are aligned. Lesson 3 picks up from here.
-2. **MCDU setup: Delhi to Mumbai** (cold and dark): power up, then INIT A (FROM/TO, flight number, cost index, cruise level), the flight plan (departure runway 28, arrival runway 27, three training waypoints, clearing a discontinuity), INIT B (zero fuel weight and block fuel) and PERF TAKE OFF (V1, VR, V2, flaps, FLEX). The route then shows on the ND.
-3. **Before start and engine start** (at the gate, APU running, MCDU already set up): flight directors on, QNH 1008 on the baro, FCU altitude 5000, check V1 and V2 on the PFD and the route on the ND, seat belts and beacon, start both engines, APU off, flaps 1.
-4. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed and heading, climb and descend with V/S, watch ALT* and ALT, disconnect and engage the autopilot.
-5. **Shutdown and secure** (parked at the gate with engines running): APU start, engines off, ground power, ADIRS off, back to cold and dark.
-
+1. **Power up** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, until the APU powers the aircraft and the ADIRS are aligned.
+2. **MCDU setup: Delhi to Mumbai**: INIT A, the flight plan (runways, three training waypoints, a discontinuity), INIT B and PERF TAKE OFF. The route then shows on the ND.
+3. **Before start and engine start** (at the gate): flight directors, QNH, FCU altitude, V1 and V2 on the PFD, route on the ND, doors on the DOOR page, signs and beacon, engine start, APU off, flaps.
+4. **After start and taxi**: ground spoilers ARM, rudder trim, flaps, pitch trim from the PERF page, autobrake MAX, flight control check on the F/CTL page, HYD page, taxi a short way, brake check, T.O CONFIG test, T.O memo.
+5. **Take-off** (lined up on runway 28): brakes off, 50% N1, FLX/MCT, 100 knots, V1, rotate, gear up, CL, autothrust and autopilot, flaps up, level off at 5,000 ft.
+6. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed, heading and altitude with V/S, disconnect and engage the autopilot.
+7. **ECAM: a generator fault** (at the gate): GEN 1 fails, MASTER CAUT, read the ECAM, GEN 1 off then on, GEN 1 off, APU start, CLR.
+8. **Shutdown and secure** (parked with engines running): APU start, engines off, ground power, ADIRS off, back to cold and dark.
 
 Panels:
 
-- **Overhead:** ADIRS, ELEC, FUEL, AIR, APU, exterior lights and signs. Lights follow the "dark cockpit" idea.
-- **Main panel:** EFIS (FD and baro) and FCU on the glareshield, PFD, ND and the engine and warning display.
-- **Pedestal:** the MCDU, engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
+- **Overhead:** ADIRS, HYD, ELEC, FUEL, AIR, ANTI ICE, APU, exterior lights and signs. Lights follow the "dark cockpit" idea.
+- **Main panel:** MASTER CAUT, EFIS (FD and baro) and FCU on the glareshield, a sidestick pad (or arrow keys), PFD, ND and the engine and warning display.
+- **Pedestal:** the MCDU, the lower ECAM with its control panel (ENG, BLEED, ELEC, HYD, FUEL, DOOR, F/CTL pages, CLR, T.O CONFIG), autobrake, speedbrake with spoiler ARM, rudder trim, pitch trim, tiller, toe brakes, thrust detents (CL, FLX/MCT, TOGA), engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
@@ -34,7 +36,7 @@ Known gaps:
 
 - The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP.
 - EGT is an approximation: the stand-in engine model does not calculate it.
-- Simplified systems: no hydraulics, no ECAM system pages, no failures.
+- Simplified systems: hydraulics, packs and anti-ice are on/off models. Only one failure exists (GEN 1). ECAM pages are our own simplified layouts. Pitch and rudder trim on the pedestal are for the checks only and do not move the flight model.
 - All FCU values are "selected". The MCDU flight plan is not flown yet (no managed NAV mode).
 - No real SIDs, STARs, approaches or airways in the MCDU.
 - Headings are true, not magnetic (about 1° difference at Delhi).
@@ -88,6 +90,7 @@ npm run test:flights  # scripted test flights: cold start and taxi, ground, norm
 | 2 | Main panel |
 | 3 | Pedestal |
 | L | Lesson list |
+| Arrow keys | A320 sidestick (not while typing in the MCDU) |
 | M | Sound on / off |
 
 Click switches and buttons with the mouse. MCDU: click it once, then you can type on your keyboard (Backspace is CLR, arrow keys scroll, Esc stops typing). FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
@@ -121,6 +124,8 @@ src/
   cockpit/ewd.ts        engine and warning display
   cockpit/fcu.ts        FCU on the glareshield
   cockpit/efis.ts       EFIS: flight director and baro (QNH / STD)
+  cockpit/ecam.ts       ECAM alerts and action lines, T.O memo, T.O CONFIG test
+  cockpit/sd.ts         lower ECAM system pages
   audio/sound.ts        cockpit sound made with Web Audio
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel

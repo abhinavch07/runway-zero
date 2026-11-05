@@ -6,10 +6,11 @@
 // approved checklists. A type-rated pilot should review these before anyone learns from them.
 import type { FcuAction } from "../sim/fcc";
 import type { Switches } from "../sim/systems";
-import type { Controls, SimState } from "../sim/types";
+import type { A320Extras, Controls, SimState } from "../sim/types";
 import type { FmsData } from "../cockpit/mcdu";
 import type { EfisState } from "../cockpit/efis";
 import type { LessonBase, StepBase } from "./types";
+import { DETENT } from "../cockpit/levers";
 
 export type PanelName = "ovhd" | "main" | "ped";
 
@@ -28,6 +29,10 @@ export interface Lesson extends LessonBase<SimState, Controls, FmsData, PanelNam
   efis?: Partial<EfisState>;
   /** Today's QNH in hPa. The altimeter shows true altitude when the baro is set to it. */
   qnh?: number;
+  /** Pedestal and cockpit settings at the start (trims, spoilers, autobrake, ECAM page). */
+  extras?: Partial<A320Extras>;
+  /** GEN 1 fails this many seconds after the lesson starts. */
+  failAfterS?: number;
 }
 
 const allPumps = (c: Controls) => c.switches.fuelL1 && c.switches.fuelL2 && c.switches.fuelR1 && c.switches.fuelR2;
@@ -398,6 +403,12 @@ export const LESSONS: Lesson[] = [
         panel: "main",
       },
       {
+        title: "DOORS: check closed on the DOOR page",
+        why: "On the pedestal, press DOOR on the ECAM control panel. All doors show green with SLIDES ARMED: boarding is complete and the cabin crew have armed the escape slides. Press Next.",
+        targets: ["ecam-door"],
+        panel: "ped",
+      },
+      {
         title: "SEAT BELTS: ON",
         why: "Everyone must be seated with belts fastened before the aircraft moves.",
         targets: ["seatBelts"],
@@ -465,6 +476,290 @@ export const LESSONS: Lesson[] = [
         targets: ["flaps1"],
         panel: "ped",
         done: (_s, c) => c.flapLever === 1,
+      },
+    ],
+  },
+  {
+    id: "aftertaxi",
+    title: "After start and taxi",
+    summary: "Engines running at the gate: ground spoilers, rudder and pitch trim, flaps, autobrake, flight control check, then release the brakes, taxi a short way, check the brakes and do the T.O CONFIG test.",
+    minutes: 10,
+    startId: "parked28",
+    switches: (sw) => {
+      sw.parkBrake = true;
+      sw.taxiLight = false;
+      sw.landingLights = false;
+      sw.strobe = false;
+    },
+    extras: { rudderTrim: -1.5, ths: 0, ecamPage: "DOOR" },
+    efis: { fd: true, qnh: 1008, std: false },
+    qnh: 1008,
+    fms: {
+      page: "PERF",
+      from: "VIDP",
+      to: "VABB",
+      fltNbr: "RZ123",
+      costIndex: 30,
+      crzFl: 360,
+      crzTemp: -56,
+      depRwy: "28",
+      arrRwy: "27",
+      legs: ["RZ101", "RZ102", "RZ103"],
+      disco: false,
+      zfwCg: 27,
+      zfw: 60.5,
+      block: 8,
+      v1: 140,
+      vr: 141,
+      v2: 145,
+      flaps: 1,
+      ths: "UP0.8",
+      flex: 50,
+    },
+    finished: "The aircraft is configured for take-off and waiting at the holding point. Next: the take-off lesson.",
+    steps: [
+      {
+        title: "APU BLEED and APU MASTER SW: check OFF",
+        why: "After engine start the engines give power and air, so the APU is off. Check both on the overhead.",
+        targets: ["apuBleed", "apuMaster"],
+        want: false,
+        panel: "ovhd",
+        done: (_s, c) => !c.switches.apuBleed && !c.switches.apuMaster,
+      },
+      {
+        title: "GROUND SPOILERS: ARM",
+        why: "Armed spoilers come up by themselves if a take-off is rejected or on landing, killing the lift. Move the speedbrake lever to ARM.",
+        targets: ["spd-arm"],
+        panel: "ped",
+        done: (_s, c) => !!c.extras?.spoilersArmed,
+      },
+      {
+        title: "RUDDER TRIM: check zero",
+        why: "The rudder trim shows L 1.5. It must be zero for take-off. Press RESET.",
+        targets: ["rud-reset"],
+        panel: "ped",
+        done: (_s, c) => Math.abs(c.extras?.rudderTrim ?? 1) < 0.05,
+      },
+      {
+        title: "FLAPS: 1",
+        why: "Set the take-off flaps from the MCDU PERF page: FLAPS 1.",
+        targets: ["flaps1"],
+        panel: "ped",
+        done: (_s, c) => c.flapLever === 1,
+      },
+      {
+        title: "PITCH TRIM: set UP 0.8",
+        why: "The PERF page says THS UP0.8. Set the pitch trim wheel to match: press NOSE UP until it shows UP 0.8.",
+        targets: ["ths-up"],
+        panel: "ped",
+        done: (_s, c) => Math.abs((c.extras?.ths ?? 0) - 0.8) < 0.05,
+      },
+      {
+        title: "AUTO BRK: MAX",
+        why: "For take-off the autobrake is set to MAX. If the take-off is rejected at high speed, it brakes as hard as it can.",
+        targets: ["abrk-MAX"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.autobrake === "MAX",
+      },
+      {
+        title: "Flight controls: check on the F/CTL page",
+        why: "Press F/CTL on the ECAM control panel. Then on the main panel move the sidestick fully back, forward, left and right (hold the buttons or use the arrow keys). Watch the surfaces move on the F/CTL page.",
+        targets: ["ecam-fctl", "stick-pull", "stick-push", "stick-left", "stick-right"],
+        panel: "ped",
+        done: (_s, c) => !!c.extras && Object.values(c.extras.fctl).every(Boolean),
+      },
+      {
+        title: "HYD page: check pressure",
+        why: "Press HYD. Green, blue and yellow all show about 3000 psi with both engines running. Anti-ice is not needed today (25°C, dry). Press Next.",
+        targets: ["ecam-hyd"],
+        panel: "ped",
+      },
+      {
+        title: "TAXI light: ON",
+        why: "The nose light for taxiing.",
+        targets: ["taxiLight"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.taxiLight,
+      },
+      {
+        title: "Parking brake: OFF",
+        why: "You have taxi clearance. Release the parking brake.",
+        targets: ["parkBrake"],
+        want: false,
+        panel: "ped",
+        done: (_s, c) => !c.switches.parkBrake,
+      },
+      {
+        title: "THRUST: a little, until the aircraft moves",
+        why: "Press + on the thrust levers three or four times. A heavy aircraft starts to roll slowly. Use only a little thrust on the ground.",
+        targets: ["thr-up"],
+        panel: "ped",
+        done: (s) => s.groundSpeedKt > 2,
+      },
+      {
+        title: "Brake check: thrust IDLE, then hold BRAKES",
+        why: "Thrust levers to IDLE, then hold BRAKES (toe brakes) until the aircraft stops. This checks the brakes work before take-off.",
+        targets: ["thr-idle", "brakes"],
+        panel: "ped",
+        done: (s, c) => s.groundSpeedKt < 0.5 && c.brakes > 0 && c.throttle < 0.05,
+      },
+      {
+        title: "T.O CONFIG: press",
+        why: "The T.O CONFIG button tests the take-off configuration as if take-off thrust were set. The upper ECAM should show T.O CONFIG NORMAL. If it shows a red CONFIG message, fix what it says and test again.",
+        targets: ["ecam-toconfig"],
+        panel: "ped",
+        done: (_s, c) => !!c.extras?.toConfigNormal,
+      },
+      {
+        title: "Read the T.O memo",
+        why: "On the main panel, the upper ECAM shows the T.O memo: AUTO BRK MAX, SIGNS ON, CABIN CHECK, SPLRS ARM, FLAPS T.O, T.O CONFIG TEST. Green items are done, blue items are not. Press Next when all are green.",
+        targets: [],
+        panel: "main",
+      },
+      {
+        title: "Parking brake: SET",
+        why: "You are at the holding point waiting for take-off clearance.",
+        targets: ["parkBrake"],
+        want: true,
+        panel: "ped",
+        done: (_s, c) => c.switches.parkBrake,
+      },
+    ],
+  },
+  {
+    id: "takeoff",
+    title: "Take-off",
+    summary: "Lined up on runway 28: release the brakes, set thrust, 100 knots, V1, rotate, gear up, thrust to CL, autothrust and autopilot, flaps up, level off at 5000 ft.",
+    minutes: 8,
+    startId: "rwy28",
+    switches: (sw) => {
+      sw.parkBrake = true;
+    },
+    extras: { spoilersArmed: true, autobrake: "MAX", ths: 0.8, toConfigNormal: true },
+    efis: { fd: true, qnh: 1008, std: false },
+    qnh: 1008,
+    fms: {
+      page: "PERF",
+      from: "VIDP",
+      to: "VABB",
+      fltNbr: "RZ123",
+      costIndex: 30,
+      crzFl: 360,
+      crzTemp: -56,
+      depRwy: "28",
+      arrRwy: "27",
+      legs: ["RZ101", "RZ102", "RZ103"],
+      disco: false,
+      zfwCg: 27,
+      zfw: 60.5,
+      block: 8,
+      v1: 140,
+      vr: 141,
+      v2: 145,
+      flaps: 2,
+      ths: "UP0.8",
+      flex: 50,
+    },
+    finished: "You took off, cleaned up the aircraft and levelled off at 5,000 ft on the autopilot. Next: FCU basics, to change speed, heading and altitude.",
+    steps: [
+      {
+        title: "Lined up on runway 28",
+        why: "Flaps 2 are set, the PFD shows V1 and V2, and the FCU altitude is 5000 ft. Look at the main panel, then press Next.",
+        targets: [],
+        panel: "main",
+      },
+      {
+        title: "Parking brake: OFF",
+        why: "Take-off clearance received. Release the parking brake.",
+        targets: ["parkBrake"],
+        want: false,
+        panel: "ped",
+        done: (_s, c) => !c.switches.parkBrake,
+      },
+      {
+        title: "THRUST: about 50% N1, let both engines settle",
+        why: "Press + on the thrust levers to about 50%. Watch N1 on the upper ECAM: both engines must settle at the same N1 before you set take-off thrust.",
+        targets: ["thr-up"],
+        panel: "ped",
+        done: (s, c) => c.throttle >= 0.4 && c.throttle <= 0.6 && s.n1.every((v) => v > 40),
+      },
+      {
+        title: "THRUST: FLX/MCT",
+        why: "Set the levers to the FLX/MCT detent: reduced take-off thrust, from the FLEX temperature on the PERF page. Keep straight on the centreline.",
+        targets: ["thr-flx"],
+        panel: "ped",
+        done: (_s, c) => Math.abs(c.throttle - DETENT.FLX) < 0.01,
+      },
+      {
+        title: "100 knots: cross-check the speed",
+        why: "Call \"100 knots\" and check both speeds agree. Watch the speed tape on the main panel.",
+        targets: [],
+        panel: "main",
+        done: (s) => s.kias > 100,
+      },
+      {
+        title: "V1",
+        why: "At V1 the decision is made: you will take off, even with a failure. Take your hand off the thrust levers.",
+        targets: [],
+        panel: "main",
+        done: (s, _c, f) => s.kias >= (f.v1 ?? 140),
+      },
+      {
+        title: "ROTATE: hold PULL until airborne, then about 15°",
+        why: "At VR hold PULL on the sidestick (or the down arrow key). The nose comes up and the aircraft lifts off. Keep holding until it is in the air and the PFD shows about 15° nose up, then let go: in the air the flight controls hold that pitch. On the ground they do not, so do not let go too early.",
+        targets: ["stick-pull"],
+        panel: "main",
+        done: (s) => !s.onGround && s.pitchDeg > 8,
+      },
+      {
+        title: "Positive climb: GEAR UP",
+        why: "When the altitude and vertical speed are rising, call \"positive climb\" and select the gear UP.",
+        targets: ["gear"],
+        panel: "ped",
+        done: (_s, c) => !c.gearDown,
+      },
+      {
+        title: "THRUST: CL",
+        why: "At the thrust reduction altitude (about 1,500 ft above the runway) bring the levers back to the CL detent.",
+        targets: ["thr-cl"],
+        panel: "ped",
+        done: (s, c) => Math.abs(c.throttle - DETENT.CL) < 0.01 && s.aglFt > 400,
+      },
+      {
+        title: "A/THR: press on the FCU",
+        why: "Autothrust now controls the thrust to hold the speed. On the aircraft it becomes active by itself when the levers reach CL. Here you press A/THR.",
+        targets: ["fcu-athr"],
+        panel: "main",
+        done: (s) => s.fcc.athr,
+      },
+      {
+        title: "AP1: engage",
+        why: "Press AP1. AP1 shows in the FMA. Keep watching the speed and altitude.",
+        targets: ["fcu-ap"],
+        panel: "main",
+        done: (s) => s.fcc.ap,
+      },
+      {
+        title: "FCU SPD: 210",
+        why: "Accelerate to clean up the flaps. Set SPD 210 on the FCU.",
+        targets: ["fcu-spd"],
+        panel: "main",
+        done: (s) => s.fcc.fcu.spd === 210,
+      },
+      {
+        title: "FLAPS: 0 above 190 kt",
+        why: "When the speed passes about 190 kt (the clean-up speed here), retract the flaps to 0.",
+        targets: ["flaps0"],
+        panel: "ped",
+        done: (s, c) => c.flapLever === 0 && s.kias > 180,
+      },
+      {
+        title: "Watch the level-off at 5000 ft",
+        why: "The FCU altitude is 5000 ft. The FMA shows ALT* as the aircraft captures it, then ALT. If the aircraft is not climbing, set V/S +1500 and PULL V/S.",
+        targets: [],
+        panel: "main",
+        done: (s) => s.fcc.vert === "ALT" && Math.abs(s.altFt - 5000) < 150,
       },
     ],
   },
@@ -559,6 +854,76 @@ export const LESSONS: Lesson[] = [
         targets: ["fcu-ap"],
         panel: "main",
         done: (s) => s.fcc.ap,
+      },
+    ],
+  },
+  {
+    id: "genfault",
+    title: "ECAM: a generator fault",
+    summary: "Engines running at the gate when GEN 1 fails: MASTER CAUT, read the ECAM, do the actions in order (reset the generator, switch it off, start the APU), then clear the ECAM.",
+    minutes: 6,
+    startId: "parked28",
+    switches: (sw) => {
+      sw.parkBrake = true;
+    },
+    failAfterS: 8,
+    extras: { ecamPage: "ELEC" },
+    finished: "You handled the fault the Airbus way: MASTER CAUT, read the ECAM, do each action line, then CLR. In flight the crew would then read the STATUS page and decide where to land. That part is not in this trainer yet.",
+    steps: [
+      {
+        title: "Wait: something is about to fail",
+        why: "Look at the main panel and listen. In a few seconds a fault will appear.",
+        targets: [],
+        panel: "main",
+        done: (s) => s.systems.gen1Failed,
+      },
+      {
+        title: "MASTER CAUT: press to silence",
+        why: "The amber MASTER CAUT light flashes on the glareshield with a single chime. Press it: the light goes out. That only acknowledges the caution, it fixes nothing.",
+        targets: ["master-caut"],
+        panel: "main",
+        done: (_s, c) => !c.extras?.masterCaution,
+      },
+      {
+        title: "Read the ECAM",
+        why: "The upper ECAM shows ELEC GEN 1 FAULT in amber with the actions in blue below it. The lower ECAM (pedestal) shows the ELEC page with GEN 1 in amber. On the overhead, GEN 1 shows FAULT. Press Next.",
+        targets: [],
+        panel: "main",
+      },
+      {
+        title: "GEN 1: OFF then ON",
+        why: "The first action line: try to reset the generator. Press GEN 1 on the overhead (OFF), then press it again (ON). Each action line disappears from the ECAM when it is done.",
+        targets: ["gen1"],
+        panel: "ovhd",
+        done: (_s, c) => !!c.extras?.gen1Cycled,
+      },
+      {
+        title: "Still FAULT: GEN 1 OFF",
+        why: "The reset did not work, so the ECAM now says IF UNSUCCESSFUL: GEN 1 OFF. Switch it off. GEN 2 now powers both sides.",
+        targets: ["gen1"],
+        want: false,
+        panel: "ovhd",
+        done: (_s, c) => !c.switches.gen1,
+      },
+      {
+        title: "APU: MASTER SW ON, then START",
+        why: "The last action line: start the APU, so its generator can replace GEN 1. Wait for AVAIL.",
+        targets: ["apuMaster", "apuStart"],
+        panel: "ovhd",
+        done: (s) => s.systems.apuAvail,
+      },
+      {
+        title: "Check the ELEC page",
+        why: "On the pedestal, the ELEC page shows AC 1 now fed by the APU GEN and AC 2 by GEN 2. Press Next.",
+        targets: ["ecam-elec"],
+        panel: "ped",
+      },
+      {
+        title: "ECAM: press CLR",
+        why: "All action lines are done. Press CLR on the ECAM control panel to clear the alert from the upper ECAM.",
+        targets: ["ecam-clr"],
+        panel: "ped",
+        done: (_s, c) => !!c.extras?.cleared.includes("gen1"),
       },
     ],
   },

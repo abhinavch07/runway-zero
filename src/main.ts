@@ -20,7 +20,9 @@ import { LessonPicker, lessonFromUrl } from "./shell/picker";
 import { LESSONS, type Lesson, type PanelName } from "./lessons/lessons";
 import { coldSwitches, startSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
-import type { Controls, FromWorker, SimState, StartPosition, ToWorker } from "./sim/types";
+import { defaultExtras, type Controls, type EcamPage, type FromWorker, type SimState, type StartPosition, type ToWorker } from "./sim/types";
+import { SystemDisplay } from "./cockpit/sd";
+import { activeAlerts, shownAlerts, toConfigTest, trackGen1Cycle } from "./cockpit/ecam";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -36,7 +38,9 @@ const controls: Controls = {
   brakes: 0,
   switches: coldSwitches(),
   efis: { fd: true, qnh: 1013, std: false },
+  extras: defaultExtras(),
 };
+const x = () => controls.extras!;
 /** Today's QNH at Delhi in the lesson. The altimeter reads true altitude when the baro is set to it. */
 let worldQnh = 1013;
 
@@ -104,6 +108,11 @@ function onReady(start: StartPosition, throttle: number) {
   if (lesson?.fms) Object.assign(mcdu.fms, structuredClone(lesson.fms));
   mcdu.render();
   controls.efis = { fd: true, qnh: 1013, std: false, ...lesson?.efis };
+  controls.extras = { ...defaultExtras(), ...structuredClone(lesson?.extras ?? {}) };
+  knownAlerts = new Set();
+  gen1Seen.off = false;
+  failSent = false;
+  readyAt = performance.now();
   worldQnh = lesson?.qnh ?? 1013;
   for (const a of lesson?.fcuActions ?? []) fcuSend(a);
   if (lesson) lessonPanel.start(lesson);
@@ -129,16 +138,103 @@ document.querySelectorAll<HTMLElement>("#tabs button").forEach((b) =>
 const pfd = new Pfd($<HTMLCanvasElement>("pfd"));
 const nd = new Nd($<HTMLCanvasElement>("nd"));
 const ewd = new Ewd($<HTMLCanvasElement>("ewd"));
-const ewdSmall = new Ewd($<HTMLCanvasElement>("ewd-small"));
+const sd = new SystemDisplay($<HTMLCanvasElement>("sd"));
 const gsInner = document.createElement("div");
 gsInner.id = "gs-inner";
 $("glareshield").appendChild(gsInner);
+// MASTER CAUT on the glareshield: lights amber for a new caution, press to acknowledge.
+const masterCaut = document.createElement("button");
+masterCaut.id = "master-caut";
+masterCaut.dataset.ctl = "master-caut";
+masterCaut.innerHTML = "MASTER<br>CAUT";
+masterCaut.addEventListener("click", () => {
+  x().masterCaution = false;
+  masterCaut.blur();
+});
+gsInner.appendChild(masterCaut);
 const efis = new EfisPanel(gsInner, () => controls.efis!);
 const fcu = new FcuPanel(gsInner, fcuSend, (step) => nd.changeRange(step));
 const overhead = new OverheadPanel($("p-ovhd"), () => controls.switches);
 const levers = new LeverPanel($("ped-controls"), controls);
 const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel<SimState, Controls, FmsData, PanelName>($("lesson-slot"), showPanel, () => panel);
+
+// ---------- ECAM control panel (pedestal) ----------
+const ECAM_PAGES: EcamPage[] = ["ENG", "BLEED", "ELEC", "HYD", "FUEL", "DOOR", "F/CTL"];
+$("ecam-cp").innerHTML =
+  `<div class="ecam-row">${ECAM_PAGES.map((p) => `<button data-page="${p}" data-ctl="ecam-${p.replace("/", "").toLowerCase()}">${p}</button>`).join("")}</div>` +
+  `<div class="ecam-row"><button data-ecam="clr" data-ctl="ecam-clr" class="clr">CLR</button><button data-ecam="to" data-ctl="ecam-toconfig">T.O CONFIG</button></div>`;
+$("ecam-cp")
+  .querySelectorAll<HTMLElement>("[data-page]")
+  .forEach((b) =>
+    b.addEventListener("click", () => {
+      x().ecamPage = b.dataset.page as EcamPage;
+      b.blur();
+    }),
+  );
+$("ecam-cp")
+  .querySelector<HTMLElement>("[data-ecam=clr]")!
+  .addEventListener("click", (e) => {
+    if (latest) {
+      const shown = shownAlerts(latest, controls);
+      if (shown.length) x().cleared.push(shown[0].id);
+    }
+    (e.currentTarget as HTMLElement).blur();
+  });
+$("ecam-cp")
+  .querySelector<HTMLElement>("[data-ecam=to]")!
+  .addEventListener("click", (e) => {
+    if (latest) {
+      const problems = toConfigTest(latest, controls, mcdu.fms.ths);
+      x().toConfigProblems = problems;
+      x().toConfigUntil = performance.now() + 6000;
+      x().toConfigNormal = problems.length === 0;
+      if (problems.length) sound.caution(true);
+    }
+    (e.currentTarget as HTMLElement).blur();
+  });
+
+// ---------- Sidestick: hold buttons or arrow keys ----------
+const stick = { up: false, down: false, left: false, right: false };
+// The buttons give a firm, not full, input: easier to control than full deflection.
+const STICK = 0.6;
+function applyStick() {
+  controls.pitch = ((stick.up ? 1 : 0) - (stick.down ? 1 : 0)) * STICK;
+  controls.roll = ((stick.right ? 1 : 0) - (stick.left ? 1 : 0)) * STICK;
+}
+document.querySelectorAll<HTMLElement>("[data-stick]").forEach((b) => {
+  const dir = b.dataset.stick as keyof typeof stick;
+  b.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    stick[dir] = true;
+    applyStick();
+  });
+  for (const ev of ["pointerup", "pointerleave"])
+    b.addEventListener(ev, () => {
+      stick[dir] = false;
+      applyStick();
+    });
+});
+const ARROWS: Record<string, keyof typeof stick> = { ArrowUp: "down", ArrowDown: "up", ArrowLeft: "left", ArrowRight: "right" };
+window.addEventListener("keydown", (e) => {
+  const d = ARROWS[e.key];
+  if (!d || document.activeElement?.id === "mcdu") return;
+  e.preventDefault();
+  stick[d] = true;
+  applyStick();
+});
+window.addEventListener("keyup", (e) => {
+  const d = ARROWS[e.key];
+  if (!d) return;
+  stick[d] = false;
+  applyStick();
+});
+
+// Lesson state the page keeps between frames.
+let knownAlerts = new Set<string>();
+const gen1Seen = { off: false };
+let failSent = false;
+let readyAt = 0;
 
 // ---------- Sound ----------
 const sound = new Sound();
@@ -252,10 +348,11 @@ function frame() {
       nd.draw(s, mcdu.fms);
       ewd.draw(s, controls);
     }
-    if (panel === "ped") ewdSmall.draw(s, controls);
+    if (panel === "ped") sd.draw(s, controls, SystemDisplay.pageFor(s, controls, shownAlerts(s, controls).length > 0));
   } else {
-    for (const cv of [pfd.canvas, nd.canvas, ewd.canvas, ewdSmall.canvas]) blank(cv);
+    for (const cv of [pfd.canvas, nd.canvas, ewd.canvas, sd.canvas]) blank(cv);
   }
+  ecamFrame(s);
   $("glareshield").classList.toggle("unpowered", !s.systems.dcPower);
   fcu.update(s.fcc, managedSpeed(s, mcdu.fms));
   efis.update(controls.efis!);
@@ -269,6 +366,32 @@ function frame() {
   $("status").textContent = `Power: ${s.systems.acSource || (s.systems.dcPower ? "BAT" : "OFF")} · Engines: ${eng}`;
 }
 requestAnimationFrame(frame);
+
+/** Lesson failure, master caution, the GEN 1 reset and the flight control check. */
+function ecamFrame(s: SimState) {
+  const lesson = currentLesson;
+  if (lesson?.failAfterS !== undefined && !failSent && performance.now() - readyAt > lesson.failAfterS * 1000) {
+    failSent = true;
+    send({ type: "fail", what: "gen1" });
+  }
+  for (const a of activeAlerts(s, controls)) {
+    if (!knownAlerts.has(a.id)) {
+      knownAlerts.add(a.id);
+      x().masterCaution = true;
+      sound.caution(false);
+    }
+  }
+  trackGen1Cycle(s, controls, x(), gen1Seen);
+  masterCaut.classList.toggle("lit", x().masterCaution && s.systems.dcPower);
+  const f = x().fctl;
+  if (controls.pitch > 0.5) f.up = true;
+  if (controls.pitch < -0.5) f.down = true;
+  if (controls.roll < -0.5) f.left = true;
+  if (controls.roll > 0.5) f.right = true;
+  document.querySelectorAll<HTMLElement>("#ecam-cp [data-page]").forEach((b) =>
+    b.classList.toggle("on", b.dataset.page === SystemDisplay.pageFor(s, controls, shownAlerts(s, controls).length > 0)),
+  );
+}
 
 /** On the ground with V2 entered, the speed target is managed: V2 from the MCDU. */
 function managedSpeed(s: SimState, f: FmsData): number | null {

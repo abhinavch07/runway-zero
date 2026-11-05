@@ -1,6 +1,7 @@
 // Engine and warning display (upper ECAM), simplified: N1 dials, EGT (approximate), N2, fuel flow,
 // fuel on board, flap position and a memo line. A training display, not a replica.
 import type { Controls, SimState } from "../sim/types";
+import { shownAlerts, takeoffMemo } from "./ecam";
 
 const SIZE = 420;
 const WHITE = "#ffffff";
@@ -111,12 +112,59 @@ export class Ewd {
     g.lineTo(410, 346);
     g.stroke();
     g.textAlign = "left";
+    this.memoArea(s, c);
+    g.restore();
+  }
+
+  /** Memo area: alerts first, then the T.O CONFIG result, then the take-off memo, then memos. */
+  private memoArea(s: SimState, c: Controls) {
+    const g = this.ctx;
+    g.textAlign = "left";
+    g.font = "13px ui-monospace, Menlo, monospace";
+    const alerts = shownAlerts(s, c);
+    if (alerts.length) {
+      const a = alerts[0];
+      g.fillStyle = a.level === "warning" ? RED : AMBER;
+      g.font = "bold 13px ui-monospace, Menlo, monospace";
+      g.fillText(a.title, 18, 362);
+      g.font = "13px ui-monospace, Menlo, monospace";
+      const lines = a.lines.filter((l) => l.show !== false && !l.done).slice(0, 3);
+      lines.forEach((l, i) => {
+        g.fillStyle = l.text.includes("IF ") ? WHITE : CYAN;
+        g.fillText(l.text, 18, 380 + i * 17);
+      });
+      return;
+    }
+    const x = c.extras;
+    if (x && performance.now() < x.toConfigUntil) {
+      if (x.toConfigProblems.length) {
+        g.fillStyle = RED;
+        x.toConfigProblems.slice(0, 3).forEach((p, i) => g.fillText(p, 18, 366 + i * 18));
+      } else {
+        g.fillStyle = GREEN;
+        g.fillText("T.O CONFIG NORMAL", 18, 366);
+      }
+      return;
+    }
+    const to = takeoffMemo(s, c);
+    if (to) {
+      g.fillStyle = WHITE;
+      g.fillText("T.O", 18, 362);
+      to.forEach((m, i) => {
+        const col = i < 3 ? 0 : 1;
+        const row = i % 3;
+        const xx = 56 + col * 180;
+        const y = 362 + row * 18;
+        g.fillStyle = m.ok ? GREEN : CYAN;
+        g.fillText(m.ok ? `${m.label} ${m.value}` : `${m.label} ${".".repeat(Math.max(2, 11 - m.label.length))} ${m.value}`, xx, y);
+      });
+      return;
+    }
     const memo = memoLines(s, c);
     memo.forEach(([text, colour], i) => {
       g.fillStyle = colour;
       g.fillText(text, 18, 366 + i * 20);
     });
-    g.restore();
   }
 
   private n1Dial(cx: number, cy: number, n1: number, throttle: number) {
@@ -199,6 +247,9 @@ function memoLines(s: SimState, c: Controls): [string, string][] {
     out.push([flapLever === 4 ? "FLAPS .......... FULL" : "FLAPS ......... FULL", flapLever === 4 ? GREEN : CYAN]);
   }
   if (s.speedbrakePos > 0.05) out.push(["SPEED BRK", GREEN]);
+  if (sys.engAntiIceOn.some(Boolean)) out.push(["ENG A.ICE", GREEN]);
+  if (sys.wingAntiIceOn) out.push(["WING A.ICE", GREEN]);
+  if (sw.hydYellowElec) out.push(["HYD Y ELEC PUMP ON", GREEN]);
   if (sw.seatBelts && out.length < 3) out.push(["SEAT BELTS", GREEN]);
   return out.slice(0, 3);
 }

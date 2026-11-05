@@ -242,6 +242,147 @@ export const QUIZZES: Record<string, Question[]> = {
     },
   ],
 
+  aftertaxi: [
+    {
+      q: "Why are the ground spoilers ARMED before take-off?",
+      options: [
+        "So they come up by themselves on a rejected take-off and kill the lift",
+        "To help the aircraft climb",
+        "To slow the taxi",
+        "They must be armed for the engines to start",
+      ],
+      why: "Armed spoilers deploy automatically on a rejected take-off or on landing. That puts the weight on the wheels so the brakes work.",
+    },
+    {
+      q: "The PERF page says THS UP0.8. What do you set?",
+      options: [
+        "The pitch trim wheel to UP 0.8",
+        "The rudder trim to 0.8",
+        "Flaps 0.8",
+        "Nothing, it is only for information",
+      ],
+      why: "The THS setting matches the centre of gravity, so the aircraft rotates normally. The trim wheel must match the take-off data.",
+    },
+    {
+      q: "What does the T.O CONFIG button do?",
+      options: [
+        "Tests the take-off configuration as if take-off thrust were set",
+        "Sets the flaps for take-off",
+        "Starts the take-off roll",
+        "Sends the take-off data to ATC",
+      ],
+      why: "It shows T.O CONFIG NORMAL, or a red CONFIG message that names what is wrong (flaps, spoilers, trim, parking brake).",
+    },
+    {
+      q: "Why check the brakes just after the aircraft starts to move?",
+      options: [
+        "To make sure they work before going faster",
+        "To warm the tyres",
+        "To test the autobrake",
+        "To reset the parking brake",
+      ],
+      why: "A brake check at walking speed is the safest place to find out the brakes do not work.",
+    },
+    {
+      q: "On the T.O memo, what colour is an item that is not done yet?",
+      options: ["Blue (cyan)", "Green", "Amber", "Red"],
+      why: "Blue means still to do. Each item turns green when it is done.",
+    },
+  ],
+  takeoff: [
+    {
+      q: "Why set about 50% N1 before take-off thrust?",
+      options: [
+        "So both engines settle at the same thrust before full power",
+        "To warm the engines for 5 minutes",
+        "To test the brakes",
+        "To charge the batteries",
+      ],
+      why: "Engines that spool up together give symmetric thrust, so the aircraft stays straight on the runway.",
+    },
+    {
+      q: "What does V1 mean?",
+      options: [
+        "The decision speed: after it you continue the take-off",
+        "The speed to raise the nose",
+        "The best climb speed",
+        "The speed to raise the gear",
+      ],
+      why: "Before V1 you can stop on the runway. After V1 you take off, even with a failure.",
+    },
+    {
+      q: "In this trainer, why keep holding PULL until the aircraft is airborne?",
+      options: [
+        "On the ground the stick moves the elevator directly, so letting go drops the nose",
+        "The autopilot needs it",
+        "To raise the gear",
+        "To set the flaps",
+      ],
+      why: "In flight the flight controls hold the attitude when you let go. On the ground they do not.",
+    },
+    {
+      q: "When do you select the gear UP?",
+      options: [
+        "When the climb is positive (altitude and vertical speed rising)",
+        "As soon as the nose rises",
+        "At V1",
+        "At 5000 ft",
+      ],
+      why: "Positive climb means the aircraft will not settle back onto the runway.",
+    },
+    {
+      q: "When are the flaps retracted after take-off?",
+      options: [
+        "When the speed has increased enough (about 190 kt here)",
+        "At V1",
+        "Immediately after lift-off",
+        "Never on a short flight",
+      ],
+      why: "Flaps give lift at low speed. Retract them only when the speed is high enough to fly without them.",
+    },
+  ],
+  genfault: [
+    {
+      q: "What does pressing MASTER CAUT do?",
+      options: [
+        "Silences and turns off the light, it does not fix anything",
+        "Fixes the fault",
+        "Resets all generators",
+        "Starts the APU",
+      ],
+      why: "MASTER CAUT only acknowledges the caution. The fix is in the ECAM actions.",
+    },
+    {
+      q: "On the upper ECAM, what colour are the actions to do?",
+      options: ["Blue (cyan)", "Green", "Amber", "White"],
+      why: "The title is amber for a caution. The action lines are blue, and each disappears when it is done.",
+    },
+    {
+      q: "What is the first action for ELEC GEN 1 FAULT?",
+      options: ["GEN 1 OFF then ON", "APU START", "ENG 1 MASTER OFF", "BAT 1 OFF"],
+      why: "First try to reset the generator. Only if that does not work, switch it off.",
+    },
+    {
+      q: "GEN 1 is off. Why start the APU?",
+      options: [
+        "Its generator replaces GEN 1, so two sources power the aircraft again",
+        "To restart engine 1",
+        "To cool the cabin",
+        "It is needed to clear the ECAM",
+      ],
+      why: "With only GEN 2, one more failure leaves the aircraft on batteries. The APU generator gives back a second source.",
+    },
+    {
+      q: "When do you press CLR on the ECAM control panel?",
+      options: [
+        "When all the action lines are done",
+        "As soon as the caution appears",
+        "Before reading the ECAM",
+        "Never",
+      ],
+      why: "Read the alert, do every action, then CLR. Clearing too early hides actions you have not done.",
+    },
+  ],
   "c172-start": [
     {
       q: "Why are the avionics OFF during engine start?",
