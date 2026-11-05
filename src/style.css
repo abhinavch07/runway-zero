@@ -33,7 +33,7 @@ body {
 }
 #readout {
   right: 12px;
-  bottom: 12px;
+  top: 12px;
   width: 230px;
 }
 .row {
@@ -65,8 +65,8 @@ body {
   border-radius: 4px;
 }
 #help {
-  right: 12px;
-  top: 12px;
+  left: 12px;
+  top: 64px;
   width: 300px;
 }
 #help h3 {
@@ -110,4 +110,13 @@ kbd {
 }
 .cesium-viewer-bottom {
   left: 460px !important;
+}
+#cockpit3d {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: grab;
+}
+.panel {
+  z-index: 2;
 }

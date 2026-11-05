@@ -13,6 +13,9 @@ export const KEY_HELP: Array<[string, string]> = [
   ["/", "Speedbrake in / out"],
   [".", "Wheel brakes (hold)"],
   ["C", "Cockpit or outside view"],
+  ["V", "3D cockpit on or off"],
+  ["Mouse drag", "Look around (double-click to reset)"],
+  ["Click", "Gear lever, flap lever"],
   ["P", "Pause"],
   ["Backspace", "Reset to start position"],
   ["H", "Show or hide this help"],
@@ -29,6 +32,7 @@ export interface KeyboardEvents {
   onTogglePause(): void;
   onReset(): void;
   onToggleHelp(): void;
+  onToggleCockpit(): void;
 }
 
 export class KeyboardControls {
@@ -96,6 +100,9 @@ export class KeyboardControls {
         break;
       case "h":
         this.events.onToggleHelp();
+        break;
+      case "v":
+        this.events.onToggleCockpit();
         break;
     }
   }

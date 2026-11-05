@@ -2,9 +2,10 @@
 import * as Cesium from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./style.css";
-import { CESIUM_ION_TOKEN, EYE_HEIGHT_M, START } from "./config";
+import { CESIUM_ION_TOKEN, EYE_OFFSET_M, FOV_DEG, START } from "./config";
 import { KEY_HELP, KeyboardControls } from "./input/keyboard";
 import { Pfd } from "./cockpit/pfd";
+import { Cockpit3D } from "./cockpit/cockpit3d";
 import type { FromWorker, SimState, ToWorker } from "./sim/types";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -46,12 +47,27 @@ scene.globe.depthTestAgainstTerrain = true;
 scene.fog.enabled = true;
 if (scene.skyAtmosphere) scene.skyAtmosphere.show = true;
 const frustum = scene.camera.frustum as Cesium.PerspectiveFrustum;
-frustum.fov = rad(70);
 frustum.near = 0.5;
+let cockpit3d: Cockpit3D | null = null;
+
+// Cesium's fov is the wider of the two screen directions. Three.js uses the vertical one.
+// Both are set from the same value so the cockpit and the outside world line up.
+function syncFov() {
+  const aspect = window.innerWidth / window.innerHeight;
+  frustum.fov = rad(FOV_DEG);
+  const wide = rad(FOV_DEG);
+  const vertical = aspect >= 1 ? 2 * Math.atan(Math.tan(wide / 2) / aspect) : wide;
+  if (cockpit3d) {
+    cockpit3d.camera.fov = Cesium.Math.toDegrees(vertical);
+    cockpit3d.camera.updateProjectionMatrix();
+  }
+}
+window.addEventListener("resize", syncFov);
 
 function applyQuality(q: Quality) {
   const s = QUALITY[q];
   viewer.resolutionScale = s.scale;
+  cockpit3d?.setPixelRatio(s.scale);
   scene.globe.maximumScreenSpaceError = s.sse;
   scene.postProcessStages.fxaa.enabled = s.fxaa;
   try {
@@ -113,6 +129,7 @@ const keys = new KeyboardControls({
     view = view === "cockpit" ? "outside" : "cockpit";
     fuselage.show = wing.show = view === "outside";
     if (view === "cockpit") scene.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    updateLayers();
   },
   onTogglePause: () => {
     paused = !paused;
@@ -120,6 +137,10 @@ const keys = new KeyboardControls({
   },
   onReset: () => send({ type: "reset", start: START }),
   onToggleHelp: () => $("help").classList.toggle("hidden"),
+  onToggleCockpit: () => {
+    show3dCockpit = !show3dCockpit;
+    updateLayers();
+  },
 });
 
 worker.onmessage = (ev: MessageEvent<FromWorker>) => {
@@ -171,6 +192,81 @@ setInterval(async () => {
 
 // ---------- Cockpit display and readouts ----------
 const pfd = new Pfd($<HTMLCanvasElement>("pfd"));
+let show3dCockpit = true;
+cockpit3d = new Cockpit3D(document.body, $<HTMLCanvasElement>("pfd"), FOV_DEG, {
+  onGearLever: () => (keys.controls.gearDown = !keys.controls.gearDown),
+  onFlapLever: () => (keys.controls.flapLever = (keys.controls.flapLever + 1) % 5),
+});
+cockpit3d.setPixelRatio(QUALITY[qualitySelect.value as Quality].scale);
+syncFov();
+
+/** The 3D cockpit shows in cockpit view. The flat PFD panel shows when the 3D cockpit is hidden. */
+function updateLayers() {
+  const cockpitOn = view === "cockpit" && show3dCockpit;
+  cockpit3d!.setVisible(cockpitOn);
+  $("pfd-wrap").classList.toggle("hidden", cockpitOn);
+}
+updateLayers();
+scene.postRender.addEventListener(() => cockpit3d!.render());
+
+const scratch = {
+  enu: new Cesium.Matrix4(),
+  f: new Cesium.Cartesian3(),
+  r: new Cesium.Cartesian3(),
+  u: new Cesium.Cartesian3(),
+  tmp: new Cesium.Cartesian3(),
+};
+
+/** Builds the aircraft's forward, right and up axes in Earth-fixed coordinates. */
+function bodyAxes(s: SimState, origin: Cesium.Cartesian3) {
+  const psi = rad(s.headingDeg);
+  const th = rad(s.pitchDeg);
+  const ph = rad(s.rollDeg);
+  // In east-north-up: forward from heading and pitch, then right and up turned by roll.
+  const f = new Cesium.Cartesian3(Math.sin(psi) * Math.cos(th), Math.cos(psi) * Math.cos(th), Math.sin(th));
+  const r0 = new Cesium.Cartesian3(Math.cos(psi), -Math.sin(psi), 0);
+  const u0 = Cesium.Cartesian3.cross(r0, f, new Cesium.Cartesian3());
+  const r = new Cesium.Cartesian3(
+    r0.x * Math.cos(ph) - u0.x * Math.sin(ph),
+    r0.y * Math.cos(ph) - u0.y * Math.sin(ph),
+    r0.z * Math.cos(ph) - u0.z * Math.sin(ph),
+  );
+  const u = new Cesium.Cartesian3(
+    u0.x * Math.cos(ph) + r0.x * Math.sin(ph),
+    u0.y * Math.cos(ph) + r0.y * Math.sin(ph),
+    u0.z * Math.cos(ph) + r0.z * Math.sin(ph),
+  );
+  Cesium.Transforms.eastNorthUpToFixedFrame(origin, Cesium.Ellipsoid.WGS84, scratch.enu);
+  return {
+    f: Cesium.Matrix4.multiplyByPointAsVector(scratch.enu, f, new Cesium.Cartesian3()),
+    r: Cesium.Matrix4.multiplyByPointAsVector(scratch.enu, r, new Cesium.Cartesian3()),
+    u: Cesium.Matrix4.multiplyByPointAsVector(scratch.enu, u, new Cesium.Cartesian3()),
+  };
+}
+
+function combine(a: Cesium.Cartesian3, b: Cesium.Cartesian3, c: Cesium.Cartesian3, x: number, y: number, z: number) {
+  return new Cesium.Cartesian3(a.x * x + b.x * y + c.x * z, a.y * x + b.y * y + c.y * z, a.z * x + b.z * y + c.z * z);
+}
+
+/** Puts the globe camera at the pilot's eye, looking where the head is turned. */
+function setCockpitCamera(s: SimState) {
+  const origin = Cesium.Cartesian3.fromDegrees(s.lonDeg, s.latDeg, s.heightM);
+  const { f, r, u } = bodyAxes(s, origin);
+  const eye = Cesium.Cartesian3.add(
+    origin,
+    combine(f, r, u, EYE_OFFSET_M.forward, EYE_OFFSET_M.right, EYE_OFFSET_M.up),
+    new Cesium.Cartesian3(),
+  );
+  const d = cockpit3d!.headDirection();
+  const hu = cockpit3d!.headUp();
+  scene.camera.setView({
+    destination: eye,
+    orientation: {
+      direction: Cesium.Cartesian3.normalize(combine(f, r, u, d.forward, d.right, d.up), new Cesium.Cartesian3()),
+      up: Cesium.Cartesian3.normalize(combine(f, r, u, hu.forward, hu.right, hu.up), new Cesium.Cartesian3()),
+    },
+  });
+}
 const FLAP_LABEL = ["0", "1", "2", "3", "FULL"];
 let lastFrame = performance.now();
 let frames = 0;
@@ -194,16 +290,14 @@ scene.preRender.addEventListener(() => {
 
   const s = latest;
   if (view === "cockpit") {
-    scene.camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(s.lonDeg, s.latDeg, s.heightM + EYE_HEIGHT_M),
-      orientation: { heading: rad(s.headingDeg), pitch: rad(s.pitchDeg), roll: rad(s.rollDeg) },
-    });
+    setCockpitCamera(s);
   } else {
     const centre = Cesium.Cartesian3.fromDegrees(s.lonDeg, s.latDeg, s.heightM);
     scene.camera.lookAt(centre, new Cesium.HeadingPitchRange(rad(s.headingDeg), rad(-12), 90));
   }
 
   pfd.draw(s);
+  cockpit3d!.update(s, keys.controls);
   const c = keys.controls;
   const gear = s.gearPos > 0.99 ? "DOWN" : s.gearPos < 0.01 ? "UP" : "MOVING";
   $("readout").innerHTML = [
