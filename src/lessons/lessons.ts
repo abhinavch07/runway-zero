@@ -7,6 +7,7 @@
 import type { FcuAction } from "../sim/fcc";
 import type { Switches } from "../sim/systems";
 import type { Controls, SimState } from "../sim/types";
+import type { FmsData } from "../cockpit/mcdu";
 
 export type PanelName = "ovhd" | "main" | "ped";
 
@@ -20,7 +21,7 @@ export interface LessonStep {
   /** Panel to show for this step. */
   panel: PanelName;
   /** Ticks the step off when true. Steps without it are manual: the learner presses Next. */
-  done?: (s: SimState, c: Controls) => boolean;
+  done?: (s: SimState, c: Controls, f: FmsData) => boolean;
 }
 
 export interface Lesson {
@@ -204,6 +205,201 @@ export const LESSONS: Lesson[] = [
         want: true,
         panel: "ovhd",
         done: (_s, c) => c.switches.taxiLight,
+      },
+    ],
+  },
+  {
+    id: "mcdu",
+    title: "MCDU setup: Delhi to Mumbai",
+    summary: "Power up, then set up the flight computer for VIDP to VABB: INIT A, flight plan, INIT B fuel and PERF take-off.",
+    minutes: 15,
+    startId: "cold28",
+    finished:
+      "The flight computer knows the route, the weights and the take-off data. Real crews now cross-check all of it with the other pilot before engine start.",
+    steps: [
+      {
+        title: "BAT 1 and BAT 2: ON",
+        why: "First we need power. The batteries come on first.",
+        targets: ["bat1", "bat2"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.bat1 && c.switches.bat2,
+      },
+      {
+        title: "EXT PWR: ON",
+        why: "Ground power gives AC power. The MCDU needs AC power, so its screen is dark until now.",
+        targets: ["extPwr"],
+        want: true,
+        panel: "ovhd",
+        done: (s) => s.systems.acPower,
+      },
+      {
+        title: "ADIRS: IR 1, IR 3, IR 2 to NAV",
+        why: "Start aligning the inertial reference systems now. They align while you set up the MCDU. The flight computer needs them for its position.",
+        targets: ["ir1", "ir3", "ir2"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.ir1 && c.switches.ir2 && c.switches.ir3,
+      },
+      {
+        title: "Open the MCDU: press <FMGC",
+        why: "This is the MCDU on the pedestal. Each line on the screen has a key beside it, called a line select key (LSK). Press the key beside <FMGC to talk to the flight computer.",
+        targets: ["mcdu-L1", "mcdu-fmgc"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page !== "MENU",
+      },
+      {
+        title: "INIT A: FROM/TO VIDP/VABB",
+        why: "Every entry goes to the scratchpad at the bottom of the screen first. Type VIDP/VABB, then press the key beside FROM/TO (right side, line 1). Amber boxes mean the entry is required. Tip: click the MCDU once and you can type on your own keyboard. Backspace is CLR.",
+        targets: ["mcdu-R1", "mcdu-fromto"],
+        panel: "ped",
+        done: (_s, _c, f) => f.from === "VIDP" && f.to === "VABB",
+      },
+      {
+        title: "INIT A: FLT NBR",
+        why: "Type a flight number, for example RZ123, and press the key beside FLT NBR (left, line 3). Air traffic control and the company use it.",
+        targets: ["mcdu-L3", "mcdu-fltnbr"],
+        panel: "ped",
+        done: (_s, _c, f) => f.fltNbr !== null,
+      },
+      {
+        title: "INIT A: COST INDEX 30",
+        why: "The cost index balances fuel cost against time cost. Low numbers fly slower and save fuel, high numbers fly faster. The airline gives the value. Type 30 and press the key beside COST INDEX (left, line 5).",
+        targets: ["mcdu-L5", "mcdu-ci"],
+        panel: "ped",
+        done: (_s, _c, f) => f.costIndex !== null,
+      },
+      {
+        title: "INIT A: CRZ FL 360",
+        why: "Delhi to Mumbai goes south-west, so we use an even flight level (westbound and southbound tracks use even levels). Type 360 and press the key beside CRZ FL/TEMP (left, line 6). The computer fills in a standard temperature.",
+        targets: ["mcdu-L6", "mcdu-crz"],
+        panel: "ped",
+        done: (_s, _c, f) => f.crzFl !== null && f.crzFl % 20 === 0,
+      },
+      {
+        title: "Press the F-PLN key",
+        why: "The flight plan page shows VIDP, then a F-PLN DISCONTINUITY, then VABB. A discontinuity is a gap: the computer does not yet know how to get from one point to the next.",
+        targets: ["mcdu-fpln"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "FPLN",
+      },
+      {
+        title: "Press the key beside VIDP",
+        why: "With an empty scratchpad, the left key beside a waypoint opens the lateral revision (LAT REV) page for it. From the origin you can choose the departure.",
+        targets: ["mcdu-L1", "mcdu-item-VIDP"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "LATREV" || f.page === "DEP",
+      },
+      {
+        title: "Press <DEPARTURE",
+        why: "The departure page lists the runways at Delhi.",
+        targets: ["mcdu-L1", "mcdu-departure"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "DEP",
+      },
+      {
+        title: "Scroll down with ↓ and select runway 28",
+        why: "Press ↓ until you see 28, then press the key beside it. The choice shows in yellow: it is a temporary flight plan until you insert it. Real crews would also pick a SID here. This trainer has no real SIDs.",
+        targets: ["mcdu-down", "mcdu-item-28"],
+        panel: "ped",
+        done: (_s, _c, f) => f.tmpyRwy === "28" || f.depRwy === "28",
+      },
+      {
+        title: "Press INSERT*",
+        why: "INSERT* makes the temporary (yellow) flight plan the active one. Always read the yellow plan before you insert it. If you picked the wrong runway, press <TMPY ERASE and choose again.",
+        targets: ["mcdu-R6", "mcdu-insert"],
+        panel: "ped",
+        done: (_s, _c, f) => f.depRwy === "28",
+      },
+      {
+        title: "Press the key beside VABB, then ARRIVAL>",
+        why: "Now the other end. The key beside VABB opens LAT REV at the destination. ARRIVAL> lists the runways at Mumbai.",
+        targets: ["mcdu-item-VABB", "mcdu-arrival"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "ARR" || f.arrRwy !== null,
+      },
+      {
+        title: "Select runway 27, then INSERT*",
+        why: "Real crews select an approach here (for example an ILS). In this trainer you select the runway. Press the key beside 27, check the yellow choice, then INSERT*.",
+        targets: ["mcdu-item-27", "mcdu-insert", "mcdu-R6"],
+        panel: "ped",
+        done: (_s, _c, f) => f.arrRwy === "27",
+      },
+      {
+        title: "Add waypoint RZ101",
+        why: "Type RZ101 into the scratchpad and press the key beside the F-PLN DISCONTINUITY. A new waypoint goes in before the line you press. RZ waypoints are made up for training. They are not real.",
+        targets: ["mcdu-item-DISCO"],
+        panel: "ped",
+        done: (_s, _c, f) => f.legs[0] === "RZ101",
+      },
+      {
+        title: "Add RZ102, then RZ103, the same way",
+        why: "Type each one and press the key beside the discontinuity, so they go in order: RZ101, RZ102, RZ103. To remove a wrong waypoint, press CLR (the scratchpad shows CLR), then the key beside it.",
+        targets: ["mcdu-item-DISCO"],
+        panel: "ped",
+        done: (_s, _c, f) => f.legs.join(" ") === "RZ101 RZ102 RZ103",
+      },
+      {
+        title: "Clear the discontinuity: CLR, then the key beside it",
+        why: "The route is now complete, so the gap must go. Press CLR with an empty scratchpad (it shows CLR), then press the key beside F-PLN DISCONTINUITY. Never leave a discontinuity you do not expect.",
+        targets: ["mcdu-clr", "mcdu-item-DISCO"],
+        panel: "ped",
+        done: (_s, _c, f) => !f.disco && f.legs.length === 3,
+      },
+      {
+        title: "INIT B: press INIT, then NEXT PAGE",
+        why: "INIT B is the fuel and weight page. On the aircraft it is usually filled in after the load sheet figures are known.",
+        targets: ["mcdu-init", "mcdu-nextpage"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "INITB",
+      },
+      {
+        title: "INIT B: ZFWCG/ZFW 27/60.5",
+        why: "Zero fuel weight is the aircraft with passengers and cargo but no fuel: 60.5 tonnes here, with the centre of gravity at 27%. Type 27/60.5 and press the key beside ZFWCG/ZFW (right, line 1).",
+        targets: ["mcdu-R1", "mcdu-zfw"],
+        panel: "ped",
+        done: (_s, _c, f) => f.zfw !== null,
+      },
+      {
+        title: "INIT B: BLOCK 8.0",
+        why: "Block fuel is all the fuel on board before start, in tonnes. Type 8.0 and press the key beside BLOCK (right, line 2). The computer now works out the take-off weight (TOW): ZFW plus block fuel minus taxi fuel.",
+        targets: ["mcdu-R2", "mcdu-block"],
+        panel: "ped",
+        done: (_s, _c, f) => f.block !== null,
+      },
+      {
+        title: "Press the PERF key",
+        why: "The PERF TAKE OFF page holds the take-off speeds and settings. Look at the title: it shows the runway from your flight plan.",
+        targets: ["mcdu-perf"],
+        panel: "ped",
+        done: (_s, _c, f) => f.page === "PERF",
+      },
+      {
+        title: "V1 140, VR 141, V2 145",
+        why: "V1 is the last moment to decide to stop. VR is when you start to rotate. V2 is the safe climb speed if an engine fails. Enter each on its line (left, lines 1 to 3). These are training numbers. Real crews get them from the airline's performance tool for each take-off.",
+        targets: ["mcdu-L1", "mcdu-L2", "mcdu-L3", "mcdu-v1", "mcdu-vr", "mcdu-v2"],
+        panel: "ped",
+        done: (_s, _c, f) => f.v1 !== null && f.vr !== null && f.v2 !== null,
+      },
+      {
+        title: "FLAPS/THS 1/UP0.8",
+        why: "Take-off flap setting 1, and the trimmable horizontal stabiliser (THS) setting that matches the centre of gravity. Type 1/UP0.8 and press the key beside FLAPS/THS (right, line 3).",
+        targets: ["mcdu-R3", "mcdu-flaps"],
+        panel: "ped",
+        done: (_s, _c, f) => f.flaps !== null,
+      },
+      {
+        title: "FLEX TO TEMP 50",
+        why: "A FLEX temperature tells the engines to use less than full thrust when the runway is long enough. It saves engine wear. Type 50 and press the key beside FLEX TO TEMP (right, line 4).",
+        targets: ["mcdu-R4", "mcdu-flex"],
+        panel: "ped",
+        done: (_s, _c, f) => f.flex !== null,
+      },
+      {
+        title: "Check the route on the ND",
+        why: "Go to the main panel. When the ADIRS are aligned the ND shows your route in green. Press ND + until the range is 40 to see RZ101. Then press Next.",
+        targets: ["nd-range-up"],
+        panel: "main",
       },
     ],
   },

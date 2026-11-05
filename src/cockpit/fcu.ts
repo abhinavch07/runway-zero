@@ -70,7 +70,11 @@ export class FcuPanel {
       this.lights[id] = light;
       btns.appendChild(b);
     }
-    btns.append(button("ND −", () => onRange(-1), "ND range down"), button("ND +", () => onRange(1), "ND range up"));
+    const rDown = button("ND −", () => onRange(-1), "ND range down");
+    const rUp = button("ND +", () => onRange(1), "ND range up");
+    rDown.dataset.ctl = "nd-range-down";
+    rUp.dataset.ctl = "nd-range-up";
+    btns.append(rDown, rUp);
     this.el.appendChild(btns);
   }
 

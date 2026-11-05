@@ -14,16 +14,16 @@ Pick a lesson. The lesson list on the left tells you what to do and why. The con
 Lessons:
 
 1. **Power up and engine start** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, beacon, engine start, ready for taxi.
-2. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed and heading, climb and descend with V/S, watch ALT* and ALT, disconnect and engage the autopilot.
-3. **Shutdown and secure** (parked at the gate with engines running): APU start, engines off, ground power, ADIRS off, back to cold and dark.
+2. **MCDU setup: Delhi to Mumbai** (cold and dark): power up, then INIT A (FROM/TO, flight number, cost index, cruise level), the flight plan (departure runway 28, arrival runway 27, three training waypoints, clearing a discontinuity), INIT B (zero fuel weight and block fuel) and PERF TAKE OFF (V1, VR, V2, flaps, FLEX). The route then shows on the ND.
+3. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed and heading, climb and descend with V/S, watch ALT* and ALT, disconnect and engage the autopilot.
+4. **Shutdown and secure** (parked at the gate with engines running): APU start, engines off, ground power, ADIRS off, back to cold and dark.
 
-Coming next: **MCDU setup** (INIT, flight plan and PERF pages).
 
 Panels:
 
 - **Overhead:** ADIRS, ELEC, FUEL, AIR, APU, exterior lights and signs. Lights follow the "dark cockpit" idea.
 - **Main panel:** FCU on the glareshield, PFD, ND and the engine and warning display.
-- **Pedestal:** engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
+- **Pedestal:** the MCDU, engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
@@ -32,7 +32,8 @@ Known gaps:
 - The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP.
 - EGT is an approximation: the stand-in engine model does not calculate it.
 - Simplified systems: no hydraulics, no ECAM system pages, no failures.
-- All FCU values are "selected". Managed modes come with the MCDU.
+- All FCU values are "selected". The MCDU flight plan is not flown yet (no managed NAV mode).
+- No real SIDs, STARs, approaches or airways in the MCDU.
 - Headings are true, not magnetic (about 1° difference at Delhi).
 
 ## Run it
@@ -65,7 +66,7 @@ npm run test:flights  # scripted test flights: cold start and taxi, ground, norm
 | 3 | Pedestal |
 | L | Lesson list |
 
-Click switches and buttons with the mouse. FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
+Click switches and buttons with the mouse. MCDU: click it once, then you can type on your keyboard (Backspace is CLR, arrow keys scroll, Esc stops typing). FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
 
 ## How it is built
 
@@ -82,7 +83,9 @@ src/
   sim/types.ts          messages between page and worker
   world/vidp.ts         VIDP runway data and the training ILS 28
   world/geo.ts          distance and bearing helpers
+  world/route.ts        small navigation database: VIDP, VABB and the training waypoints
   cockpit/lessonPanel.ts  lesson list, highlights and step checking
+  cockpit/mcdu.ts       MCDU: INIT A, INIT B, F-PLN, LAT REV, departure and arrival, PERF TAKE OFF
   cockpit/pfd.ts        PFD
   cockpit/nd.ts         ND
   cockpit/ewd.ts        engine and warning display
@@ -95,12 +98,13 @@ scripts/                Node test scripts
 
 ### Writing a lesson
 
-Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps. A step has a title, a short "why", the controls to highlight (their `data-ctl` names), the panel to show, and a `done` check. Steps without a `done` check wait for the learner to press Next. Use `want: true` or `want: false` on switch steps so switches already in place stop pulsing.
+Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps. A step has a title, a short "why", the controls to highlight (their `data-ctl` names), the panel to show, and a `done(state, controls, fms)` check. `fms` is the MCDU data. Steps without a `done` check wait for the learner to press Next. Use `want: true` or `want: false` on switch steps so switches already in place stop pulsing.
 
 ## Data sources
 
 - Lessons are our own simplified training flows, written from general public knowledge of the A320 family. A type-rated pilot should review them.
 - VIDP runway ends, headings and elevations: [OurAirports](https://github.com/davidmegginson/ourairports-data) (public domain).
+- The MCDU is a small training version. Its pages follow the general A320 family idea but are not a copy of the real software. The RZ101, RZ102 and RZ103 waypoints are made up for training. VABB is listed by runway ident only. Take-off speeds in the lesson are training numbers, not performance data.
 - ILS 28 is built from the runway geometry: a training stand-in, not the published procedure.
 
 ## Licences

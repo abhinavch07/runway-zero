@@ -1,8 +1,10 @@
 // Navigation display, ARC mode, heading up. Shows the VIDP runways, the training ILS 28 course,
-// the selected heading, the track and range rings. R1 has no flight plan yet.
+// the selected heading, the track, range rings and the MCDU flight plan in green.
 import type { SimState } from "../sim/types";
 import { bearingDeg, distanceM, M_PER_NM, type LatLon } from "../world/geo";
 import { ILS_28, VIDP, rwy28Final } from "../world/vidp";
+import { AIRPORTS, WAYPOINTS } from "../world/route";
+import type { FmsData } from "./mcdu";
 
 const SIZE = 420;
 const WHITE = "#ffffff";
@@ -32,7 +34,7 @@ export class Nd {
     this.rangeNm = ND_RANGES[Math.max(0, Math.min(ND_RANGES.length - 1, i + step))];
   }
 
-  draw(s: SimState) {
+  draw(s: SimState, fms?: FmsData) {
     const g = this.ctx;
     const sys = s.systems;
     if (!(sys.irAligned[0] || sys.irAligned[2])) {
@@ -116,6 +118,7 @@ export class Nd {
     g.fillStyle = WHITE;
     g.textAlign = "left";
     g.fillText("VIDP", arp.x + 14, arp.y + 16);
+    if (fms) this.drawPlan(g, fms, toXY);
     g.restore();
 
     // Compass arc with ticks every 5 degrees, numbers every 30.
@@ -210,5 +213,46 @@ export class Nd {
     g.textAlign = "left";
     g.fillText(`RANGE ${this.rangeNm}`, 10, SIZE - 14);
     g.restore();
+  }
+
+  /** Flight plan from the MCDU: a green line from the departure runway through the waypoints. */
+  private drawPlan(g: CanvasRenderingContext2D, fms: FmsData, toXY: (p: LatLon) => { x: number; y: number }) {
+    if (!fms.from || !fms.to) return;
+    const origin = AIRPORTS[fms.from];
+    const dest = AIRPORTS[fms.to];
+    const rwy = origin.runways.find((r) => r.ident === fms.depRwy);
+    const pts: { p: LatLon; name?: string; gap?: boolean }[] = [];
+    if (rwy) pts.push({ p: rwy.start }, { p: rwy.end });
+    else pts.push({ p: origin });
+    for (const w of fms.legs) pts.push({ p: WAYPOINTS[w], name: w });
+    pts.push({ p: dest, name: fms.to, gap: fms.disco });
+    g.strokeStyle = GREEN;
+    g.lineWidth = 2;
+    g.beginPath();
+    pts.forEach((pt, i) => {
+      const { x, y } = toXY(pt.p);
+      if (i === 0 || pt.gap) g.moveTo(x, y);
+      else g.lineTo(x, y);
+    });
+    g.stroke();
+    g.font = "13px ui-monospace, Menlo, monospace";
+    g.textAlign = "left";
+    for (const pt of pts) {
+      if (!pt.name || pt.name === fms.to) continue;
+      const { x, y } = toXY(pt.p);
+      g.fillStyle = GREEN;
+      g.beginPath();
+      g.moveTo(x, y - 7);
+      g.lineTo(x + 2, y - 2);
+      g.lineTo(x + 7, y);
+      g.lineTo(x + 2, y + 2);
+      g.lineTo(x, y + 7);
+      g.lineTo(x - 2, y + 2);
+      g.lineTo(x - 7, y);
+      g.lineTo(x - 2, y - 2);
+      g.closePath();
+      g.fill();
+      g.fillText(pt.name, x + 10, y - 8);
+    }
   }
 }

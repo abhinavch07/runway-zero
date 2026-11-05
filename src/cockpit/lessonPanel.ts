@@ -2,6 +2,7 @@
 // control to use, switches to the right panel, and ticks steps off in order.
 import type { Lesson, PanelName } from "../lessons/lessons";
 import type { Controls, SimState } from "../sim/types";
+import type { FmsData } from "./mcdu";
 
 export class LessonPanel {
   readonly el: HTMLElement;
@@ -37,7 +38,7 @@ export class LessonPanel {
     this.list.innerHTML = lesson.steps
       .map(
         (st) =>
-          `<li><div class="ls-title">${st.title}</div><div class="ls-why">${st.why}</div>` +
+          `<li><div class="ls-title">${esc(st.title)}</div><div class="ls-why">${esc(st.why)}</div>` +
           `${st.done ? "" : '<button class="ls-next">Next</button>'}</li>`,
       )
       .join("");
@@ -49,7 +50,7 @@ export class LessonPanel {
     );
   }
 
-  update(s: SimState, c: Controls) {
+  update(s: SimState, c: Controls, f: FmsData) {
     const lesson = this.lesson;
     if (!lesson) return;
     // Steps count in order: a step only ticks once all steps before it are done. Once ticked it
@@ -58,7 +59,7 @@ export class LessonPanel {
     for (let i = 0; i < lesson.steps.length; i++) {
       const st = lesson.steps[i];
       if (!this.latched[i] && (i === 0 || this.latched[i - 1])) {
-        const ok = st.done ? st.done(s, c) : this.nextPressed && i === this.lastCurrent;
+        const ok = st.done ? st.done(s, c, f) : this.nextPressed && i === this.lastCurrent;
         if (ok) {
           this.latched[i] = true;
           this.nextPressed = false;
@@ -75,10 +76,10 @@ export class LessonPanel {
       items[i].className = this.latched[i] ? "done" : i === current ? "current" : "";
     }
     const total = lesson.steps.length;
-    this.header.innerHTML = `<div class="ls-name">${lesson.title}</div><div class="ls-progress">${
+    this.header.innerHTML = `<div class="ls-name">${esc(lesson.title)}</div><div class="ls-progress">${
       current < 0 ? `All ${total} steps done` : `Step ${current + 1} of ${total}`
     }</div><div class="ls-bar"><i style="width:${(100 * (current < 0 ? total : current)) / total}%"></i></div>`;
-    this.footer.innerHTML = current < 0 ? `<b>Lesson complete.</b> ${lesson.finished}` : "";
+    this.footer.innerHTML = current < 0 ? `<b>Lesson complete.</b> ${esc(lesson.finished)}` : "";
 
     clearHighlights();
     if (current < 0) return;
@@ -103,4 +104,8 @@ export class LessonPanel {
 
 function clearHighlights() {
   document.querySelectorAll(".next").forEach((el) => el.classList.remove("next"));
+}
+
+function esc(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

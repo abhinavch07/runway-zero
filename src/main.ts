@@ -10,6 +10,7 @@ import { FcuPanel } from "./cockpit/fcu";
 import { LeverPanel } from "./cockpit/levers";
 import { OverheadPanel } from "./cockpit/overhead";
 import { LessonPanel } from "./cockpit/lessonPanel";
+import { Mcdu } from "./cockpit/mcdu";
 import { LESSONS, type Lesson, type PanelName } from "./lessons/lessons";
 import { coldSwitches, runningSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
@@ -90,6 +91,7 @@ function onReady(start: StartPosition, throttle: number) {
     switches: start.coldAndDark ? coldSwitches() : runningSwitches(),
   });
   lesson?.switches?.(controls.switches);
+  mcdu.reset();
   for (const a of lesson?.fcuActions ?? []) fcuSend(a);
   if (lesson) lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
@@ -118,6 +120,7 @@ const ewdSmall = new Ewd($<HTMLCanvasElement>("ewd-small"));
 const fcu = new FcuPanel($("glareshield"), fcuSend, (step) => nd.changeRange(step));
 const overhead = new OverheadPanel($("p-ovhd"), () => controls.switches);
 const levers = new LeverPanel($("ped-controls"), controls);
+const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel($("lesson-slot"), showPanel, () => panel);
 
 /** Sizes the active panel to fill the space it has. */
@@ -154,7 +157,7 @@ window.addEventListener("keydown", (e) => {
 $("picker-list").innerHTML = LESSONS.map(
   (l, i) => `<button class="picker-item" data-lesson="${l.id}">
       <span class="picker-num">${i + 1}</span>
-      <span><b>${l.title}</b><br><span class="picker-sum">${l.summary}</span></span>
+      <span><b>${l.title}</b><br><span class="picker-sum">${l.summary.replace(/</g, "&lt;")}</span></span>
       <span class="picker-min">about ${l.minutes} min</span>
     </button>`,
 ).join("");
@@ -188,7 +191,7 @@ function frame() {
   if (s.systems.acPower) {
     if (panel === "main") {
       pfd.draw(s);
-      nd.draw(s);
+      nd.draw(s, mcdu.fms);
       ewd.draw(s, controls);
     }
     if (panel === "ped") ewdSmall.draw(s, controls);
@@ -199,7 +202,8 @@ function frame() {
   fcu.update(s.fcc);
   levers.update(s, controls);
   overhead.update(controls.switches, s.systems);
-  lessonPanel.update(s, controls);
+  mcdu.setPowered(s.systems.acPower);
+  lessonPanel.update(s, controls, mcdu.fms);
 
   const eng = s.systems.engines.map((e) => e.phase).join(" / ");
   $("status").textContent = `Power: ${s.systems.acSource || (s.systems.dcPower ? "BAT" : "OFF")} · Engines: ${eng}`;
@@ -239,6 +243,7 @@ openPicker();
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
 w.__runwayZeroFcu = fcuSend;
+w.__runwayZeroFms = () => mcdu.fms;
 w.__runwayZeroLesson = (id: string) => {
   const l = LESSONS.find((x) => x.id === id);
   if (l) startLesson(l);

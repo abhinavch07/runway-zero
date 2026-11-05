@@ -644,3 +644,179 @@ kbd {
   color: #ffb4b4;
   max-width: 520px;
 }
+
+/* ---------- MCDU ---------- */
+#ped-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+#mcdu {
+  width: 372px;
+  background: #2a3138;
+  border: 1px solid #1d2227;
+  border-radius: 8px;
+  padding: 10px 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  outline: none;
+  user-select: none;
+}
+#mcdu:focus-visible,
+#mcdu:focus {
+  box-shadow: 0 0 0 2px #3fd4ff, 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.mcdu-top {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+.mcdu-lsks {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0;
+  padding: 26px 0 30px;
+}
+.mcdu-lsks button {
+  width: 22px;
+  height: 22px;
+  margin-top: 13px;
+  padding: 0;
+  background: #1b1f27;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.mcdu-screen {
+  flex: 1;
+  height: 330px;
+  background: #000;
+  border: 5px solid #15191d;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+#mcdu.unpowered .mcdu-screen {
+  background: #050607;
+}
+.mc-title {
+  text-align: center;
+  font-size: 15px;
+  height: 22px;
+  line-height: 22px;
+  position: relative;
+}
+.mc-arrows {
+  position: absolute;
+  right: 0;
+  font-style: normal;
+  color: #fff;
+}
+.mc-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  height: 13px;
+  line-height: 13px;
+  color: #fff;
+  white-space: pre;
+}
+.mc-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  height: 22px;
+  line-height: 22px;
+  white-space: pre;
+}
+.mc-line.mc-center {
+  justify-content: center;
+}
+.mc-line span,
+.mc-title span {
+  border-radius: 3px;
+}
+.mc-s {
+  font-size: 12px;
+}
+.mc-w { color: #fff; }
+.mc-g { color: #2fd24a; }
+.mc-c { color: #3fd4ff; }
+.mc-a { color: #ff9d1c; }
+.mc-y { color: #ffd400; }
+.mc-m { color: #ff4bd8; }
+.mc-scratch {
+  margin-top: auto;
+  font-size: 15px;
+  height: 22px;
+  line-height: 22px;
+  white-space: pre;
+}
+.mcdu-keys {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mcdu-keys button {
+  background: #1b1f27;
+  color: #e8e8e8;
+  border: 1px solid #555;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 9.5px;
+  padding: 0;
+  height: 24px;
+}
+.mcdu-keys button:active,
+.mcdu-lsks button:active {
+  background: #3a414b;
+}
+.mcdu-fn {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.mcdu-nav {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 4px;
+  width: 50%;
+}
+.mcdu-alpha {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mcdu-nums {
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  gap: 4px;
+}
+.mcdu-letters {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.mcdu-nums button,
+.mcdu-letters button {
+  font-size: 12px;
+  height: 26px;
+}
+.mcdu-letters button.clr {
+  color: #ffd400;
+}
+.mc-line span.next,
+.mc-title span.next {
+  outline: 2px solid #ffd400;
+  outline-offset: 1px;
+  animation: next-pulse 1s ease-in-out infinite;
+}
