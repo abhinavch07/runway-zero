@@ -147,6 +147,8 @@ const mfd = new C172Mfd($<HTMLCanvasElement>("c172-mfd"));
 const lower = new C172LowerPanel($("p-lower"), controls);
 const lessonPanel = new LessonPanel<C172State, C172Controls, NavReading, C172Panel>($("lesson-slot"), showPanel, () => panel);
 const radioBox = new RadioBox($("lesson-slot"));
+radioBox.voice.enabled = () => sound.on;
+radioBox.voice.volume = () => sound.volume;
 radioBox.onReadback = () => (controls.radios.readBack = true);
 let nav: NavReading = readNav(0, 0, { latDeg: 0, lonDeg: 0 }, 0);
 
@@ -386,3 +388,4 @@ w.__runwayZeroControls = () => controls;
 w.__runwayZeroNav = () => nav;
 w.__runwayZeroReadback = () => radioBox.readbackOk;
 w.__runwayZeroSound = () => sound.debug();
+w.__runwayZeroSpoken = () => radioBox.voice.spoken;

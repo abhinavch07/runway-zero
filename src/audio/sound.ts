@@ -255,6 +255,7 @@ export class Sound {
 
   setOn(on: boolean) {
     this.on = on;
+    if (!on && "speechSynthesis" in window) speechSynthesis.cancel();
     this.applyVolume();
   }
 

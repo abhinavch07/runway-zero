@@ -34,6 +34,8 @@ Under the panels there is a real simulation: the JSBSim flight model, simple sys
 
 Sound: cockpit hum when powered, APU, engine start and idle, switch clicks and a chime for each finished step. All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
 
+Radio voice: in the radio lessons, the ATIS, ATC and your correct read-back are spoken aloud with the browser's built-in voices (Web Speech API, free, nothing to download). ATC uses an Indian English voice when your computer has one, and the pilot uses a different voice. Numbers and callsigns are said the radio way (two eight, Victor Tango Romeo Zulu Alfa). The speaker button also mutes the voice. Which voices you hear depends on your browser and operating system.
+
 Known gaps:
 
 - The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP.
@@ -141,6 +143,7 @@ src/
   radio/navReceiver.ts  VOR radial, TO/FROM and needle, localizer and glide slope
   radio/radioBox.ts     what is heard on the radio, clearance read-back
   audio/sound.ts        cockpit sound made with Web Audio
+  radio/voice.ts        spoken radio messages (Web Speech API)
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel
 public/jsbsim/          JSBSim aircraft and engine files

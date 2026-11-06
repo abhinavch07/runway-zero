@@ -167,6 +167,8 @@ const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel<SimState, Controls, FmsData, PanelName>($("lesson-slot"), showPanel, () => panel);
 const radioPanels = new RadioPanels($("radio-slot"), () => controls.extras!);
 const radioBox = new RadioBox($("lesson-slot"));
+radioBox.voice.enabled = () => sound.on;
+radioBox.voice.volume = () => sound.volume;
 radioBox.onReadback = () => (controls.extras!.readBack = true);
 
 // ---------- ECAM control panel (pedestal) ----------
@@ -463,6 +465,7 @@ w.__runwayZero = () => latest;
 w.__runwayZeroFcu = fcuSend;
 w.__runwayZeroFms = () => mcdu.fms;
 w.__runwayZeroSound = () => sound.debug();
+w.__runwayZeroSpoken = () => radioBox.voice.spoken;
 w.__runwayZeroLesson = (id: string) => {
   const l = LESSONS.find((x) => x.id === id);
   if (l) startLesson(l);
