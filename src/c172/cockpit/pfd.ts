@@ -300,7 +300,8 @@ export class C172Pfd {
     g.fillRect(-7, -r - 2, 14, 7);
     g.restore();
     // Course pointer and deviation needle (green, NAV1). ILS uses its own course.
-    const crs = nav.station?.kind === "ils" && nav.station.courseT !== undefined ? nav.station.courseT : obs;
+    // The course pointer always follows the CRS knob. For an ILS the pilot sets it to the localizer course.
+    const crs = obs;
     g.save();
     g.rotate((crs * Math.PI) / 180);
     g.strokeStyle = GREEN;

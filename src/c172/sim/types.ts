@@ -56,10 +56,12 @@ export interface C172Radios {
   xpdrMode: XpdrMode;
   /** The lesson's ATC clearance was read back correctly. */
   readBack: boolean;
+  /** The NAV1 Morse ident was played while a station was received. */
+  navIdHeard: boolean;
 }
 
 export function defaultC172Radios(): C172Radios {
-  return { com: [118325, 118000], nav: [108000, 108000], obs: 360, xpdrCode: "2000", xpdrMode: "STBY", readBack: false };
+  return { com: [118325, 118000], nav: [108000, 108000], obs: 360, xpdrCode: "2000", xpdrMode: "STBY", readBack: false, navIdHeard: false };
 }
 
 export interface C172Start {

@@ -185,6 +185,36 @@ export class Sound {
     }
   }
 
+  /** Plays a navaid ident in Morse code (about 7 words per minute, 1020 Hz like a VOR ident). */
+  morse(text: string) {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const CODE: Record<string, string> = {
+      A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---",
+      K: "-.-", L: ".-..", M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-",
+      U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--", Z: "--..",
+    };
+    const unit = 0.12;
+    let t = ctx.currentTime + 0.05;
+    for (const ch of text.toUpperCase()) {
+      for (const sym of CODE[ch] ?? "") {
+        const len = sym === "." ? unit : unit * 3;
+        const o = ctx.createOscillator();
+        o.frequency.value = 1020;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.12, t + 0.005);
+        g.gain.setValueAtTime(0.12, t + len - 0.005);
+        g.gain.linearRampToValueAtTime(0, t + len);
+        o.connect(g).connect(this.master);
+        o.start(t);
+        o.stop(t + len + 0.01);
+        t += len + unit;
+      }
+      t += unit * 2;
+    }
+  }
+
   click() {
     const ctx = this.ctx;
     if (!ctx) return;

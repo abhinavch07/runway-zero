@@ -182,6 +182,12 @@ document.querySelectorAll<HTMLElement>(".c-knobs [data-k]").forEach((b) =>
         [r[0], r[1]] = [r[1], r[0]];
         break;
       }
+      case "nav-id":
+        if (nav.valid && nav.station) {
+          sound.morse(nav.station.ident);
+          controls.radios.navIdHeard = true;
+        }
+        break;
       case "crs-down":
         controls.radios.obs = ((controls.radios.obs - (big ? 10 : 1) + 359) % 360) + 1;
         break;

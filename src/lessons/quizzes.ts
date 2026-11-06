@@ -514,6 +514,48 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "The cleared altitude goes on the altitude bug (or the FCU in an airliner) so the climb stops there.",
     },
   ],
+  "c172-nav": [
+    {
+      q: "What must you do before using a VOR?",
+      options: ["Identify it by its Morse code", "Set the transponder", "Call the tower", "Switch the avionics off"],
+      why: "The ident proves you have the right station and that it is working.",
+    },
+    {
+      q: "The needle is centred and the flag shows FROM with the course at 118. What does it mean?",
+      options: [
+        "You are on the 118 radial, on the line going out from the station at 118°",
+        "You must fly heading 118 to reach the station",
+        "The station is 118 NM away",
+        "The wind is from 118°",
+      ],
+      why: "Centred with FROM: the course is the radial you are on. To fly to the station you need the TO course, 180° the other way.",
+    },
+    {
+      q: "With the needle centred and TO, what is the course?",
+      options: [
+        "The course to fly to reach the station",
+        "The radial you are on",
+        "The runway heading",
+        "The heading to fly away from the station",
+      ],
+      why: "TO means flying that course takes you towards the station.",
+    },
+    {
+      q: "The localizer needle is far to the right. Where is the runway centreline?",
+      options: ["To your right", "To your left", "Straight ahead", "Behind you"],
+      why: "The needle shows where the course is. Fly towards the needle.",
+    },
+    {
+      q: "How does a localizer compare with a VOR needle?",
+      options: [
+        "The localizer is about four times more sensitive",
+        "They are exactly the same",
+        "The VOR is more sensitive",
+        "The localizer has no needle",
+      ],
+      why: "Full scale is about 10° for a VOR but only about 2.5° for a localizer, so small errors show quickly.",
+    },
+  ],
   "c172-pfd": [
     {
       q: "On the PFD, where is the airspeed shown?",
