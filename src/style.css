@@ -1253,6 +1253,65 @@ kbd {
 .rb-opt:hover {
   border-color: #3fd4ff;
 }
+.rb-speak {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 4px;
+}
+.rb-speak span {
+  color: #8796a5;
+  font-size: 12px;
+}
+.rb-mic {
+  background: #10324a;
+  color: #d9f3ff;
+  border: 1px solid #3fd4ff;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.rb-mic.on {
+  background: #5a1712;
+  border-color: #ff6b5e;
+  color: #fff;
+  animation: rb-pulse 1.2s ease-in-out infinite;
+}
+@keyframes rb-pulse {
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 107, 94, 0.25);
+  }
+}
+.rb-heard {
+  margin: 6px 0;
+  color: #cfd9e3;
+  font-size: 13px;
+  font-style: italic;
+}
+.rb-items {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+.rb-items .ok {
+  color: #6dff9a;
+}
+.rb-items .miss {
+  color: #ffb04d;
+  font-weight: 600;
+}
+.rb-note {
+  margin-top: 8px;
+  color: #8796a5;
+  font-size: 12px;
+}
 
 /* ---------- A320 radio panels ---------- */
 #ped-top {

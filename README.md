@@ -31,6 +31,7 @@
 - ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
 - 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
 - 🛩️ **First flight**: fly the C172 yourself with the keyboard and a simple 3D view out of the window. Taxi out, take off, fly a circuit around runway 28 and land, with pink guide dots and an aim box until you are ready to turn them off. Fly from the cockpit or from behind the aircraft (V), with a small PFD on the view.
+- 🎙️ **Speak your read-back**: in the radio lessons, press SPEAK and read the ATC clearance back out loud. The trainer checks the route, runway, waypoint, altitude, squawk and callsign, and ATC tells you what to fix. Works in Chrome and Edge. The three choices are still there.
 - 🔍 **Explore mode**: press EXPLORE and point at any switch, knob or screen to learn what it is and when you use it. Nothing moves while you explore.
 - 📖 **Glossary**: words like QNH, N1 or magneto have a dotted underline in lessons, quizzes and explore cards. Point at one (or tap it) for a plain English meaning. All of them are on the [glossary page](https://www.runwayzero.in/glossary.html).
 - 📝 **A quiz after every lesson**: 5 questions, with the answer and the reason after each one.
@@ -181,6 +182,9 @@ Not yet. It is a procedures trainer, so there is no outside view. Under the pane
 **Are the checklists and lessons the real ones?**
 No. They are simplified flows in our own words, from general public knowledge. Always use your airline's or school's documents for real flying.
 
+**Does Speak record my voice?**
+No. Runway Zero does not record or keep anything. The browser turns your speech into text with its own online service (Google in Chrome, Microsoft in Edge), and only the text is checked, on your computer. If you would rather not use the microphone, pick the read-back instead.
+
 **Are the frequencies and waypoints real?**
 No. All radio frequencies, navaids and waypoints are made up for training and labelled TRAINING or RZ. Never use them for real flight.
 
@@ -224,6 +228,7 @@ npm run preview       # serve the production build
 npm run typecheck     # TypeScript check
 npm run test:fdm      # run the flight model for 60 s in Node
 npm run test:c172     # C172 start-up, run-up and shutdown in Node
+npm run test:readback  # the spoken read-back checker with typical speech-to-text output
 npm run test:firstflight  # a robot pilot flies the three C172 first flight lessons with the real lesson checks
 npm run test:pa28     # PA-28 primer start, run-up, take-off and climb in Node (add "pump" or "dry" for the failures)
 npm run test:737      # B737 power up, engine start and every autopilot mode in Node

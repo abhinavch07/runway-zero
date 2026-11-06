@@ -551,8 +551,8 @@ export const B737_LESSONS: Lesson737[] = [
       },
       {
         title: "Read back the clearance",
-        why: "Pick the correct read-back. It repeats the route, the altitude and the squawk exactly, so ATC can catch a mistake.",
-        targets: ["readback-0", "readback-1", "readback-2"],
+        why: "Press SPEAK and say the read-back out loud (Chrome or Edge), or pick the correct one. It repeats the route, the altitude and the squawk exactly, so ATC can catch a mistake.",
+        targets: ["readback-speak", "readback-0", "readback-1", "readback-2"],
         panel: "ped",
         done: (_s, c) => c.x.readBack,
       },

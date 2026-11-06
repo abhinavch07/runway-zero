@@ -312,8 +312,8 @@ export const C172_LESSONS: C172Lesson[] = [
       },
       {
         title: "Read back the clearance",
-        why: "Ground gives the clearance in the radio box. Pick the correct read-back. A read-back repeats the important parts exactly (route, altitude, squawk) so ATC can catch any mistake.",
-        targets: ["readback-0", "readback-1", "readback-2"],
+        why: "Ground gives the clearance in the radio box. Press SPEAK and say your read-back out loud (Chrome or Edge), or pick the correct one. A read-back repeats the important parts exactly (route, altitude, squawk) so ATC can catch any mistake.",
+        targets: ["readback-speak", "readback-0", "readback-1", "readback-2"],
         panel: "inst",
         done: (_s, c) => c.radios.readBack,
       },

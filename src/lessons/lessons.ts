@@ -406,8 +406,8 @@ export const LESSONS: Lesson[] = [
       },
       {
         title: "Read back the clearance",
-        why: "Pick the correct read-back in the radio box. Repeat the route, the altitude and the squawk exactly, then the callsign.",
-        targets: ["readback-0", "readback-1", "readback-2"],
+        why: "Press SPEAK and say the read-back out loud (Chrome or Edge), or pick the correct one in the radio box. Repeat the route, the altitude and the squawk exactly, then the callsign.",
+        targets: ["readback-speak", "readback-0", "readback-1", "readback-2"],
         panel: "ped",
         done: (_s, c) => !!c.extras?.readBack,
       },

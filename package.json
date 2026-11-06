@@ -11,6 +11,7 @@
     "test:flights": "node scripts/fcc-test.ts",
     "test:c172": "node scripts/c172-test.ts",
     "test:firstflight": "node scripts/c172-firstflight-test.ts",
+    "test:readback": "node scripts/readback-test.ts",
     "test:pa28": "node scripts/pa28-test.ts",
     "test:737": "node scripts/b737-test.ts",
     "publish:pages": "bash scripts/publish-pages.sh"
