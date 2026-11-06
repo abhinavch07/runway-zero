@@ -1,6 +1,6 @@
 # Runway Zero
 
-An open source cockpit procedures trainer that runs in a desktop browser: an A320neo-type and a 737-type airliner, and two light aircraft (C172-type and PA-28-type) with glass cockpits.
+An open source cockpit procedures trainer that runs in a desktop browser: an A320neo-type and a B737-type airliner, and two light aircraft (C172-type and PA-28-type) with glass cockpits.
 
 > For learning only. Not approved for flight training credit or real-world operations.
 > Not affiliated with or endorsed by Airbus, Boeing, Cessna, Textron, Piper, Garmin, CFM or any airline. Lessons are simplified training flows written in our own words, not operator or manufacturer procedures.
@@ -41,7 +41,7 @@ Sound, on every aircraft: cockpit hum when powered, APU, engines, switch clicks 
 - Engine and APU starts: start valve air, igniter ticks, a light-off rumble, the APU door.
 - Airliner systems: the A320 PTU bark, electric hydraulic pumps, fuel pumps, packs airflow, cockpit fans.
 - Light aircraft: the electric fuel pump ticking, primer strokes, the standby gyro spinning up, cylinder chugs while cranking.
-- Alerts: autopilot disconnect (a warble on the 737, a short trumpet call on the A320), altitude alert, caution chimes, the PA-28 FUEL PRESS beep.
+- Alerts: autopilot disconnect (a warble on the B737, a short trumpet call on the A320), altitude alert, caution chimes, the PA-28 FUEL PRESS beep.
 
 All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
 
@@ -85,9 +85,9 @@ A third aircraft: a PA-28-type low-wing light aircraft with a glass cockpit (its
 
 The flight model is JSBSim's public PA-28-180 (`pa28`) with its 180 hp engine, changed for Runway Zero: two 25-gallon wing tanks instead of one, a fixed-pitch propeller (`prop_75in2f`), main wheels that no longer steer, and flaps of 0, 10, 25 and 40 degrees. Our own code adds the hand primer, fuel pressure from the engine-driven and electric pumps, the carburettor running on for a few seconds when the pressure is lost, and the fuel pump failure. On the MFD the fuel pressure bar takes the place of EGT.
 
-## 737
+## B737
 
-A fourth aircraft: a 737-type airliner with large screens (its own page, `737.html`). Pick it from the aircraft tabs in the lesson list. Three panels: overhead, main panel (EFIS, MCP, PFD, ND and engine display) and pedestal (CDU, thrust and start levers, flaps, VHF 1, NAV 1, transponder).
+A fourth aircraft: a B737-type airliner with large screens (its own page, `737.html`). Pick it from the aircraft tabs in the lesson list. Three panels: overhead, main panel (EFIS, MCP, PFD, ND and engine display) and pedestal (CDU, thrust and start levers, flaps, VHF 1, NAV 1, transponder).
 
 1. **Power up from cold and dark**: battery, IRS to NAV, APU start, APU GEN on both buses, position lights, APU bleed, IRS alignment.
 2. **FMC route set-up**: IDENT, POS INIT (reference airport, GPS position to SET IRS POS), RTE pages (origin, destination, runway, flight number, the RZ waypoints), ACTIVATE and EXEC, PERF INIT (ZFW, reserves, cost index, cruise altitude), TAKEOFF REF (flaps and V speeds).
@@ -96,7 +96,7 @@ A fourth aircraft: a 737-type airliner with large screens (its own page, `737.ht
 5. **Radios and ATC clearance**: VHF 1, the ATIS, QNH on the EFIS panel, a clearance from Delivery with a spoken read-back, transponder, cleared altitude on the MCP.
 6. **VOR and ILS**: NAV 1, Morse ident, the ND in VOR mode with the MCP COURSE (radial, TO and FROM), then the ILS in APP mode.
 
-The flight model is JSBSim's public 737 model with its CFM56 engines. The only change is that the network inputs at the end of the file are removed, because a browser cannot open them. Our own code adds simplified systems (battery, APU, AC buses with APU and engine generators, IRS, six fuel pumps with centre tank feed, hydraulic systems A and B, bleed air and duct pressure, the 737 style engine start) and an autopilot with the MCP modes. The autopilot is simplified: CMD A with no mode holds attitude and wings level (CWS), and VNAV climbs at 250 kt below 10,000 ft and 280 kt above, to the lower of the MCP and FMC altitudes, with no descent path. The screens, MCP and CDU are our own drawings in the general style of the newer large-screen 737 cockpits, not copies of the real ones. The take-off speeds on the CDU come from a simple made-up rule, not real performance data.
+The flight model is JSBSim's public 737 model with its CFM56 engines. The only change is that the network inputs at the end of the file are removed, because a browser cannot open them. Our own code adds simplified systems (battery, APU, AC buses with APU and engine generators, IRS, six fuel pumps with centre tank feed, hydraulic systems A and B, bleed air and duct pressure, the B737 style engine start) and an autopilot with the MCP modes. The autopilot is simplified: CMD A with no mode holds attitude and wings level (CWS), and VNAV climbs at 250 kt below 10,000 ft and 280 kt above, to the lower of the MCP and FMC altitudes, with no descent path. The screens, MCP and CDU are our own drawings in the general style of the newer large-screen B737 cockpits, not copies of the real ones. The take-off speeds on the CDU come from a simple made-up rule, not real performance data.
 
 ## Training radio and navigation data
 
@@ -130,7 +130,7 @@ npm run typecheck     # TypeScript check
 npm run test:fdm      # run the flight model for 60 s in Node
 npm run test:c172     # C172 start-up, run-up and shutdown in Node
 npm run test:pa28     # PA-28 primer start, run-up, take-off and climb in Node (add "pump" or "dry" for the failures)
-npm run test:737      # 737 power up, engine start and every autopilot mode in Node
+npm run test:737      # B737 power up, engine start and every autopilot mode in Node
 npm run test:flights  # scripted test flights: cold start and taxi, ground, normal law, takeoff, ILS and landing
 ```
 
@@ -158,7 +158,7 @@ src/
   shell/picker.ts       lesson picker with aircraft tabs, shared by both pages
   c172/                 the light aircraft (C172 and PA-28): page, worker, systems, PFD, MFD, lower panel, lessons
                         (sim/variant.ts holds what differs between the two, pa28Lessons.ts the PA-28 lessons)
-  b737/                 the 737: page, worker, systems, autopilot (sim/afcs.ts), PFD, ND, engine display,
+  b737/                 the B737: page, worker, systems, autopilot (sim/afcs.ts), PFD, ND, engine display,
                         overhead, MCP, pedestal, CDU (cockpit/cdu.ts), lessons
   lessons/quizzes.ts    five quiz questions for each lesson
   lessons/progress.ts   lesson ticks and best quiz scores, saved in the browser

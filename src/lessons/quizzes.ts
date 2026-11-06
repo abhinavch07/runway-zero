@@ -1197,7 +1197,7 @@ QUIZZES["b737-nav"] = [
     why: "Identifying makes sure you have the right station and it is working.",
   },
   {
-    q: "On the 737, where do you set the VOR course?",
+    q: "On the B737, where do you set the VOR course?",
     options: ["The MCP COURSE knob", "The CDU", "The EFIS BARO knob", "The NAV panel"],
     why: "The MCP COURSE sets the course for NAV 1. The ND in VOR mode shows it.",
   },

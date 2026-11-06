@@ -392,7 +392,7 @@ export class Cdu737 {
         return {
           title: "IDENT",
           rows: [
-            { lLabel: "MODEL", l: { text: "737-8 TYPE" }, rLabel: "ENG RATING", r: { text: "TRAINING" } },
+            { lLabel: "MODEL", l: { text: "B737-8 TYPE" }, rLabel: "ENG RATING", r: { text: "TRAINING" } },
             { lLabel: "NAV DATA", l: { text: "RZ TRAINING" }, rLabel: "ACTIVE", r: { text: "ALWAYS" } },
             {},
             { lLabel: "OP PROGRAM", l: { text: "RUNWAY ZERO" } },

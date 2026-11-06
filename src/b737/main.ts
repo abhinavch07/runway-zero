@@ -182,7 +182,7 @@ const pfd = new Pfd737($<HTMLCanvasElement>("b-pfd"));
 const nd = new Nd737($<HTMLCanvasElement>("b-nd"));
 const eicas = new Eicas737($<HTMLCanvasElement>("b-eicas"));
 const lessonPanel = new LessonPanel<State737, Controls737, X737, Panel737>($("lesson-slot"), showPanel, () => panel);
-const checklist = new ChecklistPanel<B737Check>(B737_CHECKLISTS, "737");
+const checklist = new ChecklistPanel<B737Check>(B737_CHECKLISTS, "B737");
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;

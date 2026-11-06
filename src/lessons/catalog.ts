@@ -26,7 +26,7 @@ export const AIRCRAFT: AircraftEntry[] = [
   },
   {
     id: "b737",
-    name: "737",
+    name: "B737",
     blurb: "Airliner with large screens: power up, FMC route, engine start, MCP autopilot, radios, VOR and ILS.",
     page: "./737.html",
     lessons: B737_LESSONS,
