@@ -23,6 +23,8 @@ import {
 import { RadioBox } from "../radio/radioBox";
 import { readNav, type NavReading } from "../radio/navReceiver";
 import { tune } from "../radio/training";
+import { ChecklistPanel } from "../shell/checklist";
+import { gaChecklists, type GaCheck } from "../checklists/ga";
 import { LessonPanel } from "../cockpit/lessonPanel";
 import { QuizDialog } from "../cockpit/quiz";
 import { Sound } from "../audio/sound";
@@ -155,6 +157,7 @@ const mfd = new C172Mfd($<HTMLCanvasElement>("c172-mfd"));
 pfd.fuelPress = mfd.fuelPress = variant.primer;
 const lower = new C172LowerPanel($("p-lower"), controls, variant);
 const lessonPanel = new LessonPanel<C172State, C172Controls, NavReading, C172Panel>($("lesson-slot"), showPanel, () => panel);
+const checklist = new ChecklistPanel<GaCheck>(gaChecklists(variant), variant.name);
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -359,6 +362,7 @@ function frame() {
     else if (altSeenOff) controls.altCycled = true;
   }
   lessonPanel.update(s, controls, nav);
+  checklist.update({ s, c: controls });
   const power = s.elec.mainBus ? (s.elec.avionicsBus ? 1 : 0.6) : s.elec.essBus ? 0.3 : 0;
   sound.updatePiston(s.engine.rpm, s.engine.running, s.engine.cranking, power);
   systemSounds(s);
@@ -415,6 +419,8 @@ showPanel("lower");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls }) : null);
+w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroControls = () => controls;
 w.__runwayZeroNav = () => nav;
 w.__runwayZeroReadback = () => radioBox.readbackOk;

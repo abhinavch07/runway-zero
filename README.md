@@ -32,6 +32,8 @@ Panels:
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
+Checklists: the CHECKLIST button in the top bar (or the C key) opens the normal checklists for the aircraft: cockpit preparation, before start, after start, before take-off, before landing, after landing and parking (securing on the light aircraft). Each line is a challenge and a response. Lines the trainer can check turn green when the aircraft is really set that way and amber when not. Lines it cannot check, such as briefings and the cabin, are ticked by hand. They are simplified training checklists in our own words, not the manufacturer's or an airline's.
+
 The A320 lower ECAM has an APU page (N, EGT, APU GEN, APU BLEED, intake flap). It opens by itself while the APU starts and closes 10 seconds after AVAIL.
 
 Sound, on every aircraft: cockpit hum when powered, APU, engines, switch clicks and a chime for each finished step. Also:
@@ -185,6 +187,8 @@ src/
   radio/radioBox.ts     what is heard on the radio, clearance read-back
   audio/sound.ts        cockpit sound made with Web Audio
   audio/extras.ts       system sounds, start sounds and alerts
+  shell/checklist.ts    the checklist panel shared by every aircraft
+  checklists/           the checklists: a320.ts, b737.ts, ga.ts (C172 and PA-28)
   radio/voice.ts        spoken radio messages (Web Speech API)
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel

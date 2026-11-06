@@ -25,6 +25,8 @@ import type { McpAction, McpValues } from "./sim/afcs";
 import { STARTER_CUTOUT_N2 } from "./sim/systems";
 import { RadioBox } from "../radio/radioBox";
 import { readNav, type NavReading } from "../radio/navReceiver";
+import { ChecklistPanel } from "../shell/checklist";
+import { B737_CHECKLISTS, type B737Check } from "../checklists/b737";
 import { LessonPanel } from "../cockpit/lessonPanel";
 import { QuizDialog } from "../cockpit/quiz";
 import { Sound } from "../audio/sound";
@@ -180,6 +182,7 @@ const pfd = new Pfd737($<HTMLCanvasElement>("b-pfd"));
 const nd = new Nd737($<HTMLCanvasElement>("b-nd"));
 const eicas = new Eicas737($<HTMLCanvasElement>("b-eicas"));
 const lessonPanel = new LessonPanel<State737, Controls737, X737, Panel737>($("lesson-slot"), showPanel, () => panel);
+const checklist = new ChecklistPanel<B737Check>(B737_CHECKLISTS, "737");
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -325,6 +328,7 @@ function frame() {
     else blank(eicas.canvas);
   }
   lessonPanel.update(s, controls, { fms: cdu.fms, cduPage: cdu.page, scratch: cdu.scratch, preflight: cdu.preflightComplete, nav });
+  checklist.update({ s, c: controls, fms: cdu.fms, preflight: cdu.preflightComplete });
   sound.updateJet(s.sys);
   systemSounds(s);
   const e = s.sys.engines;
@@ -381,6 +385,8 @@ showPanel("ovhd");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls, fms: cdu.fms, preflight: cdu.preflightComplete }) : null);
+w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroControls = () => controls;
 w.__runwayZeroNav = () => nav;
 w.__runwayZeroCdu = () => cdu;

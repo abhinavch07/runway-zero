@@ -9,6 +9,8 @@ import { Ewd } from "./cockpit/ewd";
 import { FcuPanel } from "./cockpit/fcu";
 import { LeverPanel } from "./cockpit/levers";
 import { OverheadPanel } from "./cockpit/overhead";
+import { ChecklistPanel } from "./shell/checklist";
+import { A320_CHECKLISTS, type A320Check } from "./checklists/a320";
 import { LessonPanel } from "./cockpit/lessonPanel";
 import { Mcdu, type FmsData } from "./cockpit/mcdu";
 import { EfisPanel } from "./cockpit/efis";
@@ -168,6 +170,7 @@ const levers = new LeverPanel($("ped-controls"), controls);
 const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel<SimState, Controls, FmsData, PanelName>($("lesson-slot"), showPanel, () => panel);
 const radioPanels = new RadioPanels($("radio-slot"), () => controls.extras!);
+const checklist = new ChecklistPanel<A320Check>(A320_CHECKLISTS, "A320");
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -392,6 +395,7 @@ function frame() {
   overhead.update(controls.switches, s.systems);
   mcdu.setPowered(s.systems.acPower);
   lessonPanel.update(s, controls, mcdu.fms);
+  checklist.update({ s, c: controls, fms: mcdu.fms });
   sound.update(s);
   systemSounds(s);
 
@@ -504,6 +508,8 @@ $("loading").classList.add("hidden");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls, fms: mcdu.fms }) : null);
+w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroFcu = fcuSend;
 w.__runwayZeroFms = () => mcdu.fms;
 w.__runwayZeroSound = () => sound.debug();
