@@ -2,8 +2,9 @@
 import type { LessonInfo } from "./types";
 import { LESSONS } from "./lessons";
 import { C172_LESSONS } from "../c172/lessons";
+import { PA28_LESSONS } from "../c172/pa28Lessons";
 
-export type AircraftId = "a320" | "c172";
+export type AircraftId = "a320" | "c172" | "pa28";
 
 export interface AircraftEntry {
   id: AircraftId;
@@ -28,5 +29,12 @@ export const AIRCRAFT: AircraftEntry[] = [
     blurb: "Light aircraft with a glass cockpit: start-up, PFD and MFD, run-up, shutdown.",
     page: "./c172.html",
     lessons: C172_LESSONS,
+  },
+  {
+    id: "pa28",
+    name: "PA-28",
+    blurb: "Low-wing light aircraft with a glass cockpit: hand primer, left and right tanks, run-up, fuel pump failure.",
+    page: "./pa28.html",
+    lessons: PA28_LESSONS,
   },
 ];

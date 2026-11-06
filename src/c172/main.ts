@@ -1,12 +1,15 @@
-// Runway Zero, Cessna 172 page: a glass-cockpit light aircraft procedures trainer.
-// The JSBSim C172 runs in a worker. The page shows the PFD and MFD, or the lower panel, with the
-// same lesson list, quiz, progress and sound as the A320.
+// Runway Zero, light aircraft page: a glass-cockpit procedures trainer for the C172 (c172.html)
+// and the PA-28 (pa28.html, body data-aircraft="pa28"). The JSBSim model runs in a worker. The page
+// shows the PFD and MFD, or the lower panel, with the same lesson list, quiz, progress and sound
+// as the A320.
 import "../style.css";
 import "./style.css";
 import { C172Pfd } from "./cockpit/pfd";
 import { C172Mfd } from "./cockpit/mfd";
 import { C172LowerPanel } from "./cockpit/panel";
 import { C172_LESSONS, type C172Lesson, type C172Panel } from "./lessons";
+import { PA28_LESSONS } from "./pa28Lessons";
+import { GA_VARIANTS, type GaId } from "./sim/variant";
 import {
   coldC172Switches,
   runningC172Switches,
@@ -30,6 +33,8 @@ import { destination } from "../world/geo";
 import { RWY28_COURSE_T, VIDP, rwy28Along } from "../world/vidp";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+const variant = GA_VARIANTS[(document.body.dataset.aircraft as GaId | undefined) ?? "c172"];
+const LESSONS = variant.id === "pa28" ? PA28_LESSONS : C172_LESSONS;
 
 // Parked south of runway 28 at Delhi, facing north-west. A training position, not a real stand.
 const parkedAt = destination(rwy28Along(600), RWY28_COURSE_T + 270, 160);
@@ -50,7 +55,7 @@ const controls: C172Controls = {
   roll: 0,
   yaw: 0,
   brakes: 0,
-  switches: coldC172Switches(),
+  switches: coldC172Switches(variant.coldFuelSel),
   baro: { qnh: 1013, std: false },
   hdgBug: 330,
   radios: defaultC172Radios(),
@@ -89,7 +94,7 @@ function startLesson(lesson: C172Lesson) {
   const start: C172Start = { id: lesson.id, name: lesson.title, ...START_BASE, running: lesson.running, fuelGal: lesson.fuelGal };
   if (!initialised) {
     initialised = true;
-    send({ type: "init", baseUrl: new URL(".", document.baseURI).href, start });
+    send({ type: "init", baseUrl: new URL(".", document.baseURI).href, start, variant: variant.id });
   } else {
     send({ type: "reset", start });
   }
@@ -97,7 +102,7 @@ function startLesson(lesson: C172Lesson) {
 
 function onReady() {
   const lesson = currentLesson!;
-  const sw = lesson.running ? runningC172Switches() : coldC172Switches();
+  const sw = lesson.running ? runningC172Switches(variant.coldFuelSel) : coldC172Switches(variant.coldFuelSel);
   lesson.switches?.(sw);
   Object.assign(controls, {
     throttle: lesson.running ? 0.15 : 0,
@@ -109,6 +114,7 @@ function onReady() {
     yaw: 0,
     brakes: 0,
     hdgBug: 330,
+    primeStrokes: 0,
     ...lesson.controls,
     switches: sw,
     baro: { qnh: 1013, std: false },
@@ -144,7 +150,8 @@ document.querySelectorAll<HTMLElement>("#tabs button").forEach((b) =>
 
 const pfd = new C172Pfd($<HTMLCanvasElement>("c172-pfd"));
 const mfd = new C172Mfd($<HTMLCanvasElement>("c172-mfd"));
-const lower = new C172LowerPanel($("p-lower"), controls);
+pfd.fuelPress = mfd.fuelPress = variant.primer;
+const lower = new C172LowerPanel($("p-lower"), controls, variant);
 const lessonPanel = new LessonPanel<C172State, C172Controls, NavReading, C172Panel>($("lesson-slot"), showPanel, () => panel);
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
@@ -275,13 +282,13 @@ showSound();
 
 const quiz = new QuizDialog();
 const picker = new LessonPicker({
-  current: "c172",
+  current: variant.id,
   startHere: (id) => {
-    const l = C172_LESSONS.find((x) => x.id === id);
+    const l = LESSONS.find((x) => x.id === id);
     if (l) startLesson(l);
   },
   startQuiz: (id) => {
-    const l = C172_LESSONS.find((x) => x.id === id);
+    const l = LESSONS.find((x) => x.id === id);
     if (l) startQuiz(l);
   },
   canClose: () => !!currentLesson,
@@ -326,7 +333,7 @@ function frame() {
   send({ type: "controls", controls });
   const radiosOn = s.elec.avionicsBus;
   nav = radiosOn ? readNav(controls.radios.nav[0], controls.radios.obs, { latDeg: s.latDeg, lonDeg: s.lonDeg }, s.altFt) : readNav(0, 0, { latDeg: 0, lonDeg: 0 }, 0);
-  radioBox.update(radiosOn ? controls.radios.com[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? "VT-RZA");
+  radioBox.update(radiosOn ? controls.radios.com[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? variant.callsign);
   const code = document.querySelector<HTMLElement>(".c-xpdr-code");
   if (code) code.textContent = xpdrTyping ? xpdrTyping.padEnd(4, "_") : controls.radios.xpdrCode;
   document.querySelectorAll<HTMLElement>("[data-xm]").forEach((b) => b.classList.toggle("on", b.dataset.xm === controls.radios.xpdrMode));
@@ -339,7 +346,7 @@ function frame() {
   // Lesson failure: the alternator fails, LOW VOLTS chimes once, the ALT reset is tracked.
   if (currentLesson?.failAfterS !== undefined && !failSent && performance.now() - readyAt > currentLesson.failAfterS * 1000) {
     failSent = true;
-    send({ type: "fail", what: "alternator" });
+    send({ type: "fail", what: currentLesson.failure ?? "alternator" });
   }
   if (s.elec.lowVolts && !warned) {
     warned = true;
@@ -376,7 +383,7 @@ function showError(text: string) {
 // ---------- Start ----------
 showPanel("lower");
 {
-  const asked = C172_LESSONS.find((l) => l.id === lessonFromUrl());
+  const asked = LESSONS.find((l) => l.id === lessonFromUrl());
   if (asked) startLesson(asked);
   else picker.open();
 }

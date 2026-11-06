@@ -1,6 +1,8 @@
-// C172 lower panel: master and avionics switches, the switch row, the magneto key, fuel selector
-// and shutoff, throttle, mixture, flaps, trim, parking brake, and a small engine readout.
+// Light aircraft lower panel (C172 or PA-28): master and avionics switches, the switch row, the
+// magneto key, fuel selector (and the C172 shutoff or the PA-28 primer), throttle, mixture, flaps,
+// trim, parking brake, and a small engine readout.
 import type { C172Controls, C172State, C172Switches, FuelSel, MagPos } from "../sim/types";
+import type { GaVariant } from "../sim/variant";
 
 type Toggle = keyof Pick<
   C172Switches,
@@ -21,7 +23,7 @@ export class C172LowerPanel {
   readonly el: HTMLElement;
   private c: C172Controls;
 
-  constructor(parent: HTMLElement, controls: C172Controls) {
+  constructor(parent: HTMLElement, controls: C172Controls, v: GaVariant) {
     this.c = controls;
     this.el = document.createElement("div");
     this.el.id = "c172-lower";
@@ -32,8 +34,7 @@ export class C172LowerPanel {
         <section class="c-box">
           <div class="c-title">MASTER</div>
           <div class="c-master">${sw("masterAlt", "ALT", "rocker")}${sw("masterBat", "BAT", "rocker")}</div>
-          <div class="c-title">STBY BATT</div>
-          ${sw("stbyBatt", "ARM")}
+          ${v.stbyBatt ? `<div class="c-title">STBY BATT</div>${sw("stbyBatt", "ARM")}` : ""}
         </section>
         <section class="c-box">
           <div class="c-title">MAGNETOS</div>
@@ -54,6 +55,7 @@ export class C172LowerPanel {
           <div data-ctl="mini-oil"><span>OIL PSI</span><b data-mini="oil"></b></div>
           <div data-ctl="mini-volts"><span>BUS V</span><b data-mini="volts"></b></div>
           <div data-ctl="mini-amps"><span>BATT A</span><b data-mini="amps"></b></div>
+          ${v.primer ? `<div data-ctl="mini-fuelpress"><span>FUEL PSI</span><b data-mini="fuelpress"></b></div>` : ""}
         </section>
       </div>
       <section class="c-box c-switchrow">${SWITCH_ROW.map(([k, l]) => sw(k, l)).join("")}</section>
@@ -82,16 +84,19 @@ export class C172LowerPanel {
         </section>
         <section class="c-box">
           <div class="c-title">FUEL SELECTOR</div>
-          <div class="c-seg">${(["LEFT", "BOTH", "RIGHT"] as FuelSel[])
+          <div class="c-seg">${v.fuelSel
             .map((f) => `<button data-ctl="fuelSel-${f}" data-fuel="${f}">${f}</button>`)
             .join("")}</div>
-          <div class="c-title">FUEL SHUTOFF</div>
-          ${sw("fuelShutoff", "ON (pushed in)", "red")}
+          ${
+            v.fuelShutoff
+              ? `<div class="c-title">FUEL SHUTOFF</div>${sw("fuelShutoff", "ON (pushed in)", "red")}`
+              : `<div class="c-title">PRIMER</div><button class="c-prime" data-ctl="primer" data-prime>PUMP ONCE <b data-strokes></b></button>`
+          }
         </section>
         <section class="c-box">
           <div class="c-title">FLAPS</div>
-          <div class="c-seg">${[0, 1, 2, 3]
-            .map((f) => `<button data-ctl="flaps${f}" data-flaps="${f}">${f * 10}°</button>`)
+          <div class="c-seg">${v.flapDeg
+            .map((d, f) => `<button data-ctl="flaps${f}" data-flaps="${f}">${d}°</button>`)
             .join("")}</div>
           <div class="c-title">TRIM</div>
           <div class="c-trim" data-ctl="trim">
@@ -138,6 +143,10 @@ export class C172LowerPanel {
         blur(e);
       }),
     );
+    this.el.querySelector<HTMLElement>("[data-prime]")?.addEventListener("click", (e) => {
+      this.c.primeStrokes = (this.c.primeStrokes ?? 0) + 1;
+      blur(e);
+    });
     this.el.querySelectorAll<HTMLElement>("[data-flaps]").forEach((b) =>
       b.addEventListener("click", (e) => {
         this.c.flaps = Number(b.dataset.flaps);
@@ -175,14 +184,17 @@ export class C172LowerPanel {
         lever === "mixture" && c.mixture < 0.02 ? "IDLE CUT-OFF" : `${Math.round(c[lever] * 100)}%`;
     }
     (this.el.querySelector("[data-trimind]") as HTMLElement).style.left = `${50 + c.trim * 45}%`;
-    const shut = this.el.querySelector("[data-sw=fuelShutoff] span") as HTMLElement;
-    shut.textContent = sw.fuelShutoff ? "ON (pushed in)" : "OFF (pulled out)";
+    const shut = this.el.querySelector<HTMLElement>("[data-sw=fuelShutoff] span");
+    if (shut) shut.textContent = sw.fuelShutoff ? "ON (pushed in)" : "OFF (pulled out)";
+    const strokes = this.el.querySelector<HTMLElement>("[data-strokes]");
+    if (strokes) strokes.textContent = c.primeStrokes ? `(${c.primeStrokes})` : "";
     const mini = (k: string, t: string) => ((this.el.querySelector(`[data-mini=${k}]`) as HTMLElement).textContent = t);
     if (s) {
       mini("rpm", String(Math.round(s.engine.rpm / 10) * 10));
       mini("oil", String(Math.round(s.engine.oilPressPsi)));
       mini("volts", s.elec.mainBus ? s.elec.mainVolts.toFixed(1) : "--");
       mini("amps", s.elec.mainBus ? (s.elec.mainAmps > 0 ? "+" : "") + s.elec.mainAmps.toFixed(0) : "--");
+      if (this.el.querySelector("[data-mini=fuelpress]")) mini("fuelpress", s.fuelPressPsi.toFixed(1));
     }
   }
 }

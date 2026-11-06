@@ -260,3 +260,12 @@
 .c-display {
   gap: 6px;
 }
+
+/* PA-28 hand primer */
+#c172-lower .c-prime {
+  width: 100%;
+  padding: 6px 8px;
+}
+#c172-lower .c-prime b {
+  color: #7fd1ff;
+}

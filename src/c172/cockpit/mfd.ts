@@ -20,6 +20,9 @@ export class C172Mfd {
   private g: CanvasRenderingContext2D;
   rangeNm = 2;
 
+  /** Show fuel pressure in place of EGT (PA-28). */
+  fuelPress = false;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -126,7 +129,13 @@ export class C172Mfd {
       [100, 245, GREEN],
       [245, 250, RED],
     ]);
-    bar("EGT", e.egtF, String(Math.round(e.egtF)), 600, 1700, [[600, 1700, GREY]]);
+    if (this.fuelPress)
+      bar("FUEL PRES", s.fuelPressPsi, s.fuelPressPsi.toFixed(1), 0, 10, [
+        [0, 0.5, RED],
+        [0.5, 8, GREEN],
+        [8, 10, RED],
+      ]);
+    else bar("EGT", e.egtF, String(Math.round(e.egtF)), 600, 1700, [[600, 1700, GREY]]);
 
     // Fuel quantity, gallons per tank (26 usable).
     g.font = "11px ui-monospace, Menlo, monospace";

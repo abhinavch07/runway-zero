@@ -3,8 +3,9 @@
 // electric fuel pump for priming, magnetos and starter. Used by the worker and the Node tests.
 import type { JSBSimSdk } from "@0x62/jsbsim-wasm";
 import type { C172Controls, C172Start, C172State } from "./types.ts";
+import { GA_VARIANTS, type GaVariant } from "./variant.ts";
 
-export const C172_MODEL_FILES = ["aircraft/c172p/c172p.xml", "engine/eng_io320.xml", "engine/prop_75in2f.xml"];
+export const C172_MODEL_FILES = GA_VARIANTS.c172.modelFiles;
 export const C172_STEP_HZ = 120;
 const LBS_PER_GAL = 6;
 const MAG_CMD = { OFF: 0, L: 1, R: 2, BOTH: 3, START: 3 } as const;
@@ -20,14 +21,24 @@ export class C172Core {
   private alternatorWarm = 0;
   private altFailed = false;
   private starved = false;
+  /** The engine-driven fuel pump has failed (a lesson failure). */
+  private pumpFailed = false;
+  /** Fuel pressure, psi (PA-28 gauge). */
+  private fuelPress = 0;
+  /** Seconds of fuel left in the carburettor bowl when the pressure is lost. */
+  private bowlS = 15;
   /** Battery charge used, amp-hours (a 13 Ah battery). */
   private drainAh = 0;
   private lastLoadA = 0;
   /** Switch positions from the last step, for the electrics in state(). */
   private lastSwitches: C172Controls["switches"] | null = null;
+  private v: GaVariant;
+  /** Primer strokes already counted (PA-28 hand primer). */
+  private strokesSeen = 0;
 
-  constructor(sdk: JSBSimSdk) {
+  constructor(sdk: JSBSimSdk, variant: GaVariant = GA_VARIANTS.c172) {
     this.sdk = sdk;
+    this.v = variant;
   }
 
   get(p: string) {
@@ -56,8 +67,12 @@ export class C172Core {
     this.set("fcs/flap-cmd-norm", 0);
     this.primeS = start.running ? 10 : 0;
     this.crankS = 0;
+    this.strokesSeen = 0;
     this.firing = start.running;
     this.altFailed = false;
+    this.pumpFailed = false;
+    this.bowlS = 15;
+    this.fuelPress = start.running ? 4.5 : 0;
     this.drainAh = 0;
     this.alternatorWarm = start.running ? 10 : 0;
     if (start.running) {
@@ -87,13 +102,27 @@ export class C172Core {
     // ----- Fuel: selector, shutoff valve, electric pump for priming -----
     // Starved when every tank the selector feeds from is empty.
     const lbs = [this.get("propulsion/tank[0]/contents-lbs"), this.get("propulsion/tank[1]/contents-lbs")];
-    const feeds = sw.fuelSel === "LEFT" ? [0] : sw.fuelSel === "RIGHT" ? [1] : [0, 1];
-    this.starved = feeds.every((i) => lbs[i] < 0.05);
-    const fuelFlowing = sw.fuelShutoff && !this.starved;
-    this.set("propulsion/tank[0]/priority", sw.fuelSel === "RIGHT" ? 0 : 1);
-    this.set("propulsion/tank[1]/priority", sw.fuelSel === "LEFT" ? 0 : 1);
+    const feeds = sw.fuelSel === "OFF" ? [] : sw.fuelSel === "LEFT" ? [0] : sw.fuelSel === "RIGHT" ? [1] : [0, 1];
+    this.starved = feeds.length > 0 && feeds.every((i) => lbs[i] < 0.05);
+    const fuelAvailable = sw.fuelShutoff && feeds.length > 0 && !this.starved;
+    // Fuel pressure: the engine-driven pump works while the engine turns, the electric pump while
+    // it has power. With no pressure the engine runs on for a few seconds, then stops.
+    const enginePump = rpm > 150 && !this.pumpFailed;
+    const elecPump = sw.fuelPump && sw.masterBat;
+    const press = !fuelAvailable ? 0 : elecPump && enginePump ? 5.2 : enginePump ? Math.min(4.5, rpm / 400) : elecPump ? 4.2 : 0;
+    this.fuelPress += (press - this.fuelPress) * Math.min(1, dt * 1.5);
+    if (this.fuelPress > 1) this.bowlS = Math.min(15, this.bowlS + dt * 3);
+    else if (running && this.fuelPress < 0.5) this.bowlS = Math.max(0, this.bowlS - dt);
+    const fuelFlowing = fuelAvailable && (this.bowlS > 0 || !this.v.primer);
+    this.set("propulsion/tank[0]/priority", feeds.includes(0) ? 1 : 0);
+    this.set("propulsion/tank[1]/priority", feeds.includes(1) ? 1 : 0);
     const mainBus = sw.masterBat;
-    if (sw.fuelPump && mainBus && fuelFlowing && !running && c.mixture > 0.5) this.primeS = Math.min(30, this.primeS + dt);
+    if (this.v.primer) {
+      // Hand primer: each stroke counts as one second of priming. It needs fuel selected.
+      const strokes = c.primeStrokes ?? 0;
+      if (strokes > this.strokesSeen && fuelFlowing && !running) this.primeS = Math.min(30, this.primeS + (strokes - this.strokesSeen));
+      this.strokesSeen = strokes;
+    } else if (sw.fuelPump && mainBus && fuelFlowing && !running && c.mixture > 0.5) this.primeS = Math.min(30, this.primeS + dt);
 
     // ----- Starter and magnetos -----
     const cranking = sw.magnetos === "START" && mainBus;
@@ -116,7 +145,9 @@ export class C172Core {
     this.set("fcs/rudder-cmd-norm", -c.yaw);
     this.set("fcs/steer-cmd-norm", c.yaw);
     this.set("fcs/pitch-trim-cmd-norm", c.trim * 0.3);
-    this.set("fcs/flap-cmd-norm", Math.max(0, Math.min(3, c.flaps)) / 3);
+    const stages = this.v.flapDeg;
+    const stage = Math.max(0, Math.min(stages.length - 1, Math.round(c.flaps)));
+    this.set("fcs/flap-cmd-norm", stages[stage] / stages[stages.length - 1]);
     const brakes = Math.max(c.brakes, sw.parkBrake ? 1 : 0);
     this.set("fcs/left-brake-cmd-norm", brakes);
     this.set("fcs/right-brake-cmd-norm", brakes);
@@ -129,8 +160,9 @@ export class C172Core {
     this.sdk.run();
   }
 
-  fail(what: "alternator") {
+  fail(what: "alternator" | "fuelpump") {
     if (what === "alternator") this.altFailed = true;
+    if (what === "fuelpump") this.pumpFailed = true;
   }
 
   state(): C172State {
@@ -198,6 +230,8 @@ export class C172Core {
       },
       primeS: this.primeS,
       starved: this.starved,
+      fuelPressPsi: this.fuelPress,
+      pumpFailed: this.pumpFailed,
     };
   }
 }

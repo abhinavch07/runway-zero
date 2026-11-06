@@ -1,6 +1,7 @@
-// C172 simulation worker: JSBSim's Cessna 172 at 120 Hz, state to the page about 60 times a second.
+// Light aircraft simulation worker (C172 or PA-28) at 120 Hz, state to the page about 60 times a second.
 import { JSBSimSdk } from "@0x62/jsbsim-wasm";
-import { C172_MODEL_FILES, C172Core, C172_STEP_HZ } from "./core.ts";
+import { C172Core, C172_STEP_HZ } from "./core.ts";
+import { GA_VARIANTS, type GaId } from "./variant.ts";
 import type { C172Controls, C172FromWorker, C172Start, C172ToWorker } from "./types.ts";
 
 const MAX_STEPS_PER_TICK = 12;
@@ -13,22 +14,23 @@ let ticker: ReturnType<typeof setInterval> | null = null;
 
 const post = (msg: C172FromWorker) => (self as unknown as Worker).postMessage(msg);
 
-async function init(baseUrl: string) {
+async function init(baseUrl: string, id: GaId) {
+  const variant = GA_VARIANTS[id];
   const sdk = await JSBSimSdk.create({
     moduleUrl: new URL("jsbsim-wasm/jsbsim_wasm.mjs", baseUrl),
     wasmUrl: new URL("jsbsim-wasm/jsbsim_wasm.wasm", baseUrl),
     log: { console: false },
   });
   sdk.on("stderr", (e) => post({ type: "log", message: e.message }));
-  for (const file of C172_MODEL_FILES) {
+  for (const file of variant.modelFiles) {
     const res = await fetch(new URL(`jsbsim/${file}`, baseUrl));
     if (!res.ok) throw new Error(`Could not load ${file} (${res.status})`);
     sdk.writeDataFile(file, await res.text());
   }
   sdk.configurePaths({ aircraftPath: "aircraft", enginePath: "engine", systemsPath: "systems" });
-  if (!sdk.loadModel("c172p")) throw new Error("The C172 model failed to load");
+  if (!sdk.loadModel(variant.model)) throw new Error(`The ${variant.name} model failed to load`);
   sdk.setDt(1 / C172_STEP_HZ);
-  core = new C172Core(sdk);
+  core = new C172Core(sdk, variant);
 }
 
 function tick() {
@@ -55,7 +57,7 @@ self.onmessage = async (ev: MessageEvent<C172ToWorker>) => {
   try {
     switch (msg.type) {
       case "init":
-        await init(msg.baseUrl);
+        await init(msg.baseUrl, msg.variant);
         lastStart = msg.start;
         core!.place(msg.start);
         post({ type: "ready", start: msg.start });

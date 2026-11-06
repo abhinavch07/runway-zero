@@ -24,8 +24,10 @@ export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReadi
   clearance?: Clearance;
   /** Our callsign on the radio. */
   callsign?: string;
-  /** The alternator fails this many seconds after the start. */
+  /** Something fails this many seconds after the start. */
   failAfterS?: number;
+  /** What fails (the alternator if not set). */
+  failure?: "alternator" | "fuelpump";
   /** Fuel in the left and right tanks at the start, gallons. */
   fuelGal?: [number, number];
 }

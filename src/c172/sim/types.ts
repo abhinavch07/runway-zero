@@ -1,7 +1,8 @@
-// Messages and values shared between the C172 page and its simulation worker.
+// Messages and values shared between the light aircraft page (C172 and PA-28) and its worker.
+import type { GaId } from "./variant.ts";
 
 export type MagPos = "OFF" | "R" | "L" | "BOTH" | "START";
-export type FuelSel = "LEFT" | "BOTH" | "RIGHT";
+export type FuelSel = "OFF" | "LEFT" | "BOTH" | "RIGHT";
 
 /** Positions of every switch and lever the pilot can move in the C172. */
 export interface C172Switches {
@@ -29,7 +30,7 @@ export interface C172Controls {
   throttle: number;
   /** 0 idle cut-off to 1 full rich. */
   mixture: number;
-  /** Flap lever: 0, 1, 2, 3 = 0°, 10°, 20°, 30°. */
+  /** Flap lever stage: 0 to 3 (the degrees depend on the aircraft). */
   flaps: number;
   /** Elevator trim, -1 nose down to +1 nose up. */
   trim: number;
@@ -43,6 +44,8 @@ export interface C172Controls {
   hdgBug: number;
   /** Radios (page only): frequencies in kHz, [active, standby]. */
   radios: C172Radios;
+  /** Hand primer strokes since the lesson started (PA-28). */
+  primeStrokes?: number;
   /** The ALT half of the master switch was switched off and on again after the failure. */
   altCycled?: boolean;
 }
@@ -127,13 +130,17 @@ export interface C172State {
   primeS: number;
   /** The selected tank is empty: no fuel reaches the engine. */
   starved: boolean;
+  /** Fuel pressure, psi. */
+  fuelPressPsi: number;
+  /** The engine-driven fuel pump has failed (a lesson failure). */
+  pumpFailed: boolean;
 }
 
 export type C172ToWorker =
-  | { type: "init"; baseUrl: string; start: C172Start }
+  | { type: "init"; baseUrl: string; start: C172Start; variant: GaId }
   | { type: "reset"; start: C172Start }
   | { type: "controls"; controls: C172Controls }
-  | { type: "fail"; what: "alternator" };
+  | { type: "fail"; what: "alternator" | "fuelpump" };
 
 export type C172FromWorker =
   | { type: "ready"; start: C172Start }
@@ -141,7 +148,7 @@ export type C172FromWorker =
   | { type: "error"; message: string }
   | { type: "log"; message: string };
 
-export function coldC172Switches(): C172Switches {
+export function coldC172Switches(fuelSel: FuelSel = "BOTH"): C172Switches {
   return {
     masterBat: false,
     masterAlt: false,
@@ -155,15 +162,15 @@ export function coldC172Switches(): C172Switches {
     strobe: false,
     pitotHeat: false,
     magnetos: "OFF",
-    fuelSel: "BOTH",
+    fuelSel,
     fuelShutoff: true,
     parkBrake: true,
   };
 }
 
-export function runningC172Switches(): C172Switches {
+export function runningC172Switches(fuelSel: FuelSel = "BOTH"): C172Switches {
   return {
-    ...coldC172Switches(),
+    ...coldC172Switches(fuelSel),
     masterBat: true,
     masterAlt: true,
     stbyBatt: true,

@@ -25,6 +25,9 @@ export class C172Pfd {
   readonly canvas: HTMLCanvasElement;
   private g: CanvasRenderingContext2D;
 
+  /** Show the FUEL PRESS warning (PA-28). */
+  fuelPress = false;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -52,6 +55,7 @@ export class C172Pfd {
     // Warnings (red) first, then cautions (amber), stacked down the right side.
     const alerts: [string, string][] = [];
     if (s.elec.lowVolts) alerts.push(["LOW VOLTS", RED]);
+    if (this.fuelPress && s.engine.running && s.fuelPressPsi < 0.5) alerts.push(["FUEL PRESS", RED]);
     if (s.fuelGal[0] < 5) alerts.push(["LOW FUEL L", "#ff9f1a"]);
     if (s.fuelGal[1] < 5) alerts.push(["LOW FUEL R", "#ff9f1a"]);
     alerts.forEach(([t, col], i) => this.annunciate(t, col, i));

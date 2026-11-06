@@ -24,6 +24,7 @@ export class RadioBox {
   private key = "";
   private order: number[] = [0, 1, 2];
   private wrong = false;
+  private speaking = false;
   /** True once the correct read-back was picked. */
   readbackOk = false;
   onReadback?: () => void;
@@ -47,6 +48,8 @@ export class RadioBox {
 
   /** activeKHz = active COM frequency, or null when the radio has no power. */
   update(activeKHz: number | null, clearance: Clearance | null, callsign: string) {
+    // Only the radio lessons (the ones with a clearance) speak. Elsewhere the box is text only.
+    this.speaking = clearance !== null;
     if (activeKHz === null) {
       this.render("off", "", []);
       return;
@@ -118,7 +121,7 @@ export class RadioBox {
     this.key = key;
     // A new message replaces whatever was being said.
     this.voice.stop();
-    if (speech.length) this.voice.say(speech);
+    if (speech.length && this.speaking) this.voice.say(speech);
     this.el.innerHTML = html;
     this.el.classList.toggle("hidden", key === "off");
   }

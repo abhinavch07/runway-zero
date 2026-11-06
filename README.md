@@ -60,6 +60,20 @@ A second aircraft: a C172-type light aircraft with a glass cockpit (its own page
 
 The flight model is JSBSim's public Cessna 172 (`c172p`) with its IO-320 engine. Our own code adds the electrics (24 V battery, 28 V alternator, essential and avionics buses, standby battery), the fuel selector and shutoff, priming with the fuel pump, and the spring-loaded START position of the key. The engine is fuel injected, so there is no carb heat and no primer knob. The glass PFD and MFD are our own drawings in the general style of light-aircraft glass cockpits, not copies of any manufacturer's display.
 
+## PA-28
+
+A third aircraft: a PA-28-type low-wing light aircraft with a glass cockpit (its own page, `pa28.html`, sharing the C172 page code). Pick it from the aircraft tabs in the lesson list.
+
+1. **Before start and engine start**: fuel selector (no BOTH position), master, standby battery, beacon, electric fuel pump and fuel pressure, mixture and throttle, the hand primer, the magneto key, oil pressure, 1000 RPM, electric pump off with a pressure check, avionics.
+2. **Radios and ATC clearance**: as the C172, with the callsign VT-RZP.
+3. **VOR and ILS**: as the C172.
+4. **Run-up before take-off**: brakes, mixture, controls, take-off on the fuller tank, electric fuel pump on, trim, 2000 RPM, magneto check, carb heat (described), engine and fuel pressure, idle check, flaps up.
+5. **Switching fuel tanks**: electric pump on, select the full tank, check the pressure, pump off, note the time.
+6. **Engine fuel pump failure**: the engine-driven pump fails, FUEL PRESS warning, electric pump on at once, check the pressure, plan to land.
+7. **Shutdown and secure**: fuel pump off, avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector OFF.
+
+The flight model is JSBSim's public PA-28-180 (`pa28`) with its 180 hp engine, changed for Runway Zero: two 25-gallon wing tanks instead of one, a fixed-pitch propeller (`prop_75in2f`), main wheels that no longer steer, and flaps of 0, 10, 25 and 40 degrees. Our own code adds the hand primer, fuel pressure from the engine-driven and electric pumps, the carburettor running on for a few seconds when the pressure is lost, and the fuel pump failure. On the MFD the fuel pressure bar takes the place of EGT.
+
 ## Training radio and navigation data
 
 All radio frequencies and navaids are made up for training and labelled TRAINING or RZ: RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the RZV VOR on 113.35 (18 NM north-west of Delhi) and the IRZ ILS 28 on 110.55. Never use them for real flight. The A320 top bar has a TIME button (×1, ×4, ×8) to speed up long waits.
@@ -91,6 +105,7 @@ npm run preview       # serve the production build
 npm run typecheck     # TypeScript check
 npm run test:fdm      # run the flight model for 60 s in Node
 npm run test:c172     # C172 start-up, run-up and shutdown in Node
+npm run test:pa28     # PA-28 primer start, run-up, take-off and climb in Node (add "pump" or "dry" for the failures)
 npm run test:flights  # scripted test flights: cold start and taxi, ground, normal law, takeoff, ILS and landing
 ```
 
@@ -116,7 +131,8 @@ src/
   lessons/lessons.ts    the A320 lessons and their steps
   lessons/catalog.ts    every aircraft and its lessons, for the lesson picker
   shell/picker.ts       lesson picker with aircraft tabs, shared by both pages
-  c172/                 the Cessna 172: page, worker, systems, PFD, MFD, lower panel, lessons
+  c172/                 the light aircraft (C172 and PA-28): page, worker, systems, PFD, MFD, lower panel, lessons
+                        (sim/variant.ts holds what differs between the two, pa28Lessons.ts the PA-28 lessons)
   lessons/quizzes.ts    five quiz questions for each lesson
   lessons/progress.ts   lesson ticks and best quiz scores, saved in the browser
   sim/fdm.worker.ts     runs the simulation in a Web Worker at 120 Hz
@@ -166,4 +182,5 @@ Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps
 - Runway Zero code: GPL v3 or later (see `LICENSE`).
 - JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold. Our copy is modified: fuel tank position moved from 600 to 650 in, CmDe changed from -1.5 to -2.0 so the model can be trimmed at normal approach speeds, and nose gear steering widened from 5° to 70° for taxiing. The changes are noted at the top of `A320.xml`.
 - JSBSim Cessna 172 (`aircraft/c172p`, `engine/eng_io320.xml`, `engine/prop_75in2f.xml`): LGPL 2.1, unmodified. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
+- JSBSim PA-28-180 (`aircraft/pa28`, `engine/engIO360C.xml`): LGPL 2.1. The aircraft file is modified (two tanks, fixed-pitch propeller, main wheel steering off, 10° first flap stage), and the changes are noted in its header. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.

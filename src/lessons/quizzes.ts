@@ -789,3 +789,207 @@ export const QUIZZES: Record<string, Question[]> = {
     },
   ],
 };
+
+// PA-28: the radio and VOR/ILS quizzes are the same as the C172 ones.
+QUIZZES["pa28-radios"] = QUIZZES["c172-radios"];
+QUIZZES["pa28-nav"] = QUIZZES["c172-nav"];
+
+QUIZZES["pa28-start"] = [
+  {
+    q: "The PA-28 fuel selector has no BOTH position. What does that mean?",
+    options: [
+      "The engine feeds from one tank at a time, the one you select",
+      "Both tanks always feed the engine",
+      "The right tank is only for emergencies",
+      "The tanks feed in turn by themselves",
+    ],
+    why: "The selector has OFF, LEFT and RIGHT. Only the selected tank feeds the engine, so the pilot must manage the tanks.",
+  },
+  {
+    q: "How is a cold PA-28 engine primed in this lesson?",
+    options: [
+      "Two or three strokes of the hand primer",
+      "Running the electric fuel pump for 5 seconds",
+      "Pumping the throttle many times",
+      "It does not need priming",
+    ],
+    why: "The primer sprays a little fuel straight into the cylinders. The electric pump only fills the carburettor and gives fuel pressure.",
+  },
+  {
+    q: "Why is the electric fuel pump switched ON before start?",
+    options: [
+      "To give fuel pressure and fill the carburettor before the engine turns",
+      "To charge the battery",
+      "To prime the cylinders",
+      "To cool the starter",
+    ],
+    why: "Before the engine turns, the engine-driven pump gives no pressure. The electric pump does the job until the engine runs.",
+  },
+  {
+    q: "After start you switch the electric fuel pump OFF. What must the fuel pressure do?",
+    options: ["Stay in the green", "Drop to zero", "Rise into the red", "It does not matter"],
+    why: "If the pressure stays in the green with the electric pump off, the engine-driven pump is working.",
+  },
+  {
+    q: "The engine has started. What do you check first?",
+    options: ["Oil pressure rises within 30 seconds", "The fuel quantity", "The heading bug", "The transponder code"],
+    why: "No oil pressure means the engine is not being lubricated. Stop it at once with the mixture.",
+  },
+];
+
+QUIZZES["pa28-runup"] = [
+  {
+    q: "The left tank has 12 gallons and the right tank 20. Which tank do you take off on?",
+    options: ["RIGHT, the fuller tank", "LEFT, to use it up first", "OFF", "It does not matter"],
+    why: "Taking off on the fuller tank keeps you far from an empty tank in the first minutes of flight.",
+  },
+  {
+    q: "Why is the electric fuel pump ON for take-off?",
+    options: [
+      "If the engine-driven pump fails at a low height, fuel still reaches the engine",
+      "It gives more power for take-off",
+      "It charges the battery faster",
+      "It is needed for the magneto check",
+    ],
+    why: "Take-off and landing are the worst times to lose fuel pressure. The electric pump is a backup.",
+  },
+  {
+    q: "At what RPM does this lesson do the magneto check?",
+    options: ["2000 RPM", "1000 RPM", "1800 RPM", "Full power"],
+    why: "The PA-28 run-up is done at 2000 RPM. Always use the figure in your POH.",
+  },
+  {
+    q: "During the magneto check, when do you return the key to BOTH?",
+    options: [
+      "After each single magneto check, before checking the other one",
+      "Only at the end of the run-up",
+      "Never, you take off on L",
+      "After the idle check",
+    ],
+    why: "L, then BOTH, then R, then BOTH. You never take off on one magneto.",
+  },
+  {
+    q: "What flap setting does this lesson use for a normal take-off?",
+    options: ["0° (flaps up)", "40°", "25°", "10°"],
+    why: "A normal PA-28 take-off is with flaps up. 25° is for a short field take-off.",
+  },
+];
+
+QUIZZES["pa28-fuel"] = [
+  {
+    q: "What do you switch on before changing tanks?",
+    options: ["The electric fuel pump", "The landing light", "Carb heat", "The avionics"],
+    why: "The electric pump keeps the fuel pressure up while the selector moves to the other tank.",
+  },
+  {
+    q: "Why must you look at the selector when you move it?",
+    options: [
+      "OFF is on the same selector, and OFF stops the engine",
+      "It can break easily",
+      "The tank names are hard to read",
+      "The PFD does not show the tank",
+    ],
+    why: "Selecting OFF by mistake cuts the fuel. Move it firmly to the tank you want and check it.",
+  },
+  {
+    q: "With no BOTH position, how do pilots keep the tanks balanced?",
+    options: [
+      "Switch tanks at regular times, often about every 30 minutes",
+      "Fly with one wing low",
+      "Use only the left tank",
+      "The tanks balance by themselves",
+    ],
+    why: "Regular switching keeps the weight even and stops one tank running dry. Follow your school's rule.",
+  },
+  {
+    q: "After the tank change you switch the electric pump OFF. What do you check?",
+    options: ["Fuel pressure stays in the green", "The oil temperature drops", "The bus volts rise", "The heading"],
+    why: "The engine-driven pump must keep the pressure up on the new tank.",
+  },
+  {
+    q: "Why do pilots write down the time of each tank change?",
+    options: [
+      "To know when to switch back",
+      "To tell ATC",
+      "For the engine logbook",
+      "To set the clock",
+    ],
+    why: "The time tells you how long you have been on the tank, so you switch back on time.",
+  },
+];
+
+QUIZZES["pa28-pumpfail"] = [
+  {
+    q: "FUEL PRESS shows in red and the gauge reads zero. What failed in this lesson?",
+    options: ["The engine-driven fuel pump", "The alternator", "A magneto", "The vacuum pump"],
+    why: "The engine-driven pump gives the fuel pressure in normal flight. When it fails the pressure drops to zero.",
+  },
+  {
+    q: "What is the first action?",
+    options: ["Electric FUEL PUMP ON at once", "Mixture to idle cut-off", "Master switch OFF", "Wait to see if it recovers"],
+    why: "The engine only has a few seconds of fuel in the carburettor. The electric pump restores the pressure.",
+  },
+  {
+    q: "Why does the engine keep running for a few seconds after the pump fails?",
+    options: [
+      "Fuel is still in the carburettor",
+      "The battery keeps it running",
+      "The propeller drives it",
+      "The primer feeds it",
+    ],
+    why: "The carburettor holds a small amount of fuel. When it is used up the engine stops.",
+  },
+  {
+    q: "The pressure is back. When do you switch the electric pump off?",
+    options: ["Not until shutdown", "Straight away", "After one minute", "When the pressure reaches 8 psi"],
+    why: "The electric pump is now the only pump. Switching it off stops the fuel supply.",
+  },
+  {
+    q: "What do you plan after this failure?",
+    options: [
+      "Land as soon as practical",
+      "Carry on to the planned destination",
+      "Climb as high as possible",
+      "Turn the electric pump off to save the battery",
+    ],
+    why: "There is no backup pump left. If the electric pump or the electrics fail, the engine stops.",
+  },
+];
+
+QUIZZES["pa28-shutdown"] = [
+  {
+    q: "The electric fuel pump was on for landing. When does it go off?",
+    options: ["When parked, before shutdown", "In flight on final", "It stays on", "After the master is off"],
+    why: "Once you are parked it is no longer needed.",
+  },
+  {
+    q: "How is the engine normally stopped?",
+    options: ["Mixture to IDLE CUT-OFF", "Magnetos OFF at high RPM", "Fuel selector OFF", "Master switch OFF"],
+    why: "Idle cut-off stops fuel reaching the cylinders, so the engine stops cleanly.",
+  },
+  {
+    q: "Why do the avionics go off before the engine stops?",
+    options: [
+      "To protect them from voltage changes",
+      "To save fuel",
+      "So the engine stops faster",
+      "To reset the transponder",
+    ],
+    why: "Voltage changes during shutdown can harm the avionics.",
+  },
+  {
+    q: "Why turn the magnetos OFF and take out the key?",
+    options: [
+      "A magneto left on can start the engine if someone turns the propeller",
+      "To save battery power",
+      "To stop the fuel pump",
+      "To turn off the beacon",
+    ],
+    why: "Magnetos make their own sparks. With the key off they are grounded and safe.",
+  },
+  {
+    q: "In this lesson, where does the fuel selector go when the aircraft is parked?",
+    options: ["OFF", "LEFT", "RIGHT", "BOTH"],
+    why: "Many schools turn it OFF when parked. Follow your school's checklist.",
+  },
+];
