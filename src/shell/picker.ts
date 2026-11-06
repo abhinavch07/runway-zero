@@ -59,7 +59,7 @@ export class LessonPicker {
     const aircraft = AIRCRAFT.find((a) => a.id === this.shown)!;
     const total = 5;
     $("picker-list").innerHTML =
-      `<p class="picker-blurb">${esc(aircraft.blurb)}</p>` +
+      `<p class="picker-blurb">${esc(aircraft.blurb)} <b>${aircraft.lessons.length} lessons</b>, scroll for more.</p>` +
       aircraft.lessons
         .map((l, i) => {
           const p = progress[l.id];
@@ -77,7 +77,7 @@ export class LessonPicker {
           return `<div class="picker-row">
           <button class="picker-item" data-lesson="${l.id}">
             <span class="picker-num">${i + 1}</span>
-            <span><b>${esc(l.title)}</b><br><span class="picker-sum">${esc(l.summary)}</span>${status ? "<br>" + status : ""}</span>
+            <span><b>${esc(l.title)}</b><br><span class="picker-sum" title="${esc(l.summary).replace(/"/g, "&quot;")}">${esc(l.summary)}</span>${status ? "<br>" + status : ""}</span>
             <span class="picker-min">about ${l.minutes} min</span>
           </button>${quizBtn}</div>`;
         })
