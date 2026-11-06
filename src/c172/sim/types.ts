@@ -76,6 +76,8 @@ export interface C172Start {
   /** Engine running at the start. */
   running: boolean;
   fuelGalPerTank: number;
+  /** Different amounts in the left and right tanks, gallons (overrides fuelGalPerTank). */
+  fuelGal?: [number, number];
 }
 
 export interface C172State {
@@ -123,6 +125,8 @@ export interface C172State {
   };
   /** Seconds the fuel pump has run with the engine stopped (priming). */
   primeS: number;
+  /** The selected tank is empty: no fuel reaches the engine. */
+  starved: boolean;
 }
 
 export type C172ToWorker =

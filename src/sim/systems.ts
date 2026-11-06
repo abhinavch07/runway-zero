@@ -19,6 +19,10 @@ export interface Switches {
   ir1: boolean;
   ir2: boolean;
   ir3: boolean;
+  /** Centre tank pumps and the crossfeed valve. */
+  fuelCtr1: boolean;
+  fuelCtr2: boolean;
+  xfeed: boolean;
   fuelL1: boolean;
   fuelL2: boolean;
   fuelR1: boolean;
@@ -66,6 +70,9 @@ export function runningSwitches(): Switches {
     ir1: true,
     ir2: true,
     ir3: true,
+    fuelCtr1: true,
+    fuelCtr2: true,
+    xfeed: false,
     fuelL1: true,
     fuelL2: true,
     fuelR1: true,
@@ -130,6 +137,9 @@ export function coldSwitches(): Switches {
     ir1: false,
     ir2: false,
     ir3: false,
+    fuelCtr1: false,
+    fuelCtr2: false,
+    xfeed: false,
     fuelL1: false,
     fuelL2: false,
     fuelR1: false,
@@ -156,6 +166,8 @@ export interface EngineStatus {
   availTimer: number;
 }
 
+export type FeedTank = "L" | "C" | "R";
+
 export interface SystemsStatus {
   dcPower: boolean;
   acPower: boolean;
@@ -170,6 +182,11 @@ export interface SystemsStatus {
   irAligning: [boolean, boolean, boolean];
   irAligned: [boolean, boolean, boolean];
   irSecondsLeft: number;
+  /** Fuel in the left wing, centre and right wing tanks, kg. */
+  tanksKg: [number, number, number];
+  /** Which tank feeds each engine now. */
+  feed: [FeedTank, FeedTank];
+  xfeedOpen: boolean;
   fuelPressL: boolean;
   fuelPressR: boolean;
   engines: [EngineStatus, EngineStatus];
@@ -226,6 +243,9 @@ export class Systems {
       irAligning: [false, false, false],
       irAligned: [false, false, false],
       irSecondsLeft: 0,
+      tanksKg: [0, 0, 0],
+      feed: ["L", "R"],
+      xfeedOpen: false,
       fuelPressL: false,
       fuelPressR: false,
       engines: [blankEngine(), blankEngine()],
@@ -265,6 +285,11 @@ export class Systems {
         e.egtC = 420;
       }
     }
+  }
+
+  /** Sets the fuel in each tank (kg). */
+  setTanks(l: number, c: number, r: number) {
+    this.st.tanksKg = [l, c, r];
   }
 
   /** Triggers a failure for a lesson. */
@@ -407,6 +432,23 @@ export class Systems {
       else if (e.phase === "RUN") egtTarget = 390 + e.n1 * 4.6;
       e.egtC += (egtTarget - e.egtC) * Math.min(1, dt / 3);
       e.availTimer = Math.max(0, e.availTimer - dt);
+    }
+
+    // ----- Fuel feed and burn: centre tank first, then the wing on the same side, or the other
+    // wing through the crossfeed when the own side's pumps are off. -----
+    s.xfeedOpen = sw.xfeed && s.dcPower;
+    const t = s.tanksKg;
+    const ctrPumps = s.acPower && (sw.fuelCtr1 || sw.fuelCtr2);
+    const wingPumps = [s.acPower && (sw.fuelL1 || sw.fuelL2), s.acPower && (sw.fuelR1 || sw.fuelR2)];
+    for (let i = 0; i < 2; i++) {
+      const own: FeedTank = i === 0 ? "L" : "R";
+      const other: FeedTank = i === 0 ? "R" : "L";
+      let src: FeedTank = own;
+      if (ctrPumps && t[1] > 0) src = "C";
+      else if (!wingPumps[i] && s.xfeedOpen && wingPumps[1 - i] && t[i === 0 ? 2 : 0] > 0) src = other;
+      s.feed[i] = src;
+      const idx = src === "L" ? 0 : src === "C" ? 1 : 2;
+      t[idx] = Math.max(0, t[idx] - (s.engines[i].fuelFlowKgH * dt) / 3600);
     }
     f.set("propulsion/active_engine", -1);
   }

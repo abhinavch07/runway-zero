@@ -38,6 +38,8 @@ export interface Lesson extends LessonBase<SimState, Controls, FmsData, PanelNam
   clearance?: Clearance;
   /** Our callsign on the radio. */
   callsign?: string;
+  /** Fuel in the left wing, centre and right wing tanks at the start, kg. */
+  tanksKg?: [number, number, number];
 }
 
 const allPumps = (c: Controls) => c.switches.fuelL1 && c.switches.fuelL2 && c.switches.fuelR1 && c.switches.fuelR2;
@@ -963,6 +965,69 @@ export const LESSONS: Lesson[] = [
         targets: ["fcu-ap"],
         panel: "main",
         done: (s) => s.fcc.ap,
+      },
+    ],
+  },
+  {
+    id: "fuel",
+    title: "Fuel imbalance and crossfeed",
+    summary: "In cruise with less fuel in the left wing: read the FUEL page, open the crossfeed, switch off the lighter side's pumps so both engines feed from the right, wait until balanced, then put everything back.",
+    minutes: 6,
+    startId: "cruise10k",
+    fcuActions: [{ kind: "athr" }, { kind: "ap" }, { kind: "alt" }],
+    tanksKg: [2200, 0, 2600],
+    extras: { ecamPage: "FUEL" },
+    finished: "The wings are balanced again and the fuel system is back to normal. The real procedure has more checks (for example, making sure it is not a fuel leak). Follow the airline procedure in a real aircraft.",
+    steps: [
+      {
+        title: "Read the FUEL page",
+        why: "On the pedestal the FUEL page shows about 2,200 kg in the left wing and 2,600 kg in the right: 400 kg less on the left. The centre tank is empty, so each engine feeds from its own wing. Press Next.",
+        targets: ["ecam-fuel"],
+        panel: "ped",
+      },
+      {
+        title: "X FEED: ON",
+        why: "On the overhead FUEL panel, press X FEED. The crossfeed valve joins the left and right fuel lines. OPEN shows when the valve is open, and the FUEL X FEED memo appears.",
+        targets: ["xfeed"],
+        want: true,
+        panel: "ovhd",
+        done: (_s, c) => c.switches.xfeed,
+      },
+      {
+        title: "L TK PUMPS 1 and 2: OFF",
+        why: "Switch off the pumps on the lighter (left) side. Now both engines take fuel from the right wing through the crossfeed.",
+        targets: ["fuelL1", "fuelL2"],
+        want: false,
+        panel: "ovhd",
+        done: (_s, c) => !c.switches.fuelL1 && !c.switches.fuelL2,
+      },
+      {
+        title: "Check: both engines FROM R",
+        why: "On the FUEL page, both engines now show FROM R. The right wing goes down twice as fast.",
+        targets: ["ecam-fuel"],
+        panel: "ped",
+        done: (s) => s.systems.feed[0] === "R" && s.systems.feed[1] === "R",
+      },
+      {
+        title: "TIME ×8, wait until the wings are balanced",
+        why: "Balancing 400 kg takes about 10 minutes. Press TIME in the top bar until it shows ×8 and watch the right wing come down to the left. (The autopilot keeps flying.)",
+        targets: ["time-rate"],
+        panel: "ped",
+        done: (s) => Math.abs(s.systems.tanksKg[0] - s.systems.tanksKg[2]) < 60,
+      },
+      {
+        title: "Balanced: L TK PUMPS ON, X FEED OFF",
+        why: "Put the fuel system back to normal: both left pumps on, crossfeed off.",
+        targets: ["fuelL1", "fuelL2", "xfeed"],
+        panel: "ovhd",
+        done: (_s, c) => c.switches.fuelL1 && c.switches.fuelL2 && !c.switches.xfeed,
+      },
+      {
+        title: "TIME: back to ×1",
+        why: "Press TIME until it shows ×1 again.",
+        targets: ["time-rate"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.timeRate === 1,
       },
     ],
   },

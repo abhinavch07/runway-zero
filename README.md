@@ -15,18 +15,20 @@ Lessons:
 
 1. **Power up** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, until the APU powers the aircraft and the ADIRS are aligned.
 2. **MCDU setup: Delhi to Mumbai**: INIT A, the flight plan (runways, three training waypoints, a discontinuity), INIT B and PERF TAKE OFF. The route then shows on the ND.
-3. **Before start and engine start** (at the gate): flight directors, QNH, FCU altitude, V1 and V2 on the PFD, route on the ND, doors on the DOOR page, signs and beacon, engine start, APU off, flaps.
-4. **After start and taxi**: ground spoilers ARM, rudder trim, flaps, pitch trim from the PERF page, autobrake MAX, flight control check on the F/CTL page, HYD page, taxi a short way, brake check, T.O CONFIG test, T.O memo.
-5. **Take-off** (lined up on runway 28): brakes off, 50% N1, FLX/MCT, 100 knots, V1, rotate, gear up, CL, autothrust and autopilot, flaps up, level off at 5,000 ft.
-6. **FCU basics** (in cruise at 10,000 ft with the autopilot on): read the FMA, change speed, heading and altitude with V/S, disconnect and engage the autopilot.
-7. **ECAM: a generator fault** (at the gate): GEN 1 fails, MASTER CAUT, read the ECAM, GEN 1 off then on, GEN 1 off, APU start, CLR.
-8. **Shutdown and secure** (parked with engines running): APU start, engines off, ground power, ADIRS off, back to cold and dark.
+3. **Radios and ATC clearance** (at the gate): VHF 1 on the radio management panel, the ATIS, a clearance from Delivery with a read-back, the transponder, the cleared altitude, the RAD NAV page.
+4. **Before start and engine start** (at the gate): flight directors, QNH, FCU altitude, V1 and V2 on the PFD, route on the ND, doors on the DOOR page, signs and beacon, engine start, APU off, flaps.
+5. **After start and taxi**: ground spoilers ARM, rudder trim, flaps, pitch trim, autobrake MAX, flight control check, HYD page, taxi, brake check, T.O CONFIG test, T.O memo.
+6. **Take-off** (lined up on runway 28): brakes off, 50% N1, FLX/MCT, 100 knots, V1, rotate, gear up, CL, autothrust and autopilot, flaps up, level off at 5,000 ft.
+7. **FCU basics** (in cruise): read the FMA, change speed, heading and altitude with V/S, disconnect and engage the autopilot.
+8. **Fuel imbalance and crossfeed** (in cruise): FUEL page, X FEED, lighter side pumps off, balance with TIME ×8, back to normal.
+9. **ECAM: a generator fault** (at the gate): GEN 1 fails, MASTER CAUT, read the ECAM, the actions, CLR.
+10. **Shutdown and secure** (parked with engines running): APU start, engines off, ground power, ADIRS off, cold and dark.
 
 Panels:
 
 - **Overhead:** ADIRS, HYD, ELEC, FUEL, AIR, ANTI ICE, APU, exterior lights and signs. Lights follow the "dark cockpit" idea.
 - **Main panel:** MASTER CAUT, EFIS (FD and baro) and FCU on the glareshield, a sidestick pad (or arrow keys), PFD, ND and the engine and warning display.
-- **Pedestal:** the MCDU, the lower ECAM with its control panel (ENG, BLEED, ELEC, HYD, FUEL, DOOR, F/CTL pages, CLR, T.O CONFIG), autobrake, speedbrake with spoiler ARM, rudder trim, pitch trim, tiller, toe brakes, thrust detents (CL, FLX/MCT, TOGA), engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
+- **Pedestal:** the MCDU (with RAD NAV), the radio management panel (VHF 1) and ATC transponder, the lower ECAM with its control panel (ENG, BLEED, ELEC, HYD, FUEL, DOOR, F/CTL pages, CLR, T.O CONFIG), autobrake, speedbrake with spoiler ARM, rudder trim, pitch trim, tiller, toe brakes, thrust detents (CL, FLX/MCT, TOGA), engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
@@ -47,10 +49,18 @@ A second aircraft: a C172-type light aircraft with a glass cockpit (its own page
 
 1. **Before start and engine start**: fuel shutoff and selector, master (BAT and ALT), standby battery, beacon, mixture and throttle, priming with the electric fuel pump, the magneto key, oil pressure, 1000 RPM, avionics.
 2. **PFD and MFD basics**: the PFD tapes, colours and HSI, baro and heading bug, the MFD engine strip, fuel and electrics.
-3. **Run-up before take-off**: brakes, mixture, flight controls, fuel, trim, 1800 RPM, magneto check, engine and electrics, idle check, flaps.
-4. **Shutdown and secure**: avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector to one tank.
+3. **Radios and ATC clearance**: COM tuning with standby and swap, the ATIS, a clearance from Ground with a read-back, the transponder.
+4. **VOR and ILS**: tune and identify a VOR (Morse ident), find the radial (FROM) and the course to the station (TO), tune the ILS and read the localizer.
+5. **Run-up before take-off**: brakes, mixture, flight controls, fuel, trim, 1800 RPM, magneto check, engine and electrics, idle check, flaps.
+6. **Alternator failure**: LOW VOLTS, volts and amps, reset ALT, ALT off, shed load, plan to land.
+7. **Fuel management and starvation**: an empty selected tank stops the engine, switch tanks, fuel pump, restart.
+8. **Shutdown and secure**: avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector to one tank.
 
 The flight model is JSBSim's public Cessna 172 (`c172p`) with its IO-320 engine. Our own code adds the electrics (24 V battery, 28 V alternator, essential and avionics buses, standby battery), the fuel selector and shutoff, priming with the fuel pump, and the spring-loaded START position of the key. The engine is fuel injected, so there is no carb heat and no primer knob. The glass PFD and MFD are our own drawings in the general style of light-aircraft glass cockpits, not copies of any manufacturer's display.
+
+## Training radio and navigation data
+
+All radio frequencies and navaids are made up for training and labelled TRAINING or RZ: RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the RZV VOR on 113.35 (18 NM north-west of Delhi) and the IRZ ILS 28 on 110.55. Never use them for real flight. The A320 top bar has a TIME button (×1, ×4, ×8) to speed up long waits.
 
 ## Try it online
 
@@ -126,6 +136,10 @@ src/
   cockpit/efis.ts       EFIS: flight director and baro (QNH / STD)
   cockpit/ecam.ts       ECAM alerts and action lines, T.O memo, T.O CONFIG test
   cockpit/sd.ts         lower ECAM system pages
+  cockpit/rmp.ts        A320 radio management panel and ATC transponder
+  radio/training.ts     made-up training frequencies and navaids
+  radio/navReceiver.ts  VOR radial, TO/FROM and needle, localizer and glide slope
+  radio/radioBox.ts     what is heard on the radio, clearance read-back
   audio/sound.ts        cockpit sound made with Web Audio
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel

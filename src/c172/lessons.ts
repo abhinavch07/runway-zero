@@ -26,6 +26,8 @@ export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReadi
   callsign?: string;
   /** The alternator fails this many seconds after the start. */
   failAfterS?: number;
+  /** Fuel in the left and right tanks at the start, gallons. */
+  fuelGal?: [number, number];
 }
 
 const rpmBetween = (s: C172State, lo: number, hi: number) => s.engine.running && s.engine.rpm >= lo && s.engine.rpm <= hi;
@@ -564,6 +566,63 @@ export const C172_LESSONS: C172Lesson[] = [
         why: "A battery lasts only a limited time, often 30 minutes or less. In flight you would tell ATC, keep only what you need on, and land at the nearest suitable airfield. Press Next.",
         targets: [],
         panel: "inst",
+      },
+    ],
+  },
+  {
+    id: "c172-fuel",
+    title: "Fuel management and starvation",
+    summary: "Engine running on the LEFT tank, which is almost empty while the right tank is full. See fuel starvation stop the engine, then switch tanks, use the fuel pump and restart.",
+    minutes: 6,
+    running: true,
+    controls: { throttle: 0.55, mixture: 1 },
+    switches: (sw) => {
+      sw.fuelSel = "LEFT";
+    },
+    fuelGal: [0.03, 20],
+    finished: "The engine stopped with 20 gallons still on board: the fuel just could not reach it. Check the quantity in each tank before flight, watch it in flight, and know where the selector is.",
+    steps: [
+      {
+        title: "Look at the fuel",
+        why: "On the MFD: LEFT tank almost empty (and LOW FUEL L on the PFD), RIGHT tank 20 gallons. On the lower panel the FUEL SELECTOR is on LEFT. Press Next, then watch the RPM.",
+        targets: ["fuelSel-LEFT"],
+        panel: "inst",
+      },
+      {
+        title: "Watch the RPM",
+        why: "Within about half a minute the left tank runs dry. The fuel flow drops to zero and the engine stops, even though the right tank is full. This is fuel starvation.",
+        targets: ["mini-rpm"],
+        panel: "lower",
+        done: (s) => s.starved && !s.engine.running,
+      },
+      {
+        title: "FUEL SELECTOR: BOTH",
+        why: "Select a tank that has fuel. BOTH feeds from both tanks, so the full right tank now reaches the engine.",
+        targets: ["fuelSel-BOTH"],
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelSel === "BOTH",
+      },
+      {
+        title: "FUEL PUMP: ON, MIXTURE: RICH",
+        why: "The electric fuel pump pushes fuel back through the empty lines to the engine. Mixture fully rich for the restart.",
+        targets: ["fuelPump", "mixture"],
+        panel: "lower",
+        done: (_s, c) => c.switches.fuelPump && c.mixture > 0.9,
+      },
+      {
+        title: "Restart: hold MAGNETOS on START",
+        why: "Hold START until the engine runs, then let go. (In flight a turning propeller often restarts the engine by itself once fuel arrives.)",
+        targets: ["mag-START"],
+        panel: "lower",
+        done: (s, c) => s.engine.running && c.switches.magnetos === "BOTH",
+      },
+      {
+        title: "FUEL PUMP: OFF",
+        why: "The engine-driven pump does the job again. Switch the electric pump off.",
+        targets: ["fuelPump"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.fuelPump,
       },
     ],
   },

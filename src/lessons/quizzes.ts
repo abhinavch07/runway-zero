@@ -383,6 +383,43 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "Flaps give lift at low speed. Retract them only when the speed is high enough to fly without them.",
     },
   ],
+  fuel: [
+    {
+      q: "What does opening the crossfeed (X FEED) do?",
+      options: [
+        "Joins the left and right fuel lines, so one side can feed both engines",
+        "Moves fuel from one wing tank to the other",
+        "Dumps fuel overboard",
+        "Starts the centre tank pumps",
+      ],
+      why: "It does not pump fuel between tanks. It lets an engine take fuel from the other side.",
+    },
+    {
+      q: "The left wing is lighter. Which pumps do you switch off?",
+      options: ["The left (lighter side) pumps", "The right (heavier side) pumps", "The centre tank pumps", "All of them"],
+      why: "With the lighter side's pumps off and the crossfeed open, both engines use fuel from the heavier side.",
+    },
+    {
+      q: "In this trainer, which tank feeds the engines first when it has fuel?",
+      options: ["The centre tank", "The left wing", "The right wing", "Both wings equally"],
+      why: "The centre tank is used first (its pumps push harder). The wings feed when it is empty.",
+    },
+    {
+      q: "What do you do when the wings are balanced?",
+      options: [
+        "Pumps back ON, then X FEED OFF",
+        "Leave the crossfeed open for the rest of the flight",
+        "Switch off all pumps",
+        "Restart the engines",
+      ],
+      why: "Return the fuel system to normal once the job is done.",
+    },
+    {
+      q: "Before balancing, what must a crew rule out?",
+      options: ["A fuel leak", "A radio failure", "A wrong squawk", "High cabin altitude"],
+      why: "If the imbalance comes from a leak, crossfeeding would feed the leak. The real procedure checks for that first.",
+    },
+  ],
   genfault: [
     {
       q: "What does pressing MASTER CAUT do?",
@@ -675,6 +712,48 @@ export const QUIZZES: Record<string, Question[]> = {
         "Only if the fuel pump is off",
       ],
       why: "The engine keeps running on its magnetos. What you lose are the electrics: radios, displays, lights.",
+    },
+  ],
+  "c172-fuel": [
+    {
+      q: "The engine stopped with 20 gallons in the right tank. Why?",
+      options: [
+        "The selector was on the empty LEFT tank: fuel starvation",
+        "The battery was flat",
+        "The magnetos failed",
+        "The oil was too cold",
+      ],
+      why: "Starvation means fuel on board but not reaching the engine. Exhaustion means no fuel at all.",
+    },
+    {
+      q: "What is the first action when the engine stops and one tank is empty?",
+      options: ["Select a tank with fuel (BOTH)", "MASTER off", "Flaps up", "Mixture to idle cut-off"],
+      why: "Get fuel to the engine first, then help it restart with the fuel pump and the key.",
+    },
+    {
+      q: "What does the electric fuel pump do in a restart?",
+      options: [
+        "Pushes fuel through the empty lines to the engine",
+        "Makes the spark",
+        "Charges the battery",
+        "Cools the engine",
+      ],
+      why: "After starvation the lines have air in them. The pump refills them quickly.",
+    },
+    {
+      q: "When must you check the fuel quantity in each tank?",
+      options: ["Before every flight, and regularly in flight", "Only when a warning shows", "Once a month", "Only on long flights"],
+      why: "Check it before flight (look in the tanks too) and keep an eye on it during the flight.",
+    },
+    {
+      q: "What does LOW FUEL L on the PFD tell you?",
+      options: [
+        "The left tank is low (under about 5 gallons)",
+        "The left fuel pump is off",
+        "Fuel is leaking",
+        "The selector is on LEFT",
+      ],
+      why: "It is a caution about the quantity. Check the selector and plan to land with enough fuel.",
     },
   ],
   "c172-shutdown": [

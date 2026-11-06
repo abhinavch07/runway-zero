@@ -16,6 +16,8 @@ let simAtLastReport = 0;
 let wallAtLastReport = 0;
 let simRate = 1;
 let stepDebt = 0;
+/** Time speed-up chosen on the page (1, 4 or 8). */
+let rate = 1;
 let lastStart: StartPosition | null = null;
 
 const post = (msg: FromWorker) => (self as unknown as Worker).postMessage(msg);
@@ -44,8 +46,8 @@ function tick() {
   const elapsed = (now - lastTick) / 1000;
   lastTick = now;
   if (!paused && controls) {
-    stepDebt += elapsed * STEP_HZ;
-    const steps = Math.min(MAX_STEPS_PER_TICK, Math.floor(stepDebt));
+    stepDebt += elapsed * STEP_HZ * rate;
+    const steps = Math.min(MAX_STEPS_PER_TICK * rate, Math.floor(stepDebt));
     stepDebt = Math.min(stepDebt - steps, 2);
     for (let i = 0; i < steps; i++) core.step(controls);
     if (!core.healthy() && lastStart) {
@@ -90,6 +92,7 @@ self.onmessage = async (ev: MessageEvent<ToWorker>) => {
         paused = msg.paused;
         break;
       case "reset": {
+        rate = 1;
         if (!core) break;
         displayOffsetM = msg.displayOffsetM;
         controls = null; // wait for the page to send controls that match the new start
@@ -100,6 +103,12 @@ self.onmessage = async (ev: MessageEvent<ToWorker>) => {
       }
       case "fcu":
         core?.command(msg.action);
+        break;
+      case "rate":
+        rate = msg.rate;
+        break;
+      case "tanks":
+        core?.systems.setTanks(msg.kg[0], msg.kg[1], msg.kg[2]);
         break;
       case "fail":
         core?.systems.fail(msg.what);

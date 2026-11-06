@@ -19,6 +19,7 @@ export class C172Core {
   private firing = false;
   private alternatorWarm = 0;
   private altFailed = false;
+  private starved = false;
   /** Battery charge used, amp-hours (a 13 Ah battery). */
   private drainAh = 0;
   private lastLoadA = 0;
@@ -43,7 +44,7 @@ export class C172Core {
 
   place(start: C172Start) {
     this.terrainFt = start.terrainFt;
-    for (let i = 0; i < 2; i++) this.set(`propulsion/tank[${i}]/contents-lbs`, start.fuelGalPerTank * LBS_PER_GAL);
+    for (let i = 0; i < 2; i++) this.set(`propulsion/tank[${i}]/contents-lbs`, (start.fuelGal?.[i] ?? start.fuelGalPerTank) * LBS_PER_GAL);
     this.set("ic/lat-geod-deg", start.latDeg);
     this.set("ic/long-gc-deg", start.lonDeg);
     this.set("ic/terrain-elevation-ft", start.terrainFt);
@@ -84,7 +85,11 @@ export class C172Core {
     const running = this.firing;
 
     // ----- Fuel: selector, shutoff valve, electric pump for priming -----
-    const fuelFlowing = sw.fuelShutoff;
+    // Starved when every tank the selector feeds from is empty.
+    const lbs = [this.get("propulsion/tank[0]/contents-lbs"), this.get("propulsion/tank[1]/contents-lbs")];
+    const feeds = sw.fuelSel === "LEFT" ? [0] : sw.fuelSel === "RIGHT" ? [1] : [0, 1];
+    this.starved = feeds.every((i) => lbs[i] < 0.05);
+    const fuelFlowing = sw.fuelShutoff && !this.starved;
     this.set("propulsion/tank[0]/priority", sw.fuelSel === "RIGHT" ? 0 : 1);
     this.set("propulsion/tank[1]/priority", sw.fuelSel === "LEFT" ? 0 : 1);
     const mainBus = sw.masterBat;
@@ -192,6 +197,7 @@ export class C172Core {
         lowVolts: mainBus && running && mainVolts < 24.5,
       },
       primeS: this.primeS,
+      starved: this.starved,
     };
   }
 }

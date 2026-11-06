@@ -125,6 +125,10 @@ export class SimCore {
       fcu: start.fcu,
     });
     this.systems.reset(!!start.coldAndDark, startSwitches(start), !!start.powered);
+    // Fuel goes into the wings first (up to about 6,200 kg each), the rest into the centre tank.
+    const kg = start.fuelLbs * 0.4536;
+    const wing = Math.min(kg / 2, 6200);
+    this.systems.setTanks(wing, kg - wing * 2, wing);
     this.wasAirborne = !start.onGround;
     this.airborneFor = start.onGround ? 0 : 60;
     this.touchdown = null;
@@ -209,7 +213,7 @@ export class SimCore {
       n2: [g("propulsion/engine[0]/n2"), g("propulsion/engine[1]/n2")],
       egtC: [this.systems.status().engines[0].egtC, this.systems.status().engines[1].egtC],
       fuelFlowKgH: [g("propulsion/engine[0]/fuel-flow-rate-pps") * 1633, g("propulsion/engine[1]/fuel-flow-rate-pps") * 1633],
-      fuelKg: g("propulsion/total-fuel-lbs") * 0.4536,
+      fuelKg: this.systems.status().tanksKg.reduce((a, b) => a + b, 0),
       throttlePos: g("fcs/throttle-pos-norm[0]"),
       flapDeg: g("fcs/flap-pos-deg"),
       gearPos: g("gear/gear-pos-norm"),

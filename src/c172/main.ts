@@ -86,7 +86,7 @@ function startLesson(lesson: C172Lesson) {
   ready = false;
   latest = null;
   $("loading").classList.remove("hidden");
-  const start: C172Start = { id: lesson.id, name: lesson.title, ...START_BASE, running: lesson.running };
+  const start: C172Start = { id: lesson.id, name: lesson.title, ...START_BASE, running: lesson.running, fuelGal: lesson.fuelGal };
   if (!initialised) {
     initialised = true;
     send({ type: "init", baseUrl: new URL(".", document.baseURI).href, start });

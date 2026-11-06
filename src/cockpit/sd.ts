@@ -231,26 +231,54 @@ export class SystemDisplay {
   private fuel(s: SimState, c: Controls) {
     const sys = s.systems;
     const sw = c.switches;
-    const pump = (x: number, on: boolean, label: string) => {
-      const pr = on && sys.acPower;
-      this.box(x - 22, 230, 44, 30, pr ? GREEN : AMBER);
-      this.text(pr ? "▮" : "LO", x, 245, pr ? GREEN : AMBER, "center", 13);
-      this.text(label, x, 274, WHITE, "center", 11);
-    };
-    pump(60, sw.fuelL1, "L1");
-    pump(120, sw.fuelL2, "L2");
-    pump(300, sw.fuelR1, "R1");
-    pump(360, sw.fuelR2, "R2");
-    const half = s.fuelKg / 2;
-    this.text(`${Math.round(half / 10) * 10}`, 90, 320, GREEN, "center", 18);
-    this.text(`${Math.round(half / 10) * 10}`, 330, 320, GREEN, "center", 18);
-    this.text("KG", 210, 320, CYAN, "center", 13);
+    const [l, ctr, r] = sys.tanksKg;
+    // Engines at the top with their fuel flow and which tank feeds them.
     for (let i = 0; i < 2; i++) {
+      const x = i ? 330 : 90;
       const e = sys.engines[i];
-      this.text(`ENG ${i + 1}`, i ? 330 : 90, 70, WHITE, "center", 14);
-      this.text(`${Math.round(e.fuelFlowKgH)} KG/H`, i ? 330 : 90, 100, GREEN, "center", 14);
-      this.line(i ? 330 : 90, 115, i ? 330 : 90, 230, sys.fuelPressL || sys.fuelPressR ? GREEN : AMBER);
+      this.text(`ENG ${i + 1}`, x, 54, WHITE, "center", 14);
+      this.text(`${Math.round(e.fuelFlowKgH)} KG/H`, x, 74, GREEN, "center", 13);
+      this.text(`FROM ${sys.feed[i] === "C" ? "CTR" : sys.feed[i]}`, x, 94, CYAN, "center", 12);
     }
+    // Crossfeed valve in the middle of the line joining both sides.
+    const open = sys.xfeedOpen;
+    this.line(90, 130, 190, 130, GREEN);
+    this.line(230, 130, 330, 130, GREEN);
+    this.g.strokeStyle = GREEN;
+    this.g.lineWidth = 2;
+    this.g.beginPath();
+    this.g.arc(210, 130, 14, 0, Math.PI * 2);
+    this.g.stroke();
+    if (open) this.line(196, 130, 224, 130, GREEN);
+    else this.line(210, 116, 210, 144, GREEN);
+    this.text(open ? "X FEED OPEN" : "X FEED", 210, 158, open ? GREEN : WHITE, "center", 11);
+    this.line(90, 104, 90, 130);
+    this.line(330, 104, 330, 130);
+    // Tanks along the bottom with their pumps.
+    const tank = (x: number, w: number, label: string, kg: number) => {
+      this.box(x - w / 2, 250, w, 76, WHITE);
+      this.text(label, x, 266, WHITE, "center", 12);
+      this.text(String(Math.round(kg / 10) * 10), x, 296, GREEN, "center", 20);
+    };
+    tank(80, 120, "L WING", l);
+    tank(210, 110, "CTR", ctr);
+    tank(340, 120, "R WING", r);
+    const pump = (x: number, on: boolean) => {
+      const pr = on && sys.acPower;
+      this.box(x - 14, 212, 28, 24, pr ? GREEN : AMBER);
+      this.text(pr ? "▮" : "LO", x, 224, pr ? GREEN : AMBER, "center", 11);
+    };
+    pump(58, sw.fuelL1);
+    pump(102, sw.fuelL2);
+    pump(192, sw.fuelCtr1);
+    pump(228, sw.fuelCtr2);
+    pump(318, sw.fuelR1);
+    pump(362, sw.fuelR2);
+    this.line(80, 130, 80, 212, sys.fuelPressL ? GREEN : GREY);
+    this.line(340, 130, 340, 212, sys.fuelPressR ? GREEN : GREY);
+    this.text("KG", 210, 342, CYAN, "center", 12);
+    const diff = Math.abs(l - r);
+    if (diff > 300) this.text(`IMBALANCE ${Math.round(diff / 10) * 10} KG`, 210, 362, AMBER, "center", 12);
   }
 
   private door(s: SimState) {

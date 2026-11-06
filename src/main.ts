@@ -111,6 +111,9 @@ function onReady(start: StartPosition, throttle: number) {
   mcdu.render();
   controls.efis = { fd: true, qnh: 1013, std: false, ...lesson?.efis };
   controls.extras = { ...defaultExtras(), ...structuredClone(lesson?.extras ?? {}) };
+  timeBtn.textContent = "TIME ×1";
+  timeBtn.classList.remove("fast");
+  if (lesson?.tanksKg) send({ type: "tanks", kg: lesson.tanksKg });
   knownAlerts = new Set();
   radioPanels.reset();
   radioBox.reset();
@@ -242,6 +245,20 @@ let knownAlerts = new Set<string>();
 const gen1Seen = { off: false };
 let failSent = false;
 let readyAt = 0;
+
+// ---------- Time speed-up (for long waits such as fuel balancing) ----------
+const timeBtn = $<HTMLButtonElement>("time-btn");
+function setRate(r: number) {
+  controls.extras!.timeRate = r;
+  send({ type: "rate", rate: r });
+  timeBtn.textContent = `TIME ×${r}`;
+  timeBtn.classList.toggle("fast", r > 1);
+}
+timeBtn.addEventListener("click", () => {
+  const r = controls.extras!.timeRate;
+  setRate(r === 1 ? 4 : r === 4 ? 8 : 1);
+  timeBtn.blur();
+});
 
 // ---------- Sound ----------
 const sound = new Sound();

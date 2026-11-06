@@ -52,12 +52,15 @@ const SECTIONS: { title: string; cols: number; items: (Pb | { key: "sep" } | { k
   },
   {
     title: "FUEL",
-    cols: 4,
+    cols: 7,
     items: [
       { key: "fuelL1", label: "L TK 1", onLight: false, offLight: true },
       { key: "fuelL2", label: "L TK 2", onLight: false, offLight: true },
+      { key: "fuelCtr1", label: "CTR TK 1", onLight: false, offLight: true },
+      { key: "fuelCtr2", label: "CTR TK 2", onLight: false, offLight: true },
       { key: "fuelR1", label: "R TK 1", onLight: false, offLight: true },
       { key: "fuelR2", label: "R TK 2", onLight: false, offLight: true },
+      { key: "xfeed", label: "X FEED", onLight: true, offLight: false },
     ],
   },
   {
@@ -214,6 +217,11 @@ export class OverheadPanel {
           const i = item.key === "hydEng1Pump" ? 0 : 1;
           const fault = on && sys.engines[i].phase === "RUN" && sys.hydPsi[i === 0 ? 0 : 2] < 1450;
           set(item.key, fault ? ["FAULT", "amber"] : null, offLight(on));
+        } else if (item.key === "xfeed") {
+          // ON when selected, OPEN (green) when the valve is open.
+          set("xfeed", on ? ["OPEN", "green"] : null, on ? ["ON", "blue"] : null);
+        } else if (item.key === "fuelCtr1" || item.key === "fuelCtr2") {
+          set(item.key, null, offLight(on));
         } else if (item.key.startsWith("fuel")) {
           const side = item.key.startsWith("fuelL") ? sys.fuelPressL : sys.fuelPressR;
           set(item.key, on && !side ? ["FAULT", "amber"] : null, offLight(on));

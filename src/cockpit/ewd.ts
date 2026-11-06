@@ -249,6 +249,7 @@ function memoLines(s: SimState, c: Controls): [string, string][] {
   if (s.speedbrakePos > 0.05) out.push(["SPEED BRK", GREEN]);
   if (sys.engAntiIceOn.some(Boolean)) out.push(["ENG A.ICE", GREEN]);
   if (sys.wingAntiIceOn) out.push(["WING A.ICE", GREEN]);
+  if (sys.xfeedOpen) out.push(["FUEL X FEED", GREEN]);
   if (sw.hydYellowElec) out.push(["HYD Y ELEC PUMP ON", GREEN]);
   if (sw.seatBelts && out.length < 3) out.push(["SEAT BELTS", GREEN]);
   return out.slice(0, 3);

@@ -58,6 +58,8 @@ export interface A320Extras {
   xpdrMode: "STBY" | "AUTO" | "ON";
   /** The lesson's ATC clearance was read back correctly. */
   readBack: boolean;
+  /** Time speed-up: 1, 4 or 8. */
+  timeRate: number;
 }
 
 export function defaultExtras(): A320Extras {
@@ -78,6 +80,7 @@ export function defaultExtras(): A320Extras {
     xpdrCode: "2000",
     xpdrMode: "STBY",
     readBack: false,
+    timeRate: 1,
   };
 }
 
@@ -164,7 +167,9 @@ export type ToWorker =
   | { type: "pause"; paused: boolean }
   | { type: "reset"; start: StartPosition; displayOffsetM: number }
   | { type: "fcu"; action: FcuAction }
-  | { type: "fail"; what: "gen1" };
+  | { type: "fail"; what: "gen1" }
+  | { type: "rate"; rate: number }
+  | { type: "tanks"; kg: [number, number, number] };
 
 export type FromWorker =
   | { type: "ready"; throttle: number; start: StartPosition }

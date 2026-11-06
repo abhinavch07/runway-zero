@@ -49,21 +49,26 @@ export class C172Pfd {
     if (nav.gs !== null && nav.valid) this.gsScale(nav.gs);
     this.topBar(c, radiosOn, nav);
     this.bottomBar(s, c);
-    if (s.elec.lowVolts) this.annunciate("LOW VOLTS");
+    // Warnings (red) first, then cautions (amber), stacked down the right side.
+    const alerts: [string, string][] = [];
+    if (s.elec.lowVolts) alerts.push(["LOW VOLTS", RED]);
+    if (s.fuelGal[0] < 5) alerts.push(["LOW FUEL L", "#ff9f1a"]);
+    if (s.fuelGal[1] < 5) alerts.push(["LOW FUEL R", "#ff9f1a"]);
+    alerts.forEach(([t, col], i) => this.annunciate(t, col, i));
     g.restore();
   }
 
   /** Red warning box under the top bar, on the right (where warnings show on glass cockpits). */
-  private annunciate(text: string) {
+  private annunciate(text: string, colour: string, row: number) {
     const g = this.g;
     g.save();
-    g.font = "bold 15px ui-monospace, Menlo, monospace";
+    g.font = "bold 14px ui-monospace, Menlo, monospace";
     g.textAlign = "center";
     g.textBaseline = "middle";
-    g.fillStyle = RED;
-    g.fillRect(W - 140, 32, 108, 24);
-    g.fillStyle = WHITE;
-    g.fillText(text, W - 86, 45);
+    g.fillStyle = colour;
+    g.fillRect(W - 146, 32 + row * 27, 114, 24);
+    g.fillStyle = colour === RED ? WHITE : "#111";
+    g.fillText(text, W - 89, 45 + row * 27);
     g.restore();
   }
 
