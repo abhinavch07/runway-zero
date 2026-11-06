@@ -13,6 +13,7 @@
       <nav id="tabs">
         <button data-panel="inst" data-ctl="tab-inst">Instruments <kbd>1</kbd></button>
         <button data-panel="lower" data-ctl="tab-lower">Lower panel <kbd>2</kbd></button>
+        <button data-panel="out" data-ctl="tab-out">Outside <kbd>3</kbd></button>
       </nav>
       <span id="sound-ctl">
         <button id="sound-btn" title="Sound on / off (M)">🔊</button>
@@ -94,6 +95,39 @@
           </div>
         </section>
         <section id="p-lower" class="cp-panel"></section>
+        <section id="p-out" class="cp-panel">
+          <div id="out-wrap">
+            <canvas id="out-view" data-ctl="out-view"></canvas>
+            <div id="out-hint" data-ctl="out-hint" class="hidden"></div>
+            <div id="out-alert" class="hidden"></div>
+            <button id="restart-btn" data-ctl="restart-btn" title="Start this lesson again">RESTART LESSON</button>
+            <button id="guide-btn" data-ctl="guide-btn" title="Show or hide the circuit dots and the aim box (G)">GUIDES ON <kbd>G</kbd></button>
+            <div id="out-keys" data-ctl="out-keys">
+              <button id="keys-btn" title="Show or hide the keys (H)">KEYS <kbd>H</kbd></button>
+              <dl>
+                <div data-ctl="key-pitch"><dt>↓ ↑</dt><dd>Pull back (nose up) / push (nose down)</dd></div>
+                <div data-ctl="key-roll"><dt>← →</dt><dd>Roll left / right</dd></div>
+                <div data-ctl="key-throttle"><dt>W S</dt><dd>More / less power (Shift: full / idle)</dd></div>
+                <div data-ctl="key-rudder"><dt>A D</dt><dd>Rudder and nosewheel left / right</dd></div>
+                <div data-ctl="key-flaps"><dt>F R</dt><dd>Flaps down / up one stage</dd></div>
+                <div data-ctl="key-trim"><dt>Q E</dt><dd>Trim nose down / nose up</dd></div>
+                <div data-ctl="key-brakes"><dt>B</dt><dd>Brakes (hold)</dd></div>
+                <div data-ctl="key-park"><dt>P</dt><dd>Parking brake on / off</dd></div>
+                <div><dt>Shift</dt><dd>Full yoke travel</dd></div>
+              </dl>
+            </div>
+          </div>
+          <div id="out-dash">
+            <div class="od" data-ctl="o-ias"><span>SPEED</span><b data-o="ias"></b><i>kt</i></div>
+            <div class="od" data-ctl="o-alt"><span>ALTITUDE</span><b data-o="alt"></b><i data-o="agl"></i></div>
+            <div class="od" data-ctl="o-vs"><span>CLIMB</span><b data-o="vs"></b><i>ft/min</i></div>
+            <div class="od" data-ctl="o-hdg"><span>HEADING</span><b data-o="hdg"></b><i>°</i></div>
+            <div class="od" data-ctl="o-rpm"><span>POWER</span><b data-o="rpm"></b><i>RPM</i></div>
+            <div class="od" data-ctl="o-flaps"><span>FLAPS</span><b data-o="flaps"></b><i>°</i></div>
+            <div class="od" data-ctl="o-trim"><span>TRIM</span><div class="od-trim"><i data-o="trim"></i></div><i>dn · up</i></div>
+            <div class="od od-lamps"><b data-o="park">PARK BRAKE</b><b data-o="brake">BRAKES</b><b data-o="stall">STALL</b></div>
+          </div>
+        </section>
       </main>
     </div>
 

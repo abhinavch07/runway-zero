@@ -2,14 +2,30 @@
 // our own words from general public knowledge. Not the manufacturer's checklist: real pilots use
 // the POH and their school's checklist. A flight instructor should review these.
 import type { LessonBase, StepBase } from "../lessons/types";
-import type { C172Controls, C172Radios, C172State, C172Switches } from "./sim/types";
+import type { AirStart, C172Controls, C172Radios, C172State, C172Switches } from "./sim/types";
+import { FIRST_FLIGHT } from "./firstFlight";
 import type { NavReading } from "../radio/navReceiver";
 import type { Clearance } from "../radio/radioBox";
 
-export type C172Panel = "inst" | "lower";
-export type C172Step = StepBase<C172State, C172Controls, NavReading, C172Panel>;
+export type C172Panel = "inst" | "lower" | "out";
+
+/** What to aim for in a flying step, shown in the pink box on the outside view. */
+export interface Aim {
+  kias?: number;
+  /** Altimeter reading, feet. */
+  altFt?: number;
+  /** True heading, degrees. */
+  hdg?: number;
+}
+
+export interface C172Step extends StepBase<C172State, C172Controls, NavReading, C172Panel> {
+  aim?: Aim;
+}
 
 export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReading, C172Panel> {
+  steps: C172Step[];
+  /** Where the lesson starts, in the runway 28 frame (metres, heading relative to the runway). */
+  start?: { x: number; y: number; h: number; air?: AirStart };
   /** Engine running at the start. */
   running: boolean;
   /** Changes to the starting switches. */
@@ -505,6 +521,7 @@ export const C172_LESSONS: C172Lesson[] = [
       },
     ],
   },
+  ...FIRST_FLIGHT,
   {
     id: "c172-altfail",
     title: "Alternator failure",

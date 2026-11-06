@@ -36,6 +36,10 @@ import { markFinished, recordScore } from "../lessons/progress";
 import { LessonPicker, lessonFromUrl } from "../shell/picker";
 import { destination } from "../world/geo";
 import { RWY28_COURSE_T, VIDP, rwy28Along } from "../world/vidp";
+import { OutsideView } from "./cockpit/outside";
+import { FlightKeys } from "./flightKeys";
+import { FIELD_FT, RWY_LENGTH_M, RWY_WIDTH_M, TAXI, rwyPos, rwyToLatLon, trueHdg } from "./world";
+import { angleDiff } from "../world/geo";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const variant = GA_VARIANTS[(document.body.dataset.aircraft as GaId | undefined) ?? "c172"];
@@ -97,6 +101,13 @@ function startLesson(lesson: C172Lesson) {
   latest = null;
   $("loading").classList.remove("hidden");
   const start: C172Start = { id: lesson.id, name: lesson.title, ...START_BASE, running: lesson.running, fuelGal: lesson.fuelGal };
+  if (lesson.start) {
+    // First flight lessons start at a place in the runway 28 frame, some of them already flying.
+    Object.assign(start, rwyToLatLon(lesson.start.x, lesson.start.y));
+    start.headingDeg = trueHdg(lesson.start.h);
+    start.terrainFt = FIELD_FT;
+    start.air = lesson.start.air;
+  }
   if (!initialised) {
     initialised = true;
     send({ type: "init", baseUrl: new URL(".", document.baseURI).href, start, variant: variant.id });
@@ -136,6 +147,9 @@ function onReady() {
   controls.altCycled = false;
   worldQnh = lesson.qnh ?? 1013;
   lessonPanel.start(lesson);
+  alertText = "";
+  wasOnGround = !lesson.start?.air;
+  document.getElementById("out-alert")?.classList.add("hidden");
   $("loading").classList.add("hidden");
   ready = true;
 }
@@ -164,6 +178,55 @@ const checklist = new ChecklistPanel<GaCheck>(gaChecklists(variant), variant.nam
 const explore = new ExploreMode(gaExplore(variant));
 explore.decorate = glossarize;
 enableGlossaryTips();
+// First flight (C172 page only): the outside view, keyboard flying, guides and the readouts.
+const outEl = document.getElementById("out-view") as HTMLCanvasElement | null;
+const outside = outEl ? new OutsideView(outEl) : null;
+const flightKeys = outside ? new FlightKeys(controls, variant.flapDeg.length - 1) : null;
+let guides = true;
+function toggleGuides() {
+  guides = !guides;
+  const b = $("guide-btn");
+  b.innerHTML = `GUIDES ${guides ? "ON" : "OFF"} <kbd>G</kbd>`;
+  b.classList.toggle("off", !guides);
+}
+if (outside) {
+  $("guide-btn").addEventListener("click", (e) => {
+    toggleGuides();
+    (e.currentTarget as HTMLElement).blur();
+  });
+  $("keys-btn").addEventListener("click", (e) => {
+    $("out-keys").classList.toggle("closed");
+    (e.currentTarget as HTMLElement).blur();
+  });
+  flightKeys!.enabled = () => ready && !quiz.open && $("picker").classList.contains("hidden");
+  flightKeys!.onChange = () => sound.click();
+  $("restart-btn").addEventListener("click", (e) => {
+    if (currentLesson) startLesson(currentLesson);
+    (e.currentTarget as HTMLElement).blur();
+  });
+}
+
+// A plain warning after a hard landing or running off the paved surface, with a way to try again.
+let lastVs = 0;
+let wasOnGround = true;
+let alertText = "";
+function checkMishap(s: C172State) {
+  if (!outside || !currentLesson?.start) return;
+  const p = rwyPos(s);
+  const paved =
+    (p.x > -60 && p.x < RWY_LENGTH_M + 60 && Math.abs(p.y) < RWY_WIDTH_M / 2 + 3) ||
+    (Math.abs(p.x - TAXI.x) < TAXI.width / 2 + 4 && p.y < 0 && p.y > TAXI.apronY - 95);
+  let text = alertText;
+  if (s.onGround && !wasOnGround && lastVs < -800) text = "That was a hard landing. Try a gentler flare: raise the nose a little earlier and hold it. Press RESTART LESSON to try again.";
+  else if (s.onGround && !paved && s.groundSpeedKt > 15) text = "The aircraft has left the runway. Press RESTART LESSON to try again.";
+  wasOnGround = s.onGround;
+  lastVs = s.vsFpm;
+  if (text !== alertText) {
+    alertText = text;
+    $("out-alert").textContent = text;
+    $("out-alert").classList.toggle("hidden", !text);
+  }
+}
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -328,6 +391,9 @@ window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (k === "1") showPanel("inst");
   if (k === "2") showPanel("lower");
+  if (k === "3" && outside) showPanel("out");
+  if (k === "g" && outside) toggleGuides();
+  if (k === "h" && outside) $("out-keys").classList.toggle("closed");
   if (k === "l") picker.open();
   if (k === "m") {
     sound.setOn(!sound.on);
@@ -336,15 +402,20 @@ window.addEventListener("keydown", (e) => {
 });
 
 // ---------- Frame loop ----------
+let lastFrame = performance.now();
 function frame() {
   requestAnimationFrame(frame);
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - lastFrame) / 1000);
+  lastFrame = now;
+  flightKeys?.update(dt);
   lower.update(latest, controls);
   if (!ready || !latest) return;
   const s = latest;
   send({ type: "controls", controls });
   const radiosOn = s.elec.avionicsBus;
   nav = radiosOn ? readNav(controls.radios.nav[0], controls.radios.obs, { latDeg: s.latDeg, lonDeg: s.lonDeg }, s.altFt) : readNav(0, 0, { latDeg: 0, lonDeg: 0 }, 0);
-  radioBox.update(radiosOn ? controls.radios.com[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? variant.callsign);
+  radioBox.update(radiosOn && !currentLesson?.start ? controls.radios.com[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? variant.callsign);
   const code = document.querySelector<HTMLElement>(".c-xpdr-code");
   if (code) code.textContent = xpdrTyping ? xpdrTyping.padEnd(4, "_") : controls.radios.xpdrCode;
   document.querySelectorAll<HTMLElement>("[data-xm]").forEach((b) => b.classList.toggle("on", b.dataset.xm === controls.radios.xpdrMode));
@@ -366,6 +437,11 @@ function frame() {
   if (s.elec.altFailed && !controls.altCycled) {
     if (!controls.switches.masterAlt) altSeenOff = true;
     else if (altSeenOff) controls.altCycled = true;
+  }
+  checkMishap(s);
+  if (outside && panel === "out") {
+    outside.draw(s, { guides });
+    outsideDash(s);
   }
   lessonPanel.update(s, controls, nav);
   checklist.update({ s, c: controls });
@@ -389,6 +465,9 @@ function systemSounds(s: C172State) {
     gyro: s.elec.essBus,
     fans: s.elec.avionicsBus,
     crankRpm: s.engine.cranking && !s.engine.running ? Math.max(60, s.engine.rpm) : 0,
+    stallHorn: stallWarning(s),
+    wind: s.kias / 110,
+    rumble: s.onGround ? Math.min(1, s.groundSpeedKt / 45) : 0,
   });
   const strokes = controls.primeStrokes ?? 0;
   if (lastSnd && strokes > lastSnd.strokes) sound.primer();
@@ -397,6 +476,64 @@ function systemSounds(s: C172State) {
     pressWarned = true;
     sound.beep();
   }
+}
+
+/** The stall warning horn: a few knots above the stall, less with flaps out. In the air only. */
+function stallWarning(s: C172State) {
+  return !s.onGround && s.aglFt > 4 && s.kias < (s.flapDeg >= 15 ? 46 : 52) && s.kias > 5;
+}
+
+// Readouts under the outside view, and the pink aim box for the current step.
+function outsideDash(s: C172State) {
+  const set = (k: string, v: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-o="${k}"]`);
+    if (el && el.textContent !== v) el.textContent = v;
+  };
+  set("ias", String(Math.round(s.kias)));
+  set("alt", String(Math.round(s.altFt / 10) * 10));
+  set("agl", `${Math.max(0, Math.round((s.altFt - FIELD_FT) / 10) * 10)} above rwy`);
+  set("vs", `${s.vsFpm >= 0 ? "+" : "−"}${Math.abs(Math.round(s.vsFpm / 50) * 50)}`);
+  set("hdg", String(Math.round(s.headingDeg) % 360 || 360).padStart(3, "0"));
+  set("rpm", String(Math.round(s.engine.rpm / 10) * 10));
+  set("flaps", String(variant.flapDeg[Math.round(controls.flaps)] ?? 0));
+  const trim = document.querySelector<HTMLElement>('[data-o="trim"]');
+  if (trim) trim.style.left = `${50 + controls.trim * 45}%`;
+  const lamp = (k: string, on: boolean, cls = "lit") => document.querySelector(`[data-o="${k}"]`)?.classList.toggle(cls, on);
+  lamp("park", controls.switches.parkBrake);
+  lamp("brake", controls.brakes > 0 && !controls.switches.parkBrake);
+  lamp("stall", stallWarning(s), "warn");
+  document.querySelectorAll<HTMLElement>("#out-keys [data-ctl]").forEach((el) => {
+    const keys: Record<string, string[]> = {
+      "key-pitch": ["arrowup", "arrowdown"],
+      "key-roll": ["arrowleft", "arrowright"],
+      "key-throttle": ["w", "s"],
+      "key-rudder": ["a", "d"],
+      "key-trim": ["q", "e"],
+      "key-brakes": ["b"],
+    };
+    el.classList.toggle("held", (keys[el.dataset.ctl!] ?? []).some((k) => flightKeys!.isHeld(k)));
+  });
+  // The aim box: what the current step wants, and how close you are.
+  const hint = $("out-hint");
+  const step = currentLesson && lessonPanel.currentStep >= 0 ? currentLesson.steps[lessonPanel.currentStep] : null;
+  const aim = guides ? step?.aim : undefined;
+  if (!aim) {
+    hint.classList.add("hidden");
+    return;
+  }
+  const row = (label: string, want: string, now: string, ok: boolean) =>
+    `<div class="oh-row"><span>${label} ${want}</span><b class="${ok ? "ok" : "off"}">now ${now}</b></div>`;
+  let html = '<div class="oh-title">Aim for</div>';
+  if (aim.kias !== undefined) html += row("Speed", `${aim.kias} kt`, String(Math.round(s.kias)), Math.abs(s.kias - aim.kias) <= 5);
+  if (aim.altFt !== undefined) html += row("Altitude", `${aim.altFt} ft`, String(Math.round(s.altFt / 10) * 10), Math.abs(s.altFt - aim.altFt) <= 100);
+  if (aim.hdg !== undefined) {
+    const h = String(aim.hdg).padStart(3, "0");
+    const d = angleDiff(s.headingDeg, aim.hdg);
+    const turn = Math.abs(d) <= 10 ? "" : d < 0 ? " (turn left)" : " (turn right)";
+    html += row("Heading", h, String(Math.round(s.headingDeg) % 360 || 360).padStart(3, "0") + turn, Math.abs(d) <= 10);
+  }
+  if (hint.innerHTML !== html) hint.innerHTML = html;
+  hint.classList.remove("hidden");
 }
 
 function blank(cv: HTMLCanvasElement) {
@@ -430,6 +567,8 @@ w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: contro
 w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroControls = () => controls;
 w.__runwayZeroNav = () => nav;
+w.__runwayZeroRwy = () => (latest ? rwyPos(latest) : null);
+w.__runwayZeroStep = () => lessonPanel.currentStep;
 w.__runwayZeroReadback = () => radioBox.readbackOk;
 w.__runwayZeroSound = () => sound.debug();
 w.__runwayZeroSpoken = () => radioBox.voice.spoken;

@@ -756,6 +756,92 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "It is a caution about the quantity. Check the selector and plan to land with enough fuel.",
     },
   ],
+  "c172-ff-takeoff": [
+    {
+      q: "On the taxiway you reach yellow lines painted across it. What do you do?",
+      options: ["Stop before them and wait for a clearance", "Cross them and line up", "Speed up to cross quickly", "Turn around"],
+      why: "Those lines are the holding point for the runway. You never cross them onto the runway without a clearance.",
+    },
+    {
+      q: "How do you steer the aircraft on the ground?",
+      options: ["With the rudder pedals, which turn the nose wheel", "With the yoke", "With the throttle", "With the trim"],
+      why: "On the ground the rudder pedals (A and D here) steer the nose wheel. The yoke does very little at taxi speed.",
+    },
+    {
+      q: "At about what speed do you gently pull back to lift off in the C172?",
+      options: ["55 knots", "25 knots", "90 knots", "120 knots"],
+      why: "At about 55 knots the wing makes enough lift. A gentle pull raises the nose and the aircraft flies.",
+    },
+    {
+      q: "In the climb the speed is falling below 70 knots. What do you do?",
+      options: ["Lower the nose a little", "Raise the nose more", "Take off power", "Lower the flaps fully"],
+      why: "Pitch controls the speed. Nose down a little lets the speed come back. Raising the nose would slow you further, towards a stall.",
+    },
+    {
+      q: "What is the trim for?",
+      options: ["It takes the pressure off the yoke so the aircraft holds its pitch by itself", "It steers the nose wheel", "It sets the engine power", "It lowers the flaps"],
+      why: "Once trimmed, the aircraft keeps its attitude and speed with your hands off, which makes flying much less tiring.",
+    },
+  ],
+  "c172-ff-circuit": [
+    {
+      q: "In this lesson's circuit, which way do all the turns go?",
+      options: ["Left", "Right", "Left, then right", "It changes every time"],
+      why: "It is a left-hand circuit: crosswind, downwind, base and final are all left turns, so the runway stays on your left.",
+    },
+    {
+      q: "Which leg of the circuit runs parallel to the runway, pointing the opposite way?",
+      options: ["Downwind", "Final", "Crosswind", "Base"],
+      why: "Downwind is parallel to the runway, flown the opposite way to the landing. Base and final follow it.",
+    },
+    {
+      q: "Where in the circuit do you reduce power and take the first stage of flap?",
+      options: ["Abeam the runway threshold on downwind", "Right after take-off", "On the crosswind leg", "Over the runway"],
+      why: "When the start of the runway is beside you on downwind, you reduce power to about 1700 RPM and take flaps 10. The descent starts there.",
+    },
+    {
+      q: "In a turn, the nose starts to drop. What helps?",
+      options: ["A little back pressure on the yoke", "More bank", "Less power", "Flaps up"],
+      why: "Banking tilts some of the wing's lift sideways, so the nose drops unless you add a little back pressure.",
+    },
+    {
+      q: "On final, the PAPI shows two white and two red lights. What does that mean?",
+      options: ["You are on the right slope", "You are too high", "You are too low", "The runway is closed"],
+      why: "Two white and two red is on the slope. More white means high, more red means low.",
+    },
+  ],
+  "c172-ff-landing": [
+    {
+      q: "On final you are getting low (more red PAPI lights). What do you do?",
+      options: ["Add a little power", "Pull the nose up hard", "Take all the power off", "Raise the flaps"],
+      why: "Power controls the slope. A little more power stops the extra descent, and the speed stays in hand with pitch.",
+    },
+    {
+      q: "What speed do you aim for on final with flaps 20 in this lesson?",
+      options: ["65 knots", "40 knots", "100 knots", "120 knots"],
+      why: "About 65 knots gives a good margin above the stall with flaps out, without floating a long way down the runway.",
+    },
+    {
+      q: "When do you bring the power to idle?",
+      options: ["As you cross the start of the runway, about 50 ft up", "At 1000 ft on final", "On the downwind leg", "After the nose wheel is down"],
+      why: "Over the threshold the power comes off, and the aircraft settles towards the runway for the flare.",
+    },
+    {
+      q: "What is the flare?",
+      options: [
+        "Raising the nose just above the runway to stop the descent and touch down gently",
+        "A bright light on the runway",
+        "Adding full power to go around",
+        "Lowering the last stage of flap",
+      ],
+      why: "About 10 to 15 ft up you raise the nose gently and hold it off. The main wheels touch first, at low speed.",
+    },
+    {
+      q: "The stall horn sounds just before the wheels touch. What does that usually mean?",
+      options: ["The speed is low, as it should be at touchdown", "The engine has failed", "You must go around at once", "The flaps have failed"],
+      why: "In a good landing the speed is low at touchdown, close to the stall, so a short beep of the horn is normal. In the air at height it is a warning to lower the nose.",
+    },
+  ],
   "c172-shutdown": [
     {
       q: "How do you normally stop the engine?",

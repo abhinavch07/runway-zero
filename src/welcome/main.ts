@@ -145,6 +145,15 @@ interface Path {
 }
 const PATHS: Path[] = [
   {
+    who: "Just want to fly",
+    why: "Take the controls with the keyboard and the view out of the window. Taxi out, take off, fly a circuit and land.",
+    steps: [
+      ["c172", "c172-ff-takeoff"],
+      ["c172", "c172-ff-circuit"],
+      ["c172", "c172-ff-landing"],
+    ],
+  },
+  {
     who: "New to flying",
     why: "Start small. A light aircraft has fewer switches, and each one does something you can see.",
     steps: [

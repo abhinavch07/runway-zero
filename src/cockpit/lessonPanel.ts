@@ -19,6 +19,8 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
   /** Called when the learner presses "Take the quiz" at the end of the lesson. */
   onQuiz?: () => void;
   private footerHtml = "";
+  /** Index of the step being worked on, or -1 when there is none (not started or all done). */
+  currentStep = -1;
   private showPanel: (p: P) => void;
   private getPanel: () => P;
 
@@ -80,6 +82,7 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
       }
     }
 
+    this.currentStep = current;
     const items = this.list.children;
     for (let i = 0; i < items.length; i++) {
       items[i].className = this.latched[i] ? "done" : i === current ? "current" : "";

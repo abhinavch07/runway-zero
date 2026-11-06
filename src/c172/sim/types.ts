@@ -81,6 +81,21 @@ export interface C172Start {
   fuelGalPerTank: number;
   /** Different amounts in the left and right tanks, gallons (overrides fuelGalPerTank). */
   fuelGal?: [number, number];
+  /** Start in the air, already flying (the first flight lessons). */
+  air?: AirStart;
+}
+
+/** Flying at the start: height above the runway, speed and the lever settings that hold it. */
+export interface AirStart {
+  aglFt: number;
+  kias: number;
+  /** Flap lever stage. */
+  flaps: number;
+  throttle: number;
+  /** Elevator trim, -1 to +1. */
+  trim: number;
+  /** Flight path angle, degrees (negative descending). */
+  gammaDeg?: number;
 }
 
 export interface C172State {

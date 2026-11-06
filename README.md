@@ -10,7 +10,7 @@
 <p align="center">
   <img alt="Licence GPL v3" src="https://img.shields.io/badge/licence-GPL%20v3-blue">
   <img alt="Aircraft" src="https://img.shields.io/badge/aircraft-4-orange">
-  <img alt="Lessons" src="https://img.shields.io/badge/lessons-31-brightgreen">
+  <img alt="Lessons" src="https://img.shields.io/badge/lessons-34-brightgreen">
   <img alt="Runs in" src="https://img.shields.io/badge/runs%20in-desktop%20browser-lightgrey">
 </p>
 
@@ -27,9 +27,10 @@
 ## Highlights
 
 - 🛫 **Four aircraft**: an A320neo-type and a B737-type airliner, and C172-type and PA-28-type light aircraft with glass cockpits.
-- 🧭 **31 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
+- 🧭 **34 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
 - ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
 - 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
+- 🛩️ **First flight**: fly the C172 yourself with the keyboard and a simple 3D view out of the window. Taxi out, take off, fly a circuit around runway 28 and land, with pink guide dots and an aim box until you are ready to turn them off.
 - 🔍 **Explore mode**: press EXPLORE and point at any switch, knob or screen to learn what it is and when you use it. Nothing moves while you explore.
 - 📖 **Glossary**: words like QNH, N1 or magneto have a dotted underline in lessons, quizzes and explore cards. Point at one (or tap it) for a plain English meaning. All of them are on the [glossary page](https://www.runwayzero.in/glossary.html).
 - 📝 **A quiz after every lesson**: 5 questions, with the answer and the reason after each one.
@@ -54,7 +55,7 @@
     <td><img src="docs/images/pa28-panel.png" alt="PA-28 lower panel with the fuel selector, hand primer and engine readout"></td>
   </tr>
   <tr>
-    <td><b>C172-type</b>: glass PFD and MFD, magneto key, fuel selector and shutoff. 8 lessons including an alternator failure.</td>
+    <td><b>C172-type</b>: glass PFD and MFD, magneto key, fuel selector and shutoff. 11 lessons including an alternator failure and a first flight you fly yourself.</td>
     <td><b>PA-28-type</b>: low wing, left and right tanks with no BOTH, hand primer, fuel pressure. 7 lessons including a fuel pump failure.</td>
   </tr>
 </table>
@@ -114,9 +115,12 @@
 | C172 | 3 | Radios and ATC clearance | COM tuning, the ATIS, a clearance from Ground, transponder |
 | C172 | 4 | VOR and ILS | Tune and identify a VOR, radial FROM, course TO, the localizer |
 | C172 | 5 | Run-up before take-off | 1800 RPM, magneto check, engine and electrics, trim, flaps |
-| C172 | 6 | Alternator failure | LOW VOLTS, reset the alternator, shed load, plan to land |
-| C172 | 7 | Fuel management and starvation | An empty tank stops the engine, switch tanks, restart |
-| C172 | 8 | Shutdown and secure | Avionics off, mixture to cut-off, magnetos off, master off |
+| C172 | 6 | First flight 1: Taxi and take-off | Keyboard flying, taxi to the holding point, line up, lift off at 55 knots, climb, trim, level off |
+| C172 | 7 | First flight 2: Fly the circuit | Crosswind, downwind, before-landing check, flaps 10 abeam, base, flaps 20, final |
+| C172 | 8 | First flight 3: Land | 65 knots on final, the PAPI, power to idle, flare, touch down, brake |
+| C172 | 9 | Alternator failure | LOW VOLTS, reset the alternator, shed load, plan to land |
+| C172 | 10 | Fuel management and starvation | An empty tank stops the engine, switch tanks, restart |
+| C172 | 11 | Shutdown and secure | Avionics off, mixture to cut-off, magnetos off, master off |
 | PA-28 | 1 | Before start and engine start | Fuel selector, electric fuel pump, hand primer, the key, fuel pressure |
 | PA-28 | 2 | Radios and ATC clearance | As the C172, with the callsign VT-RZP |
 | PA-28 | 3 | VOR and ILS | As the C172 |
@@ -140,9 +144,25 @@
 | <kbd>L</kbd> | Lesson list |
 | <kbd>C</kbd> | Checklists |
 | <kbd>Esc</kbd> | Stop exploring |
+| <kbd>3</kbd> | C172: the outside view |
 | <kbd>M</kbd> | Sound on or off |
 | Arrow keys | A320 sidestick |
 | Shift + click | Bigger steps on the − and + buttons |
+
+Flying the C172 in the first flight lessons:
+
+| Key | Action |
+| --- | --- |
+| <kbd>↓</kbd> <kbd>↑</kbd> | Pull back (nose up) and push (nose down). Springs back when you let go. Shift for full travel |
+| <kbd>←</kbd> <kbd>→</kbd> | Roll left and right |
+| <kbd>W</kbd> <kbd>S</kbd> | More and less power (Shift+W full, Shift+S idle) |
+| <kbd>A</kbd> <kbd>D</kbd> | Rudder and nose wheel steering |
+| <kbd>F</kbd> <kbd>R</kbd> | Flaps down and up one stage |
+| <kbd>Q</kbd> <kbd>E</kbd> | Trim nose down and nose up |
+| <kbd>B</kbd> | Brakes (hold) |
+| <kbd>P</kbd> | Parking brake on and off |
+| <kbd>G</kbd> | Guide dots and aim box on and off |
+| <kbd>H</kbd> | Keys card on and off |
 
 Long waits, like IRS alignment or a climb, have a **TIME** button in the top bar on the airliners (×1, ×4, ×8).
 
@@ -203,6 +223,7 @@ npm run preview       # serve the production build
 npm run typecheck     # TypeScript check
 npm run test:fdm      # run the flight model for 60 s in Node
 npm run test:c172     # C172 start-up, run-up and shutdown in Node
+npm run test:firstflight  # a robot pilot flies the three C172 first flight lessons with the real lesson checks
 npm run test:pa28     # PA-28 primer start, run-up, take-off and climb in Node (add "pump" or "dry" for the failures)
 npm run test:737      # B737 power up, engine start and every autopilot mode in Node
 npm run test:flights  # scripted test flights: cold start and taxi, ground, normal law, takeoff, ILS and landing
@@ -232,7 +253,9 @@ src/
                         radio panel, overhead, pedestal levers, and the shared lesson panel and quiz
   b737/                 B737: page, worker, systems, autopilot (sim/afcs.ts), PFD, ND, engine display,
                         overhead, MCP, pedestal, CDU (cockpit/cdu.ts), lessons
-  c172/                 light aircraft: page, worker, systems, PFD, MFD, lower panel, lessons
+  c172/                 light aircraft: page, worker, systems, PFD, MFD, lower panel, lessons,
+                        and the first flight: world.ts (runway frame, circuit), cockpit/outside.ts
+                        (the 3D view, drawn on a 2D canvas), flightKeys.ts, firstFlight.ts
                         (sim/variant.ts holds what differs between the C172 and the PA-28)
   radio/                training frequencies, the NAV receiver, the radio box, spoken ATC (voice.ts)
   audio/                sound.ts (hum, APU, engines, clicks, chimes), extras.ts (systems, starts, alerts)
@@ -252,6 +275,7 @@ Each lesson has a start position and a list of steps. A step has a title, a shor
 - **A320**: the flight model is JSBSim's public A320 with CFM56 engines, not LEAP. EGT is an approximation. Hydraulics, packs and anti-ice are on/off models. The only failure is GEN 1. All FCU values are selected, and the MCDU flight plan is not flown yet. Headings are true, not magnetic.
 - **B737**: JSBSim's public 737 with CFM56 engines. CMD A with no mode holds attitude and wings level (CWS). VNAV only climbs, at 250 kt below 10,000 ft and 280 kt above. Take-off speeds come from a simple made-up rule. The screens, MCP and CDU are our own drawings in the general style of the newer large-screen cockpits.
 - **C172 and PA-28**: the glass PFD and MFD are our own drawings in the general style of light aircraft glass cockpits. The PA-28 model is changed to two tanks, a fixed-pitch propeller and 0, 10, 25 and 40 degree flaps.
+- **First flight**: the world is flat ground at the runway 28 threshold height, with made-up fields, one taxiway and no other airport buildings, traffic or wind. The circuit is our own left-hand training pattern about 0.8 NM from the runway, not a published one. Headings are true. A flight instructor should review these lessons.
 - **Everywhere**: IRS and ADIRS alignment takes 60 seconds, not several minutes. Sounds are made up in the browser, not recordings.
 
 ### Training radio and navigation data

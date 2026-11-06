@@ -60,11 +60,13 @@ export class C172Core {
     this.set("ic/long-gc-deg", start.lonDeg);
     this.set("ic/terrain-elevation-ft", start.terrainFt);
     this.set("ic/psi-true-deg", start.headingDeg);
-    this.set("ic/h-agl-ft", 4.5);
-    this.set("ic/vc-kts", 0);
-    this.set("ic/gamma-deg", 0);
+    const air = start.air;
+    this.set("ic/h-agl-ft", air ? air.aglFt : 4.5);
+    this.set("ic/vc-kts", air ? air.kias : 0);
+    this.set("ic/gamma-deg", air?.gammaDeg ?? 0);
     this.sdk.runIc();
-    this.set("fcs/flap-cmd-norm", 0);
+    const stages = this.v.flapDeg;
+    this.set("fcs/flap-cmd-norm", air ? stages[air.flaps] / stages[stages.length - 1] : 0);
     this.primeS = start.running ? 10 : 0;
     this.crankS = 0;
     this.strokesSeen = 0;
@@ -83,6 +85,18 @@ export class C172Core {
     } else {
       this.set("propulsion/magneto_cmd", 0);
       this.set("fcs/mixture-cmd-norm", 0);
+    }
+    if (air) {
+      // Flying: the engine runs at the lesson's power, flaps and trim set. No settling on the ground.
+      this.set("fcs/throttle-cmd-norm", air.throttle);
+      this.set("fcs/pitch-trim-cmd-norm", -air.trim * 0.3);
+      // Let the flaps run out (about 3 s) with the aircraft held steady, then hand over.
+      for (let i = 0; i < C172_STEP_HZ * 3; i++) {
+        this.set("fcs/elevator-cmd-norm", 0);
+        this.set("fcs/aileron-cmd-norm", -this.get("attitude/phi-rad") * 2);
+        this.sdk.run();
+      }
+      return;
     }
     for (let i = 0; i < C172_STEP_HZ * 2; i++) {
       this.set("fcs/left-brake-cmd-norm", 1);
@@ -144,7 +158,8 @@ export class C172Core {
     this.set("fcs/aileron-cmd-norm", c.roll);
     this.set("fcs/rudder-cmd-norm", -c.yaw);
     this.set("fcs/steer-cmd-norm", c.yaw);
-    this.set("fcs/pitch-trim-cmd-norm", c.trim * 0.3);
+    // Positive trim is nose up: JSBSim wants a negative elevator command for nose up, as for the yoke.
+    this.set("fcs/pitch-trim-cmd-norm", -c.trim * 0.3);
     const stages = this.v.flapDeg;
     const stage = Math.max(0, Math.min(stages.length - 1, Math.round(c.flaps)));
     this.set("fcs/flap-cmd-norm", stages[stage] / stages[stages.length - 1]);

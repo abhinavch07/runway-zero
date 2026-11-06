@@ -27,6 +27,12 @@ export interface SysSounds {
   gyro?: boolean;
   /** Piston engine cranking: RPM, for cylinder chugs. 0 when not cranking. */
   crankRpm?: number;
+  /** Light aircraft stall warning horn. */
+  stallHorn?: boolean;
+  /** Air rushing past, 0 to 1 (from the airspeed). */
+  wind?: number;
+  /** Wheels rolling on the runway, 0 to 1 (from the ground speed). */
+  rumble?: number;
 }
 
 export class ExtraSounds {
@@ -41,6 +47,9 @@ export class ExtraSounds {
   private gyroGain: GainNode;
   private gyroTone: OscillatorNode;
   private gyroSpin = 0;
+  private hornGain: GainNode;
+  private windGain: GainNode;
+  private rumbleGain: GainNode;
   private nextIgniter = 0;
   private nextBark = 0;
   private nextTick = 0;
@@ -69,6 +78,14 @@ export class ExtraSounds {
     // Gyro: a whine that rises as it spins up.
     this.gyroGain = this.gain(0);
     this.gyroTone = this.tone("sine", 200, 1, this.gyroGain);
+    // Stall horn: a reedy note, like air through a reed in the wing.
+    this.hornGain = this.gain(0);
+    this.tone("sawtooth", 1650, 0.5, this.filter("bandpass", 1650, 4, this.hornGain));
+    // Wind past the cabin, and the wheels rumbling on the ground.
+    this.windGain = this.gain(0);
+    this.noiseInto(this.filter("bandpass", 700, 0.4, this.windGain));
+    this.rumbleGain = this.gain(0);
+    this.noiseInto(this.filter("lowpass", 140, 1, this.rumbleGain));
   }
 
   private gain(v: number) {
@@ -150,6 +167,9 @@ export class ExtraSounds {
     this.ramp(this.fuelGain.gain, Math.min(6, x.fuelPumps ?? 0) * 0.004);
     this.ramp(this.packGain.gain, (x.packs ?? 0) * 0.02, 1);
     this.ramp(this.fanGain.gain, x.fans ? 0.012 : 0, 0.8);
+    this.ramp(this.hornGain.gain, x.stallHorn ? 0.05 : 0, 0.1);
+    this.ramp(this.windGain.gain, Math.min(1, x.wind ?? 0) * 0.05, 0.5);
+    this.ramp(this.rumbleGain.gain, Math.min(1, x.rumble ?? 0) * 0.12, 0.2);
 
     // Igniters: a sharp snap about once a second.
     if (x.igniters && now >= this.nextIgniter) {
