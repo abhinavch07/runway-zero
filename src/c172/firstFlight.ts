@@ -39,8 +39,8 @@ export const FIRST_FLIGHT: C172Lesson[] = [
     steps: [
       {
         title: "Look outside",
-        why: "This is the view through the windscreen. Ahead is the taxiway to runway 28. Under the view are the speed, altitude, power and flaps. The keys are on the right: the arrow keys work like the yoke.",
-        targets: ["out-keys", "o-ias", "o-alt"],
+        why: "This is the view through the windscreen. Ahead is the taxiway to runway 28. The small screen at the bottom left shows the attitude, speed, altitude and heading. The keys are on the right: the arrow keys work like the yoke. Press V to see the aircraft from behind, and V again to come back.",
+        targets: ["out-keys", "out-pfd", "view-btn"],
         panel: "out",
       },
       {
@@ -227,7 +227,7 @@ export const FIRST_FLIGHT: C172Lesson[] = [
     steps: [
       {
         title: "On final: look at the runway",
-        why: "You are on final for runway 28, about 1 nautical mile out, flaps 20, descending. Aim for the two big white blocks past the numbers. Keep that spot still in the windscreen: if it moves up you are getting low, if it moves down you are getting high.",
+        why: "You are on final for runway 28, about 1 nautical mile out, flaps 20, descending. Aim for the two big white blocks past the numbers. Keep that spot still in the windscreen: if it moves up you are getting low, if it moves down you are getting high. Pilots judge the landing from the cockpit, so try this one in the cockpit view (V).",
         targets: ["out-view"],
         panel: "out",
       },

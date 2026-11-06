@@ -30,7 +30,7 @@
 - 🧭 **34 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
 - ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
 - 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
-- 🛩️ **First flight**: fly the C172 yourself with the keyboard and a simple 3D view out of the window. Taxi out, take off, fly a circuit around runway 28 and land, with pink guide dots and an aim box until you are ready to turn them off.
+- 🛩️ **First flight**: fly the C172 yourself with the keyboard and a simple 3D view out of the window. Taxi out, take off, fly a circuit around runway 28 and land, with pink guide dots and an aim box until you are ready to turn them off. Fly from the cockpit or from behind the aircraft (V), with a small PFD on the view.
 - 🔍 **Explore mode**: press EXPLORE and point at any switch, knob or screen to learn what it is and when you use it. Nothing moves while you explore.
 - 📖 **Glossary**: words like QNH, N1 or magneto have a dotted underline in lessons, quizzes and explore cards. Point at one (or tap it) for a plain English meaning. All of them are on the [glossary page](https://www.runwayzero.in/glossary.html).
 - 📝 **A quiz after every lesson**: 5 questions, with the answer and the reason after each one.
@@ -161,6 +161,7 @@ Flying the C172 in the first flight lessons:
 | <kbd>Q</kbd> <kbd>E</kbd> | Trim nose down and nose up |
 | <kbd>B</kbd> | Brakes (hold) |
 | <kbd>P</kbd> | Parking brake on and off |
+| <kbd>V</kbd> | Cockpit view or view from behind the aircraft |
 | <kbd>G</kbd> | Guide dots and aim box on and off |
 | <kbd>H</kbd> | Keys card on and off |
 
@@ -255,7 +256,8 @@ src/
                         overhead, MCP, pedestal, CDU (cockpit/cdu.ts), lessons
   c172/                 light aircraft: page, worker, systems, PFD, MFD, lower panel, lessons,
                         and the first flight: world.ts (runway frame, circuit), cockpit/outside.ts
-                        (the 3D view, drawn on a 2D canvas), flightKeys.ts, firstFlight.ts
+                        (the 3D view and the aircraft, drawn on a 2D canvas), cockpit/miniPfd.ts,
+                        flightKeys.ts, firstFlight.ts
                         (sim/variant.ts holds what differs between the C172 and the PA-28)
   radio/                training frequencies, the NAV receiver, the radio box, spoken ATC (voice.ts)
   audio/                sound.ts (hum, APU, engines, clicks, chimes), extras.ts (systems, starts, alerts)

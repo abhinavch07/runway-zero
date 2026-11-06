@@ -37,6 +37,7 @@ import { LessonPicker, lessonFromUrl } from "../shell/picker";
 import { destination } from "../world/geo";
 import { RWY28_COURSE_T, VIDP, rwy28Along } from "../world/vidp";
 import { OutsideView } from "./cockpit/outside";
+import { MiniPfd } from "./cockpit/miniPfd";
 import { FlightKeys } from "./flightKeys";
 import { FIELD_FT, RWY_LENGTH_M, RWY_WIDTH_M, TAXI, rwyPos, rwyToLatLon, trueHdg } from "./world";
 import { angleDiff } from "../world/geo";
@@ -182,7 +183,16 @@ enableGlossaryTips();
 const outEl = document.getElementById("out-view") as HTMLCanvasElement | null;
 const outside = outEl ? new OutsideView(outEl) : null;
 const flightKeys = outside ? new FlightKeys(controls, variant.flapDeg.length - 1) : null;
+const pfdEl = document.getElementById("out-pfd") as HTMLCanvasElement | null;
+const miniPfd = pfdEl ? new MiniPfd(pfdEl) : null;
 let guides = true;
+let view: "cockpit" | "chase" = "cockpit";
+function toggleView() {
+  view = view === "cockpit" ? "chase" : "cockpit";
+  const b = $("view-btn");
+  b.innerHTML = `VIEW: ${view === "chase" ? "BEHIND" : "COCKPIT"} <kbd>V</kbd>`;
+  b.classList.toggle("chase", view === "chase");
+}
 function toggleGuides() {
   guides = !guides;
   const b = $("guide-btn");
@@ -200,6 +210,10 @@ if (outside) {
   });
   flightKeys!.enabled = () => ready && !quiz.open && $("picker").classList.contains("hidden");
   flightKeys!.onChange = () => sound.click();
+  $("view-btn").addEventListener("click", (e) => {
+    toggleView();
+    (e.currentTarget as HTMLElement).blur();
+  });
   $("restart-btn").addEventListener("click", (e) => {
     if (currentLesson) startLesson(currentLesson);
     (e.currentTarget as HTMLElement).blur();
@@ -393,6 +407,7 @@ window.addEventListener("keydown", (e) => {
   if (k === "2") showPanel("lower");
   if (k === "3" && outside) showPanel("out");
   if (k === "g" && outside) toggleGuides();
+  if (k === "v" && outside) toggleView();
   if (k === "h" && outside) $("out-keys").classList.toggle("closed");
   if (k === "l") picker.open();
   if (k === "m") {
@@ -440,7 +455,8 @@ function frame() {
   }
   checkMishap(s);
   if (outside && panel === "out") {
-    outside.draw(s, { guides });
+    outside.draw(s, { guides, view });
+    miniPfd?.draw(s);
     outsideDash(s);
   }
   lessonPanel.update(s, controls, nav);
