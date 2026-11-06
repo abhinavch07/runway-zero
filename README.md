@@ -1,116 +1,188 @@
-# Runway Zero
+<p align="center">
+  <img src="docs/images/banner.svg" alt="Runway Zero: learn cockpit procedures in your browser" width="100%">
+</p>
 
-An open source cockpit procedures trainer that runs in a desktop browser: an A320neo-type and a B737-type airliner, and two light aircraft (C172-type and PA-28-type) with glass cockpits.
+<p align="center">
+  <a href="https://abhinavch07.github.io/runway-zero/"><b>▶ Try it now in your browser</b></a>
+  &nbsp;·&nbsp; free &nbsp;·&nbsp; nothing to install &nbsp;·&nbsp; no account
+</p>
 
-> For learning only. Not approved for flight training credit or real-world operations.
-> Not affiliated with or endorsed by Airbus, Boeing, Cessna, Textron, Piper, Garmin, CFM or any airline. Lessons are simplified training flows written in our own words, not operator or manufacturer procedures.
+<p align="center">
+  <img alt="Licence GPL v3" src="https://img.shields.io/badge/licence-GPL%20v3-blue">
+  <img alt="Aircraft" src="https://img.shields.io/badge/aircraft-4-orange">
+  <img alt="Lessons" src="https://img.shields.io/badge/lessons-31-brightgreen">
+  <img alt="Runs in" src="https://img.shields.io/badge/runs%20in-desktop%20browser-lightgrey">
+</p>
 
-## Status: procedures trainer
+**Runway Zero** teaches you how to work a real cockpit, one switch at a time. Bring an airliner to life from cold and dark, set up the flight computer for Delhi to Mumbai, start the engines, talk to ATC and fly the autopilot. Or start a light aircraft and handle a failure. A guide tells you what to do and why, the right switch pulses yellow, and each step ticks off only when the aircraft is really set that way.
 
-Procedures first, flying later. Runway Zero now teaches cockpit procedures step by step. There is no outside view.
+<p align="center">
+  <img src="docs/images/b737-engine-start.gif" alt="A B737 engine start lesson: the lesson ticks off on the left while N2 and EGT rise on the engine display" width="90%">
+  <br><sub>A B737 engine start: fuel pumps, hydraulics, packs off, start switch to GRD, start lever to IDLE at 25% N2.</sub>
+</p>
 
-Pick a lesson. The lesson list on the left tells you what to do and why. The control you need pulses yellow, the right panel opens by itself, and each step ticks off when the aircraft is in the right state.
+> [!IMPORTANT]
+> For learning only. Not approved for flight training credit or real-world operations. Not affiliated with or endorsed by Airbus, Boeing, Cessna, Textron, Piper, Garmin, CFM or any airline. Lessons and checklists are simplified training flows written in our own words, not operator or manufacturer procedures.
 
-Lessons:
+## Highlights
 
-1. **Power up** (cold and dark beside Delhi runway 28): batteries, external power, ADIRS, fuel pumps, APU, until the APU powers the aircraft and the ADIRS are aligned.
-2. **MCDU setup: Delhi to Mumbai**: INIT A, the flight plan (runways, three training waypoints, a discontinuity), INIT B and PERF TAKE OFF. The route then shows on the ND.
-3. **Radios and ATC clearance** (at the gate): VHF 1 on the radio management panel, the ATIS, a clearance from Delivery with a read-back, the transponder, the cleared altitude, the RAD NAV page.
-4. **Before start and engine start** (at the gate): flight directors, QNH, FCU altitude, V1 and V2 on the PFD, route on the ND, doors on the DOOR page, signs and beacon, engine start, APU off, flaps.
-5. **After start and taxi**: ground spoilers ARM, rudder trim, flaps, pitch trim, autobrake MAX, flight control check, HYD page, taxi, brake check, T.O CONFIG test, T.O memo.
-6. **Take-off** (lined up on runway 28): brakes off, 50% N1, FLX/MCT, 100 knots, V1, rotate, gear up, CL, autothrust and autopilot, flaps up, level off at 5,000 ft.
-7. **FCU basics** (in cruise): read the FMA, change speed, heading and altitude with V/S, disconnect and engage the autopilot.
-8. **Fuel imbalance and crossfeed** (in cruise): FUEL page, X FEED, lighter side pumps off, balance with TIME ×8, back to normal.
-9. **ECAM: a generator fault** (at the gate): GEN 1 fails, MASTER CAUT, read the ECAM, the actions, CLR.
-10. **Shutdown and secure** (parked with engines running): APU start, engines off, ground power, ADIRS off, cold and dark.
+- 🛫 **Four aircraft**: an A320neo-type and a B737-type airliner, and C172-type and PA-28-type light aircraft with glass cockpits.
+- 🧭 **31 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
+- ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
+- 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
+- 📝 **A quiz after every lesson**: 5 questions, with the answer and the reason after each one.
+- 🎙️ **Spoken ATC**: listen to the ATIS, get a clearance and pick the right read-back. ATC speaks with an Indian English voice when your computer has one.
+- 🔊 **Cockpit sound**: APU and engine starts, the A320 PTU bark, pumps, packs, the autopilot disconnect, the fuel pump ticking in a Cessna. All made in the browser, no recordings.
+- ✈️ **A real flight model underneath**: JSBSim, the open source flight dynamics engine, running in your browser.
+- 💾 **Your progress is saved** in your browser, with a tick for every finished lesson and passed quiz.
 
-Panels:
+## The aircraft
 
-- **Overhead:** ADIRS, HYD, ELEC, FUEL, AIR, ANTI ICE, APU, exterior lights and signs. Lights follow the "dark cockpit" idea.
-- **Main panel:** MASTER CAUT, EFIS (FD and baro) and FCU on the glareshield, a sidestick pad (or arrow keys), PFD, ND and the engine and warning display.
-- **Pedestal:** the MCDU (with RAD NAV), the radio management panel (VHF 1) and ATC transponder, the lower ECAM with its control panel (ENG, BLEED, ELEC, HYD, FUEL, DOOR, F/CTL pages, CLR, T.O CONFIG), autobrake, speedbrake with spoiler ARM, rudder trim, pitch trim, tiller, toe brakes, thrust detents (CL, FLX/MCT, TOGA), engine masters, ENG MODE, thrust levers, flaps, gear, parking brake, with a small engine display.
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/a320-main.png" alt="A320 main panel in cruise with the PFD, ND and engine display"></td>
+    <td width="50%"><img src="docs/images/b737-main.png" alt="B737 main panel with the MCP, PFD showing CMD and LNAV, ND with the route"></td>
+  </tr>
+  <tr>
+    <td><b>A320neo-type</b>: overhead, FCU, PFD, ND, ECAM with system pages, MCDU, radio management panel. 10 lessons from power up to a generator fault.</td>
+    <td><b>B737-type</b>: overhead, MCP, three large screens, CDU, start levers, radios. 6 lessons from cold and dark to LNAV and VNAV.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/c172-instruments.png" alt="C172 glass cockpit PFD and MFD"></td>
+    <td><img src="docs/images/pa28-panel.png" alt="PA-28 lower panel with the fuel selector, hand primer and engine readout"></td>
+  </tr>
+  <tr>
+    <td><b>C172-type</b>: glass PFD and MFD, magneto key, fuel selector and shutoff. 8 lessons including an alternator failure.</td>
+    <td><b>PA-28-type</b>: low wing, left and right tanks with no BOTH, hand primer, fuel pressure. 7 lessons including a fuel pump failure.</td>
+  </tr>
+</table>
 
-Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
+## A closer look
 
-Checklists: the CHECKLIST button in the top bar (or the C key) opens the normal checklists for the aircraft: cockpit preparation, before start, after start, before take-off, before landing, after landing and parking (securing on the light aircraft). Each line is a challenge and a response. Lines the trainer can check turn green when the aircraft is really set that way and amber when not. Lines it cannot check, such as briefings and the cabin, are ticked by hand. They are simplified training checklists in our own words, not the manufacturer's or an airline's.
+<table>
+  <tr>
+    <td width="33%"><img src="docs/images/checklist.png" alt="B737 before take-off checklist card with green and amber lines"></td>
+    <td width="33%"><img src="docs/images/radio-clearance.png" alt="Radio box with an ATC clearance and three read-back choices"></td>
+    <td width="33%"><img src="docs/images/a320-ecam-apu.png" alt="A320 lower ECAM APU page during the APU start"></td>
+  </tr>
+  <tr>
+    <td><b>Checklists</b>: green when set, amber when not, a box for items you tick yourself (press <kbd>C</kbd>).</td>
+    <td><b>ATC clearance</b>: listen, then pick the correct read-back. A wrong one gets "negative" and a hint.</td>
+    <td><b>A320 APU page</b>: opens by itself during the APU start, with N and EGT.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/b737-cdu.png" alt="B737 CDU on the route page with the training waypoints"></td>
+    <td><img src="docs/images/quiz.png" alt="A quiz question with the right answer in green and the reason below"></td>
+    <td><img src="docs/images/lesson-picker.png" alt="The lesson list with aircraft tabs and progress ticks"></td>
+  </tr>
+  <tr>
+    <td><b>B737 FMC</b>: POS INIT, route, ACTIVATE and EXEC, PERF INIT and take-off speeds.</td>
+    <td><b>Quizzes</b>: 4 out of 5 to pass, with the reason after every answer.</td>
+    <td><b>Lesson list</b>: aircraft tabs, and a tick when a lesson and its quiz are done.</td>
+  </tr>
+</table>
 
-The A320 lower ECAM has an APU page (N, EGT, APU GEN, APU BLEED, intake flap). It opens by itself while the APU starts and closes 10 seconds after AVAIL.
+<p align="center">
+  <img src="docs/images/a320-overhead.png" alt="The A320 overhead during the power up lesson, with the lesson guide on the left" width="90%">
+  <br><sub>The lesson guide on the left, and the A320 overhead during power up.</sub>
+</p>
 
-Sound, on every aircraft: cockpit hum when powered, APU, engines, switch clicks and a chime for each finished step. Also:
+## Every lesson
 
-- Engine and APU starts: start valve air, igniter ticks, a light-off rumble, the APU door.
-- Airliner systems: the A320 PTU bark, electric hydraulic pumps, fuel pumps, packs airflow, cockpit fans.
-- Light aircraft: the electric fuel pump ticking, primer strokes, the standby gyro spinning up, cylinder chugs while cranking.
-- Alerts: autopilot disconnect (a warble on the B737, a short trumpet call on the A320), altitude alert, caution chimes, the PA-28 FUEL PRESS beep.
+| Aircraft | # | Lesson | What you learn |
+| --- | --- | --- | --- |
+| A320 | 1 | Power up | Batteries, ground power, ADIRS, fuel pumps and the APU, from cold and dark |
+| A320 | 2 | MCDU setup: Delhi to Mumbai | INIT A, the flight plan with training waypoints, INIT B, PERF take-off |
+| A320 | 3 | Radios and ATC clearance | VHF 1, the ATIS, a clearance with a spoken read-back, transponder, RAD NAV |
+| A320 | 4 | Before start and engine start | FD, QNH, FCU altitude, V speeds, doors, beacon, both engines, APU off |
+| A320 | 5 | After start and taxi | Spoilers, trims, flaps, autobrake, flight control check, T.O CONFIG |
+| A320 | 6 | Take-off | Thrust, 100 knots, V1, rotate, gear up, CL, autopilot, level at 5,000 ft |
+| A320 | 7 | FCU basics | Read the FMA, change speed, heading and altitude, V/S, AP on and off |
+| A320 | 8 | Fuel imbalance and crossfeed | FUEL page, X FEED, pumps off on the lighter side, balance |
+| A320 | 9 | ECAM: a generator fault | GEN 1 fails, MASTER CAUT, ECAM actions, CLR |
+| A320 | 10 | Shutdown and secure | APU start, engines off, ground power, ADIRS off, cold and dark |
+| B737 | 1 | Power up from cold and dark | Battery, IRS, APU start, APU generators, APU bleed |
+| B737 | 2 | FMC route set-up | IDENT, POS INIT, RTE, ACTIVATE and EXEC, PERF INIT, TAKEOFF REF |
+| B737 | 3 | Engine start | Packs off, start switch GRD, start lever IDLE at 25% N2, generators on |
+| B737 | 4 | MCP autopilot basics | F/D, A/T, CMD A, SPEED, HDG SEL, ALT HOLD, LVL CHG, V/S, LNAV, VNAV |
+| B737 | 5 | Radios and ATC clearance | VHF 1, the ATIS, QNH, a spoken clearance, transponder, MCP altitude |
+| B737 | 6 | VOR and ILS | NAV 1, Morse ident, ND in VOR mode, radial TO and FROM, ILS in APP mode |
+| C172 | 1 | Before start and engine start | Fuel, master, priming with the fuel pump, the key, oil pressure, avionics |
+| C172 | 2 | PFD and MFD basics | Tapes, colours, HSI, baro, heading bug, engine strip, fuel and electrics |
+| C172 | 3 | Radios and ATC clearance | COM tuning, the ATIS, a clearance from Ground, transponder |
+| C172 | 4 | VOR and ILS | Tune and identify a VOR, radial FROM, course TO, the localizer |
+| C172 | 5 | Run-up before take-off | 1800 RPM, magneto check, engine and electrics, trim, flaps |
+| C172 | 6 | Alternator failure | LOW VOLTS, reset the alternator, shed load, plan to land |
+| C172 | 7 | Fuel management and starvation | An empty tank stops the engine, switch tanks, restart |
+| C172 | 8 | Shutdown and secure | Avionics off, mixture to cut-off, magnetos off, master off |
+| PA-28 | 1 | Before start and engine start | Fuel selector, electric fuel pump, hand primer, the key, fuel pressure |
+| PA-28 | 2 | Radios and ATC clearance | As the C172, with the callsign VT-RZP |
+| PA-28 | 3 | VOR and ILS | As the C172 |
+| PA-28 | 4 | Run-up before take-off | Fuller tank, fuel pump on, 2000 RPM, magneto check, carb heat |
+| PA-28 | 5 | Switching fuel tanks | Fuel pump on, change tanks, check the pressure, note the time |
+| PA-28 | 6 | Engine fuel pump failure | FUEL PRESS, electric pump on at once, plan to land |
+| PA-28 | 7 | Shutdown and secure | Fuel pump off, mixture to cut-off, magnetos off, fuel selector OFF |
 
-All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
+## How to use it
 
-Radio voice: in the radio lessons, the ATIS, ATC and your correct read-back are spoken aloud with the browser's built-in voices (Web Speech API, free, nothing to download). ATC uses an Indian English voice when your computer has one, and the pilot uses a different voice. Numbers and callsigns are said the radio way (two eight, Victor Tango Romeo Zulu Alfa). The speaker button also mutes the voice. Which voices you hear depends on your browser and operating system.
+1. Open **[the trainer](https://abhinavch07.github.io/runway-zero/)** in Chrome, Edge, Firefox or Safari on a desktop or laptop.
+2. Pick an aircraft tab and a lesson. Click anywhere once so the browser lets the sound play.
+3. Read the step on the left. The control to use pulses yellow, and the right panel opens by itself.
+4. Do what the step says. It ticks off when the aircraft is really in that state.
+5. At the end, take the quiz. Press <kbd>C</kbd> any time to open the checklists.
 
-Known gaps:
+| Key | Action |
+| --- | --- |
+| <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> | Switch panels (overhead, main panel, pedestal, or instruments and lower panel on the light aircraft) |
+| <kbd>L</kbd> | Lesson list |
+| <kbd>C</kbd> | Checklists |
+| <kbd>M</kbd> | Sound on or off |
+| Arrow keys | A320 sidestick |
+| Shift + click | Bigger steps on the − and + buttons |
 
-- The flight model is JSBSim's public A320 model with small changes (see Licences). CFM56 engines, not LEAP.
-- EGT is an approximation: the stand-in engine model does not calculate it.
-- Simplified systems: hydraulics, packs and anti-ice are on/off models. Only one failure exists (GEN 1). ECAM pages are our own simplified layouts. Pitch and rudder trim on the pedestal are for the checks only and do not move the flight model.
-- All FCU values are "selected". The MCDU flight plan is not flown yet (no managed NAV mode).
-- No real SIDs, STARs, approaches or airways in the MCDU.
-- Headings are true, not magnetic (about 1° difference at Delhi).
+Long waits, like IRS alignment or a climb, have a **TIME** button in the top bar on the airliners (×1, ×4, ×8).
 
-## Cessna 172
+## FAQ
 
-A second aircraft: a C172-type light aircraft with a glass cockpit (its own page, `c172.html`). Pick it from the aircraft tabs in the lesson list.
+**Is it free?**
+Yes. It is open source under the GPL v3 and runs in your browser. There are no accounts, ads or payments.
 
-1. **Before start and engine start**: fuel shutoff and selector, master (BAT and ALT), standby battery, beacon, mixture and throttle, priming with the electric fuel pump, the magneto key, oil pressure, 1000 RPM, avionics.
-2. **PFD and MFD basics**: the PFD tapes, colours and HSI, baro and heading bug, the MFD engine strip, fuel and electrics.
-3. **Radios and ATC clearance**: COM tuning with standby and swap, the ATIS, a clearance from Ground with a read-back, the transponder.
-4. **VOR and ILS**: tune and identify a VOR (Morse ident), find the radial (FROM) and the course to the station (TO), tune the ILS and read the localizer.
-5. **Run-up before take-off**: brakes, mixture, flight controls, fuel, trim, 1800 RPM, magneto check, engine and electrics, idle check, flaps.
-6. **Alternator failure**: LOW VOLTS, volts and amps, reset ALT, ALT off, shed load, plan to land.
-7. **Fuel management and starvation**: an empty selected tank stops the engine, switch tanks, fuel pump, restart.
-8. **Shutdown and secure**: avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector to one tank.
+**Can I log hours or use it for my licence?**
+No. It is a learning aid for procedures, not an approved training device.
 
-The flight model is JSBSim's public Cessna 172 (`c172p`) with its IO-320 engine. Our own code adds the electrics (24 V battery, 28 V alternator, essential and avionics buses, standby battery), the fuel selector and shutoff, priming with the fuel pump, and the spring-loaded START position of the key. The engine is fuel injected, so there is no carb heat and no primer knob. The glass PFD and MFD are our own drawings in the general style of light-aircraft glass cockpits, not copies of any manufacturer's display.
+**Is it a full flight simulator?**
+Not yet. It is a procedures trainer, so there is no outside view. Under the panels there is a real flight model (JSBSim), so the aircraft does move, climb and turn. Flying by hand comes later.
 
-## PA-28
+**Are the checklists and lessons the real ones?**
+No. They are simplified flows in our own words, from general public knowledge. Always use your airline's or school's documents for real flying.
 
-A third aircraft: a PA-28-type low-wing light aircraft with a glass cockpit (its own page, `pa28.html`, sharing the C172 page code). Pick it from the aircraft tabs in the lesson list.
+**Are the frequencies and waypoints real?**
+No. All radio frequencies, navaids and waypoints are made up for training and labelled TRAINING or RZ. Never use them for real flight.
 
-1. **Before start and engine start**: fuel selector (no BOTH position), master, standby battery, beacon, electric fuel pump and fuel pressure, mixture and throttle, the hand primer, the magneto key, oil pressure, 1000 RPM, electric pump off with a pressure check, avionics.
-2. **Radios and ATC clearance**: as the C172, with the callsign VT-RZP.
-3. **VOR and ILS**: as the C172.
-4. **Run-up before take-off**: brakes, mixture, controls, take-off on the fuller tank, electric fuel pump on, trim, 2000 RPM, magneto check, carb heat (described), engine and fuel pressure, idle check, flaps up.
-5. **Switching fuel tanks**: electric pump on, select the full tank, check the pressure, pump off, note the time.
-6. **Engine fuel pump failure**: the engine-driven pump fails, FUEL PRESS warning, electric pump on at once, check the pressure, plan to land.
-7. **Shutdown and secure**: fuel pump off, avionics off, mixture to idle cut-off, magnetos off, master off, fuel selector OFF.
+**I can't hear anything.**
+Browsers only allow sound after your first click or key press. Check the speaker button in the top bar is on. The spoken ATC uses your computer's own voices, so the voice depends on your browser and system.
 
-The flight model is JSBSim's public PA-28-180 (`pa28`) with its 180 hp engine, changed for Runway Zero: two 25-gallon wing tanks instead of one, a fixed-pitch propeller (`prop_75in2f`), main wheels that no longer steer, and flaps of 0, 10, 25 and 40 degrees. Our own code adds the hand primer, fuel pressure from the engine-driven and electric pumps, the carburettor running on for a few seconds when the pressure is lost, and the fuel pump failure. On the MFD the fuel pressure bar takes the place of EGT.
+**Does it work on a phone?**
+It is made for a desktop or laptop screen with a mouse. A tablet may work, but the panels are small.
 
-## B737
+**Where is my progress saved?**
+In your browser only. Clearing your browser data, or using another browser, starts fresh. The lesson list has a Reset progress button.
 
-A fourth aircraft: a B737-type airliner with large screens (its own page, `737.html`). Pick it from the aircraft tabs in the lesson list. Three panels: overhead, main panel (EFIS, MCP, PFD, ND and engine display) and pedestal (CDU, thrust and start levers, flaps, VHF 1, NAV 1, transponder).
+## Contributing
 
-1. **Power up from cold and dark**: battery, IRS to NAV, APU start, APU GEN on both buses, position lights, APU bleed, IRS alignment.
-2. **FMC route set-up**: IDENT, POS INIT (reference airport, GPS position to SET IRS POS), RTE pages (origin, destination, runway, flight number, the RZ waypoints), ACTIVATE and EXEC, PERF INIT (ZFW, reserves, cost index, cruise altitude), TAKEOFF REF (flaps and V speeds).
-3. **Engine start**: fuel pumps, electric hydraulic pumps, anti-collision light, packs off for duct pressure, engine 2 then 1 (start switch GRD, start lever IDLE at 25% N2, starter cut-out at 56% N2), generators on, packs on, APU bleed and APU off.
-4. **MCP autopilot basics** (in flight): F/D, A/T ARM, CMD A, SPEED, HDG SEL, ALT HOLD, LVL CHG climb, V/S descent, LNAV and VNAV on the FMC route, reading the FMA.
-5. **Radios and ATC clearance**: VHF 1, the ATIS, QNH on the EFIS panel, a clearance from Delivery with a spoken read-back, transponder, cleared altitude on the MCP.
-6. **VOR and ILS**: NAV 1, Morse ident, the ND in VOR mode with the MCP COURSE (radial, TO and FROM), then the ILS in APP mode.
+You don't need to write code to help.
 
-The flight model is JSBSim's public 737 model with its CFM56 engines. The only change is that the network inputs at the end of the file are removed, because a browser cannot open them. Our own code adds simplified systems (battery, APU, AC buses with APU and engine generators, IRS, six fuel pumps with centre tank feed, hydraulic systems A and B, bleed air and duct pressure, the B737 style engine start) and an autopilot with the MCP modes. The autopilot is simplified: CMD A with no mode holds attitude and wings level (CWS), and VNAV climbs at 250 kt below 10,000 ft and 280 kt above, to the lower of the MCP and FMC altitudes, with no descent path. The screens, MCP and CDU are our own drawings in the general style of the newer large-screen B737 cockpits, not copies of the real ones. The take-off speeds on the CDU come from a simple made-up rule, not real performance data.
+- **Pilots and instructors**: try a lesson or a checklist and tell us what is wrong or missing. Type-rated pilots for the A320 and B737, and flight instructors for the C172 and PA-28, are especially welcome.
+- **Learners**: tell us what was confusing, or which lesson you would like next.
+- **Developers**: bug fixes, new lessons, new panels and better sounds are all welcome.
 
-## Training radio and navigation data
+Open an [issue](https://github.com/abhinavch07/runway-zero/issues) with what you found. For code, fork the repository, make your change on a branch, run `npm run typecheck`, and open a pull request.
 
-All radio frequencies and navaids are made up for training and labelled TRAINING or RZ: RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the RZV VOR on 113.35 (18 NM north-west of Delhi) and the IRZ ILS 28 on 110.55. Never use them for real flight. The A320 top bar has a TIME button (×1, ×4, ×8) to speed up long waits.
+---
 
-## Try it online
+## For developers
 
-https://abhinavch07.github.io/runway-zero/
-
-The site is the built `dist/` folder on the `gh-pages` branch. To publish the latest `main`, run `npm run publish:pages`. GitHub Pages is set to Deploy from a branch: `gh-pages`, `/ (root)`.
-
-After each lesson there is a 5-question quiz, with the answer and the reason after each question. 4 out of 5 passes. The lesson list shows a green tick when a lesson is finished and its quiz is passed, and a half tick when the lesson is finished but the quiz is not passed yet. Progress is saved in the browser only.
-
-## Run it
+### Run it
 
 You need Node.js 20 or newer.
 
@@ -120,8 +192,6 @@ npm run dev               # open the address it prints, usually http://localhost
 ```
 
 No accounts, tokens or keys are needed.
-
-Other commands:
 
 ```bash
 npm run build         # production build in dist/
@@ -134,84 +204,66 @@ npm run test:737      # B737 power up, engine start and every autopilot mode in 
 npm run test:flights  # scripted test flights: cold start and taxi, ground, normal law, takeoff, ILS and landing
 ```
 
-## Keys
+### Publishing
 
-| Key | Action |
-| --- | --- |
-| 1 | Overhead panel |
-| 2 | Main panel |
-| 3 | Pedestal |
-| L | Lesson list |
-| Arrow keys | A320 sidestick (not while typing in the MCDU) |
-| M | Sound on / off |
+The site is the built `dist/` folder on the `gh-pages` branch. To publish the latest `main`, run `npm run publish:pages`. GitHub Pages is set to Deploy from a branch: `gh-pages`, `/ (root)`.
 
-Click switches and buttons with the mouse. MCDU: click it once, then you can type on your keyboard (Backspace is CLR, arrow keys scroll, Esc stops typing). FCU values: scroll the mouse wheel over a value, or use − / + (hold Shift for bigger steps).
+### How it is built
 
-## How it is built
+Each aircraft has its own page: `index.html` (A320), `737.html` (B737), `c172.html` and `pa28.html` (the light aircraft share one script). The flight model runs in a Web Worker at 120 Hz. The page draws the panels and screens, runs the lessons and plays the sound.
 
 ```
 src/
-  main.ts               page, panels, lesson picker, display loop
-  config.ts             start positions for the lessons
-  lessons/lessons.ts    the A320 lessons and their steps
-  lessons/catalog.ts    every aircraft and its lessons, for the lesson picker
-  shell/picker.ts       lesson picker with aircraft tabs, shared by both pages
-  c172/                 the light aircraft (C172 and PA-28): page, worker, systems, PFD, MFD, lower panel, lessons
-                        (sim/variant.ts holds what differs between the two, pa28Lessons.ts the PA-28 lessons)
-  b737/                 the B737: page, worker, systems, autopilot (sim/afcs.ts), PFD, ND, engine display,
+  main.ts               A320 page, panels, lesson picker, display loop
+  config.ts             A320 start positions
+  lessons/              lessons.ts (A320), quizzes.ts (every aircraft), catalog.ts, progress.ts
+  shell/picker.ts       lesson list with aircraft tabs, shared by every page
+  shell/checklist.ts    checklist panel, shared by every page
+  checklists/           a320.ts, b737.ts, ga.ts (C172 and PA-28)
+  sim/                  A320: worker, JSBSim core, normal law and autopilot (fcc.ts), systems, ILS
+  cockpit/              A320: PFD, ND, engine and warning display, ECAM pages, FCU, EFIS, MCDU,
+                        radio panel, overhead, pedestal levers, and the shared lesson panel and quiz
+  b737/                 B737: page, worker, systems, autopilot (sim/afcs.ts), PFD, ND, engine display,
                         overhead, MCP, pedestal, CDU (cockpit/cdu.ts), lessons
-  lessons/quizzes.ts    five quiz questions for each lesson
-  lessons/progress.ts   lesson ticks and best quiz scores, saved in the browser
-  sim/fdm.worker.ts     runs the simulation in a Web Worker at 120 Hz
-  sim/core.ts           JSBSim and start positions (shared with the Node tests)
-  sim/fcc.ts            normal law, autopilot and autothrust
-  sim/systems.ts        electrics, APU, ADIRS, fuel, bleed, engine start
-  sim/ils.ts            ILS deviations
-  sim/types.ts          messages between page and worker
-  world/vidp.ts         VIDP runway data and the training ILS 28
-  world/geo.ts          distance and bearing helpers
-  world/route.ts        small navigation database: VIDP, VABB and the training waypoints
-  cockpit/lessonPanel.ts  lesson list, highlights and step checking
-  cockpit/quiz.ts       the quiz dialog
-  cockpit/mcdu.ts       MCDU: INIT A, INIT B, F-PLN, LAT REV, departure and arrival, PERF TAKE OFF
-  cockpit/pfd.ts        PFD
-  cockpit/nd.ts         ND
-  cockpit/ewd.ts        engine and warning display
-  cockpit/fcu.ts        FCU on the glareshield
-  cockpit/efis.ts       EFIS: flight director and baro (QNH / STD)
-  cockpit/ecam.ts       ECAM alerts and action lines, T.O memo, T.O CONFIG test
-  cockpit/sd.ts         lower ECAM system pages
-  cockpit/rmp.ts        A320 radio management panel and ATC transponder
-  radio/training.ts     made-up training frequencies and navaids
-  radio/navReceiver.ts  VOR radial, TO/FROM and needle, localizer and glide slope
-  radio/radioBox.ts     what is heard on the radio, clearance read-back
-  audio/sound.ts        cockpit sound made with Web Audio
-  audio/extras.ts       system sounds, start sounds and alerts
-  shell/checklist.ts    the checklist panel shared by every aircraft
-  checklists/           the checklists: a320.ts, b737.ts, ga.ts (C172 and PA-28)
-  radio/voice.ts        spoken radio messages (Web Speech API)
-  cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
-  cockpit/overhead.ts   overhead panel
+  c172/                 light aircraft: page, worker, systems, PFD, MFD, lower panel, lessons
+                        (sim/variant.ts holds what differs between the C172 and the PA-28)
+  radio/                training frequencies, the NAV receiver, the radio box, spoken ATC (voice.ts)
+  audio/                sound.ts (hum, APU, engines, clicks, chimes), extras.ts (systems, starts, alerts)
+  world/                VIDP runway data, the training ILS 28, geo helpers, the training waypoints
 public/jsbsim/          JSBSim aircraft and engine files
 scripts/                Node test scripts
+docs/images/            the pictures in this README
 ```
 
 ### Writing a lesson
 
-Each lesson in `src/lessons/lessons.ts` has a start position and a list of steps. A step has a title, a short "why", the controls to highlight (their `data-ctl` names), the panel to show, and a `done(state, controls, fms)` check. `fms` is the MCDU data. Steps without a `done` check wait for the learner to press Next. Use `want: true` or `want: false` on switch steps so switches already in place stop pulsing.
+Each lesson has a start position and a list of steps. A step has a title, a short "why", the controls to highlight (their `data-ctl` names), the panel to show, and a `done(state, controls, extra)` check. Steps without a `done` check wait for the learner to press Next. Use `want: true` or `want: false` on switch steps so switches already in place stop pulsing. Add 5 quiz questions for the lesson in `src/lessons/quizzes.ts`.
 
-## Data sources
+### What is simplified
 
-- Lessons and quiz questions are our own simplified training flows, written from general public knowledge of the A320 family. A type-rated pilot should review them.
+- **A320**: the flight model is JSBSim's public A320 with CFM56 engines, not LEAP. EGT is an approximation. Hydraulics, packs and anti-ice are on/off models. The only failure is GEN 1. All FCU values are selected, and the MCDU flight plan is not flown yet. Headings are true, not magnetic.
+- **B737**: JSBSim's public 737 with CFM56 engines. CMD A with no mode holds attitude and wings level (CWS). VNAV only climbs, at 250 kt below 10,000 ft and 280 kt above. Take-off speeds come from a simple made-up rule. The screens, MCP and CDU are our own drawings in the general style of the newer large-screen cockpits.
+- **C172 and PA-28**: the glass PFD and MFD are our own drawings in the general style of light aircraft glass cockpits. The PA-28 model is changed to two tanks, a fixed-pitch propeller and 0, 10, 25 and 40 degree flaps.
+- **Everywhere**: IRS and ADIRS alignment takes 60 seconds, not several minutes. Sounds are made up in the browser, not recordings.
+
+### Training radio and navigation data
+
+RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the RZV VOR on 113.35 (18 NM north-west of Delhi) and the IRZ ILS 28 on 110.55. The RZ101, RZ102 and RZ103 waypoints lie between Delhi and Mumbai. All made up for training.
+
+### Data sources
+
+- Lessons, checklists and quiz questions are our own simplified training flows, written from general public knowledge. A type-rated pilot (or a flight instructor for the light aircraft) should review them.
 - VIDP runway ends, headings and elevations: [OurAirports](https://github.com/davidmegginson/ourairports-data) (public domain).
-- The MCDU is a small training version. Its pages follow the general A320 family idea but are not a copy of the real software. The RZ101, RZ102 and RZ103 waypoints are made up for training. VABB is listed by runway ident only. Take-off speeds in the lesson are training numbers, not performance data.
-- ILS 28 is built from the runway geometry: a training stand-in, not the published procedure.
+- The MCDU and CDU are small training versions, not copies of the real software. VABB is listed by runway ident only. ILS 28 is built from the runway geometry, a training stand-in, not the published procedure.
 
-## Licences
+### Licences
 
 - Runway Zero code: GPL v3 or later (see `LICENSE`).
 - JSBSim and its A320 and engine data files: LGPL 2.1 (`public/jsbsim/COPYING-LGPL-2.1.txt`). The A320 model notes it is built from public data, for educational and entertainment use, and not to be sold. Our copy is modified: fuel tank position moved from 600 to 650 in, CmDe changed from -1.5 to -2.0 so the model can be trimmed at normal approach speeds, and nose gear steering widened from 5° to 70° for taxiing. The changes are noted at the top of `A320.xml`.
-- JSBSim Cessna 172 (`aircraft/c172p`, `engine/eng_io320.xml`, `engine/prop_75in2f.xml`): LGPL 2.1, unmodified. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
-- JSBSim 737 (`aircraft/737`, `engine/CFM56.xml`): the model file states the GPL. Our copy only removes the telnet and socket inputs, and the change is noted in its header. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
-- JSBSim PA-28-180 (`aircraft/pa28`, `engine/engIO360C.xml`): LGPL 2.1. The aircraft file is modified (two tanks, fixed-pitch propeller, main wheel steering off, 10° first flap stage), and the changes are noted in its header. The model notes it is built from public data, for educational and entertainment use, and not to be sold.
+- JSBSim Cessna 172 (`aircraft/c172p`, `engine/eng_io320.xml`, `engine/prop_75in2f.xml`): LGPL 2.1, unmodified.
+- JSBSim 737 (`aircraft/737`, `engine/CFM56.xml`): the model file states the GPL. Our copy only removes the telnet and socket inputs, and the change is noted in its header.
+- JSBSim PA-28-180 (`aircraft/pa28`, `engine/engIO360C.xml`): LGPL 2.1. The aircraft file is modified (two tanks, fixed-pitch propeller, main wheel steering off, 10° first flap stage), and the changes are noted in its header.
+- Each JSBSim model notes it is built from public data, for educational and entertainment use, and not to be sold.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.
+
+<p align="center"><sub>Clear skies. ✈️</sub></p>

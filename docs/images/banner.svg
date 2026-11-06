@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" role="img" aria-label="Runway Zero: learn cockpit procedures in your browser">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.55" stop-color="#1a2a4a"/>
+      <stop offset="0.78" stop-color="#e2793b"/>
+      <stop offset="1" stop-color="#f3b45e"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1f27"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <linearGradient id="runway" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a414b"/>
+      <stop offset="1" stop-color="#20252d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="360" fill="url(#sky)"/>
+  <!-- stars -->
+  <g fill="#ffffff" opacity="0.7">
+    <circle cx="90" cy="40" r="1.2"/><circle cx="210" cy="80" r="1"/><circle cx="330" cy="30" r="1.4"/>
+    <circle cx="470" cy="62" r="1"/><circle cx="820" cy="36" r="1.2"/><circle cx="960" cy="72" r="1"/>
+    <circle cx="1090" cy="28" r="1.4"/><circle cx="1210" cy="66" r="1"/><circle cx="640" cy="22" r="1"/>
+  </g>
+  <!-- ground and runway in perspective -->
+  <rect y="262" width="1280" height="98" fill="url(#ground)"/>
+  <polygon points="600,262 680,262 900,360 380,360" fill="url(#runway)"/>
+  <g fill="#f4f1e6">
+    <polygon points="637,266 643,266 645,276 635,276"/>
+    <polygon points="634,286 646,286 649,302 631,302"/>
+    <polygon points="629,316 651,316 656,340 624,340"/>
+  </g>
+  <g fill="#f4f1e6" opacity="0.9">
+    <rect x="602" y="262" width="3" height="3"/><rect x="675" y="262" width="3" height="3"/>
+  </g>
+  <!-- approach lights -->
+  <g fill="#ffd400">
+    <circle cx="560" cy="300" r="3"/><circle cx="530" cy="318" r="3.5"/><circle cx="496" cy="338" r="4"/>
+    <circle cx="720" cy="300" r="3"/><circle cx="750" cy="318" r="3.5"/><circle cx="784" cy="338" r="4"/>
+  </g>
+  <!-- a generic airliner silhouette climbing away -->
+  <g transform="translate(1000 150) rotate(-12)" fill="#0b1020" opacity="0.9">
+    <path d="M -120 0 C -110 -9 90 -11 120 -4 C 132 -1 132 5 120 6 C 90 12 -110 11 -120 4 Z"/>
+    <path d="M -10 -2 L 40 -2 L -30 -62 L -52 -62 Z"/>
+    <path d="M -10 4 L 40 4 L -20 40 L -40 40 Z"/>
+    <path d="M -100 -2 L -80 -2 L -110 -38 L -122 -38 Z"/>
+  </g>
+  <!-- title -->
+  <text x="80" y="140" fill="#f4f1e6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="78" font-weight="700" letter-spacing="6">RUNWAY ZERO</text>
+  <text x="84" y="186" fill="#ffd400" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="26" font-weight="600">Learn cockpit procedures in your browser</text>
+  <text x="84" y="222" fill="#c9d2db" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="20">A320 · B737 · C172 · PA-28 · guided lessons, checklists, quizzes, sound and spoken ATC</text>
+</svg>
