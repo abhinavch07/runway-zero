@@ -2,6 +2,8 @@
 // attitude, airspeed tape with colour bands, altitude tape with baro, vertical speed and an HSI rose.
 // Our own drawing for training, not a copy of any manufacturer's display.
 import type { C172Controls, C172State } from "../sim/types";
+import { freqText } from "../../radio/training";
+import type { NavReading } from "../../radio/navReceiver";
 
 const W = 640;
 const H = 480;
@@ -32,7 +34,7 @@ export class C172Pfd {
     this.g.scale(dpr, dpr);
   }
 
-  draw(s: C172State, c: C172Controls, worldQnh: number) {
+  draw(s: C172State, c: C172Controls, worldQnh: number, nav: NavReading, radiosOn: boolean) {
     const g = this.g;
     g.save();
     g.font = "bold 15px ui-monospace, Menlo, monospace";
@@ -43,8 +45,9 @@ export class C172Pfd {
     const indicated = s.altFt + (baro - worldQnh) * FT_PER_HPA;
     this.altTape(indicated);
     this.vsi(s.vsFpm);
-    this.hsi(s, c.hdgBug);
-    this.topBar(s);
+    this.hsi(s, c.hdgBug, c.radios.obs, nav);
+    if (nav.gs !== null && nav.valid) this.gsScale(nav.gs);
+    this.topBar(c, radiosOn, nav);
     this.bottomBar(s, c);
     g.restore();
   }
@@ -258,7 +261,7 @@ export class C172Pfd {
     g.restore();
   }
 
-  private hsi(s: C172State, bug: number) {
+  private hsi(s: C172State, bug: number, obs: number, nav: NavReading) {
     const g = this.g;
     const cx = W / 2;
     const cy = 400;
@@ -296,7 +299,72 @@ export class C172Pfd {
     g.fillStyle = CYAN;
     g.fillRect(-7, -r - 2, 14, 7);
     g.restore();
+    // Course pointer and deviation needle (green, NAV1). ILS uses its own course.
+    const crs = nav.station?.kind === "ils" && nav.station.courseT !== undefined ? nav.station.courseT : obs;
+    g.save();
+    g.rotate((crs * Math.PI) / 180);
+    g.strokeStyle = GREEN;
+    g.fillStyle = GREEN;
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(0, -r + 10);
+    g.lineTo(0, -24);
+    g.moveTo(0, 24);
+    g.lineTo(0, r - 12);
+    g.stroke();
+    g.beginPath();
+    g.moveTo(0, -r + 4);
+    g.lineTo(-7, -r + 16);
+    g.lineTo(7, -r + 16);
+    g.closePath();
+    g.fill();
+    // Deviation dots: 2 each side.
+    g.fillStyle = WHITE;
+    for (const d of [-2, -1, 1, 2]) {
+      g.beginPath();
+      g.arc(d * 13, 0, 2.5, 0, Math.PI * 2);
+      g.fill();
+    }
+    if (nav.valid) {
+      const x = nav.dev * 26;
+      g.strokeStyle = GREEN;
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(x, -22);
+      g.lineTo(x, 22);
+      g.stroke();
+      if (nav.toFrom) {
+        g.fillStyle = WHITE;
+        g.beginPath();
+        if (nav.toFrom === "TO") {
+          g.moveTo(14, -34);
+          g.lineTo(8, -26);
+          g.lineTo(20, -26);
+        } else {
+          g.moveTo(14, 34);
+          g.lineTo(8, 26);
+          g.lineTo(20, 26);
+        }
+        g.closePath();
+        g.fill();
+      }
+    }
+    g.restore(); // course pointer
+    g.restore(); // compass rotation
+    g.restore(); // centre translation
+    // Source label beside the rose.
+    g.save();
+    g.font = "bold 13px ui-monospace, Menlo, monospace";
+    g.textAlign = "left";
+    g.textBaseline = "middle";
+    g.fillStyle = GREEN;
+    const src = nav.station ? (nav.station.kind === "ils" ? "LOC1" : "VOR1") : "NAV1";
+    g.fillText(src, W / 2 - r - 60, 392);
+    g.fillStyle = nav.valid ? GREEN : "#ff9f1a";
+    g.fillText(nav.valid ? (nav.toFrom ?? "") : "NO SIG", W / 2 - r - 60, 410);
     g.restore();
+    g.save();
+    g.translate(cx, cy);
     // Aircraft symbol and lubber line.
     g.fillStyle = WHITE;
     g.beginPath();
@@ -321,21 +389,41 @@ export class C172Pfd {
     g.restore();
   }
 
-  private topBar(s: C172State) {
+  /** Top bar: NAV1 on the left, COM1 on the right, active then standby (standby in the cyan box). */
+  private topBar(c: C172Controls, on: boolean, nav: NavReading) {
     const g = this.g;
+    const r = c.radios;
     g.save();
-    g.fillStyle = "rgba(0, 0, 0, 0.75)";
-    g.fillRect(0, 0, W, 26);
+    g.fillStyle = "rgba(0, 0, 0, 0.8)";
+    g.fillRect(0, 0, W, 28);
     g.font = "bold 13px ui-monospace, Menlo, monospace";
     g.textBaseline = "middle";
-    g.textAlign = "left";
-    g.fillStyle = WHITE;
-    g.fillText("GS", 10, 13);
-    g.fillStyle = MAGENTA;
-    g.fillText(`${Math.round(s.groundSpeedKt)}KT`, 34, 13);
-    g.textAlign = "right";
-    g.fillStyle = WHITE;
-    g.fillText(`OAT ${Math.round(s.oatC)}°C`, W - 10, 13);
+    if (on) {
+      g.textAlign = "left";
+      g.fillStyle = WHITE;
+      g.fillText("NAV1", 8, 14);
+      g.fillStyle = GREEN;
+      g.fillText(freqText(r.nav[0], 2), 50, 14);
+      g.fillStyle = WHITE;
+      g.fillText("⇆", 104, 14);
+      g.strokeStyle = CYAN;
+      g.strokeRect(120, 5, 58, 18);
+      g.fillStyle = CYAN;
+      g.fillText(freqText(r.nav[1], 2), 124, 14);
+      g.fillStyle = GREEN;
+      if (nav.station && nav.valid) g.fillText(nav.station.ident, 186, 14);
+      g.textAlign = "right";
+      g.fillStyle = WHITE;
+      g.fillText("COM1", W - 8, 14);
+      g.fillStyle = CYAN;
+      g.strokeStyle = CYAN;
+      g.strokeRect(W - 118, 5, 66, 18);
+      g.fillText(freqText(r.com[1]), W - 56, 14);
+      g.fillStyle = WHITE;
+      g.fillText("⇆", W - 124, 14);
+      g.fillStyle = GREEN;
+      g.fillText(freqText(r.com[0]), W - 140, 14);
+    }
     g.restore();
   }
 
@@ -344,19 +432,52 @@ export class C172Pfd {
     g.save();
     g.font = "bold 13px ui-monospace, Menlo, monospace";
     g.textBaseline = "middle";
-    g.fillStyle = "rgba(0, 0, 0, 0.75)";
-    g.fillRect(0, 456, 200, 24);
-    g.fillRect(W - 200, 456, 200, 24);
+    g.fillStyle = "rgba(0, 0, 0, 0.8)";
+    g.fillRect(0, 452, 230, 28);
+    g.fillRect(W - 230, 452, 230, 28);
     g.textAlign = "left";
     g.fillStyle = WHITE;
-    g.fillText("HDG", 10, 468);
+    g.fillText("HDG", 8, 466);
     g.fillStyle = CYAN;
-    g.fillText(`${String(c.hdgBug).padStart(3, "0")}°`, 46, 468);
+    g.fillText(`${String(c.hdgBug).padStart(3, "0")}°`, 40, 466);
+    g.fillStyle = WHITE;
+    g.fillText("CRS", 96, 466);
+    g.fillStyle = GREEN;
+    g.fillText(`${String(Math.round(c.radios.obs) % 360 || 360).padStart(3, "0")}°`, 128, 466);
+    g.fillStyle = WHITE;
+    g.fillText(`OAT ${Math.round(s.oatC)}°C`, 172, 466);
     g.textAlign = "right";
-    g.fillStyle = s.engine.running ? GREEN : WHITE;
-    g.fillText(s.engine.running ? "ENGINE RUNNING" : "ENGINE OFF", W - 10, 468);
+    const x = c.radios;
+    g.fillStyle = x.xpdrMode === "STBY" ? WHITE : GREEN;
+    g.fillText(`XPDR ${x.xpdrCode} ${x.xpdrMode}`, W - 96, 466);
+    g.fillStyle = MAGENTA;
+    g.fillText(`GS ${Math.round(s.groundSpeedKt)}KT`, W - 8, 466);
     g.restore();
     this.drawBaro(c.baro.qnh, c.baro.std);
+  }
+
+  /** Glide slope scale on the right of the attitude, with the diamond. */
+  private gsScale(gs: number) {
+    const g = this.g;
+    const x = 470;
+    const cy = 190;
+    g.save();
+    g.fillStyle = WHITE;
+    for (const d of [-2, -1, 1, 2]) {
+      g.beginPath();
+      g.arc(x, cy - d * 18, 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.fillStyle = GREEN;
+    const y = cy - gs * 36;
+    g.beginPath();
+    g.moveTo(x, y - 8);
+    g.lineTo(x - 6, y);
+    g.lineTo(x, y + 8);
+    g.lineTo(x + 6, y);
+    g.closePath();
+    g.fill();
+    g.restore();
   }
 }
 

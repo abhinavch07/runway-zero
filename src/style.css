@@ -94,6 +94,7 @@ kbd {
   border-right: 1px solid #262c33;
   background: #11151a;
   display: flex;
+  flex-direction: column;
 }
 #cockpit {
   flex: 1;
@@ -137,6 +138,8 @@ kbd {
   display: flex;
   flex-direction: column;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   font-size: 13px;
 }
 .ls-header {
@@ -1183,4 +1186,127 @@ kbd {
 .stick-hint {
   color: #6b7480;
   font-size: 11px;
+}
+
+/* ---------- Radio message box (both aircraft) ---------- */
+#cockpit {
+  position: relative;
+}
+/* In the lesson sidebar, under the steps, so it never covers the cockpit. */
+#radio-box {
+  flex: none;
+  margin: 8px;
+  max-height: 46%;
+  overflow-y: auto;
+  background: rgba(10, 14, 20, 0.94);
+  border: 1px solid #2f6b4a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #dfe7ee;
+  font-size: 13px;
+  line-height: 1.4;
+  z-index: 20;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+#radio-box.hidden {
+  display: none;
+}
+.rb-head {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  color: #2fd24a;
+  margin-bottom: 5px;
+  letter-spacing: 0.04em;
+}
+.rb-msg {
+  margin: 3px 0;
+}
+.rb-msg.dim {
+  color: #8a96a3;
+}
+.rb-msg.ok {
+  color: #9be7b0;
+}
+.rb-msg.warn {
+  color: #ffb347;
+}
+.rb-pick {
+  margin: 8px 0 4px;
+  color: #9fb0bf;
+  font-size: 12px;
+}
+.rb-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+  background: #1b2129;
+  color: #e8edf2;
+  border: 1px solid #39424e;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rb-opt:hover {
+  border-color: #3fd4ff;
+}
+
+/* ---------- A320 radio panels ---------- */
+#ped-top {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+#sd-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#radio-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 300px;
+}
+.rmp-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 5px;
+}
+.rmp-row button {
+  background: #1b1f27;
+  color: #e8e8e8;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.rmp-row button.on {
+  background: #e9edf1;
+  color: #111;
+}
+.rmp-row.keys button {
+  flex: 1;
+  padding: 4px 0;
+}
+.rmp-win {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 16px;
+  background: #0b0e12;
+  border-radius: 4px;
+  padding: 3px 8px;
+  min-width: 72px;
+  text-align: center;
+  color: #ff9f1a;
+}
+.rmp-win.code {
+  color: #2fd24a;
+  min-width: 52px;
+}
+.rmp-lbl {
+  font-size: 10px;
+  color: #8a96a3;
 }

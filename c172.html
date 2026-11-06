@@ -29,16 +29,54 @@
             <div class="c-display">
               <canvas id="c172-pfd" title="PFD"></canvas>
               <div class="c-knobs">
+                <div class="c-knob" data-ctl="c-nav">
+                  <span>NAV</span>
+                  <button data-k="nav-mhz-down" title="MHz">−</button>
+                  <button data-k="nav-mhz-up" title="MHz">+</button>
+                  <i>MHz</i>
+                  <button data-k="nav-khz-down" title="kHz">−</button>
+                  <button data-k="nav-khz-up" title="kHz">+</button>
+                  <i>kHz</i>
+                  <button data-k="nav-swap" data-ctl="c-nav-swap" title="Swap active and standby">⇆</button>
+                </div>
+                <div class="c-knob" data-ctl="c-com">
+                  <span>COM</span>
+                  <button data-k="com-mhz-down" title="MHz">−</button>
+                  <button data-k="com-mhz-up" title="MHz">+</button>
+                  <i>MHz</i>
+                  <button data-k="com-khz-down" title="kHz">−</button>
+                  <button data-k="com-khz-up" title="kHz">+</button>
+                  <i>kHz</i>
+                  <button data-k="com-swap" data-ctl="c-com-swap" title="Swap active and standby">⇆</button>
+                </div>
+              </div>
+              <div class="c-knobs">
                 <div class="c-knob" data-ctl="c-hdg">
                   <span>HDG</span>
                   <button data-k="hdg-down" title="Shift: 10°">−</button>
                   <button data-k="hdg-up" title="Shift: 10°">+</button>
+                </div>
+                <div class="c-knob" data-ctl="c-crs">
+                  <span>CRS</span>
+                  <button data-k="crs-down" title="Shift: 10°">−</button>
+                  <button data-k="crs-up" title="Shift: 10°">+</button>
                 </div>
                 <div class="c-knob" data-ctl="c-baro">
                   <span>BARO</span>
                   <button data-k="baro-down" data-ctl="c-baro-down">−</button>
                   <button data-k="baro-up" data-ctl="c-baro-up">+</button>
                   <button data-k="baro-std">STD</button>
+                </div>
+              </div>
+              <div class="c-knobs">
+                <div class="c-knob" data-ctl="c-xpdr">
+                  <span>XPDR</span>
+                  <b class="c-xpdr-code"></b>
+                  <button data-xd="0">0</button><button data-xd="1">1</button><button data-xd="2">2</button><button data-xd="3">3</button>
+                  <button data-xd="4">4</button><button data-xd="5">5</button><button data-xd="6">6</button><button data-xd="7">7</button>
+                  <button data-xm="STBY" data-ctl="c-xpdr-STBY">STBY</button>
+                  <button data-xm="ON" data-ctl="c-xpdr-ON">ON</button>
+                  <button data-xm="ALT" data-ctl="c-xpdr-ALT">ALT</button>
                 </div>
               </div>
             </div>

@@ -242,6 +242,48 @@ export const QUIZZES: Record<string, Question[]> = {
     },
   ],
 
+  radios: [
+    {
+      q: "What is the ATIS?",
+      options: [
+        "A recorded message with the runway, wind, weather and QNH",
+        "The tower controller",
+        "The transponder code",
+        "The emergency frequency",
+      ],
+      why: "Pilots listen to the ATIS before the first call, then tell ATC which information letter they have.",
+    },
+    {
+      q: "Which frequency do you tune when you turn the knobs?",
+      options: ["The standby frequency", "The active frequency", "Both at once", "The NAV frequency"],
+      why: "You tune the standby, then swap it to active. The active frequency stays usable while you tune.",
+    },
+    {
+      q: "Why do pilots read back a clearance?",
+      options: [
+        "So ATC can catch any mistake in what the pilot heard",
+        "To be polite",
+        "To test the radio",
+        "Because the transponder needs it",
+      ],
+      why: "The route, altitude and squawk are read back exactly. If anything is wrong, ATC corrects it at once.",
+    },
+    {
+      q: "Which digits can a squawk code use?",
+      options: ["0 to 7", "0 to 9", "1 to 8", "Letters and numbers"],
+      why: "Transponder codes are four digits from 0 to 7 each.",
+    },
+    {
+      q: "ATC says: climb 5000 feet. What do you do with it?",
+      options: [
+        "Read it back and set it as the altitude target",
+        "Write it down only",
+        "Set it as the squawk",
+        "Tune it on the radio",
+      ],
+      why: "The cleared altitude goes on the FCU (or the altitude bug) so the climb stops there.",
+    },
+  ],
   aftertaxi: [
     {
       q: "Why are the ground spoilers ARMED before take-off?",
@@ -428,6 +470,48 @@ export const QUIZZES: Record<string, Question[]> = {
         "The engine is about to stop",
       ],
       why: "About 24 V means battery only. About 28 V with a positive charge means the alternator is online.",
+    },
+  ],
+  "c172-radios": [
+    {
+      q: "What is the ATIS?",
+      options: [
+        "A recorded message with the runway, wind, weather and QNH",
+        "The tower controller",
+        "The transponder code",
+        "The emergency frequency",
+      ],
+      why: "Pilots listen to the ATIS before the first call, then tell ATC which information letter they have.",
+    },
+    {
+      q: "Which frequency do you tune when you turn the knobs?",
+      options: ["The standby frequency", "The active frequency", "Both at once", "The NAV frequency"],
+      why: "You tune the standby, then swap it to active. The active frequency stays usable while you tune.",
+    },
+    {
+      q: "Why do pilots read back a clearance?",
+      options: [
+        "So ATC can catch any mistake in what the pilot heard",
+        "To be polite",
+        "To test the radio",
+        "Because the transponder needs it",
+      ],
+      why: "The route, altitude and squawk are read back exactly. If anything is wrong, ATC corrects it at once.",
+    },
+    {
+      q: "Which digits can a squawk code use?",
+      options: ["0 to 7", "0 to 9", "1 to 8", "Letters and numbers"],
+      why: "Transponder codes are four digits from 0 to 7 each.",
+    },
+    {
+      q: "ATC says: climb 5000 feet. What do you do with it?",
+      options: [
+        "Read it back and set it as the altitude target",
+        "Write it down only",
+        "Set it as the squawk",
+        "Tune it on the radio",
+      ],
+      why: "The cleared altitude goes on the altitude bug (or the FCU in an airliner) so the climb stops there.",
     },
   ],
   "c172-pfd": [

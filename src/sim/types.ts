@@ -52,6 +52,12 @@ export interface A320Extras {
   /** Result of the last T.O CONFIG test, shown for a few seconds (page clock, ms). */
   toConfigProblems: string[];
   toConfigUntil: number;
+  /** VHF 1 on the radio management panel, kHz, [active, standby]. */
+  vhf1: [number, number];
+  xpdrCode: string;
+  xpdrMode: "STBY" | "AUTO" | "ON";
+  /** The lesson's ATC clearance was read back correctly. */
+  readBack: boolean;
 }
 
 export function defaultExtras(): A320Extras {
@@ -68,6 +74,10 @@ export function defaultExtras(): A320Extras {
     ecamPage: "DOOR",
     toConfigProblems: [],
     toConfigUntil: 0,
+    vhf1: [118325, 118000],
+    xpdrCode: "2000",
+    xpdrMode: "STBY",
+    readBack: false,
   };
 }
 

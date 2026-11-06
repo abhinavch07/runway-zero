@@ -11,6 +11,7 @@ import type { FmsData } from "../cockpit/mcdu";
 import type { EfisState } from "../cockpit/efis";
 import type { LessonBase, StepBase } from "./types";
 import { DETENT } from "../cockpit/levers";
+import type { Clearance } from "../radio/radioBox";
 
 export type PanelName = "ovhd" | "main" | "ped";
 
@@ -33,6 +34,10 @@ export interface Lesson extends LessonBase<SimState, Controls, FmsData, PanelNam
   extras?: Partial<A320Extras>;
   /** GEN 1 fails this many seconds after the lesson starts. */
   failAfterS?: number;
+  /** ATC clearance given on the delivery or ground frequency. */
+  clearance?: Clearance;
+  /** Our callsign on the radio. */
+  callsign?: string;
 }
 
 const allPumps = (c: Controls) => c.switches.fuelL1 && c.switches.fuelL2 && c.switches.fuelR1 && c.switches.fuelR2;
@@ -327,6 +332,110 @@ export const LESSONS: Lesson[] = [
         why: "Go to the main panel. When the ADIRS are aligned the ND shows your route in green. Press ND + until the range is 40 to see RZ101. Then press Next.",
         targets: ["nd-range-up"],
         panel: "main",
+      },
+    ],
+  },
+  {
+    id: "radios",
+    title: "Radios and ATC clearance",
+    summary: "At the gate: tune VHF 1 on the radio management panel, listen to the ATIS, get the departure clearance from Delivery and read it back, set the transponder, the cleared altitude and the VOR on the RAD NAV page.",
+    minutes: 8,
+    startId: "gate28",
+    qnh: 1008,
+    efis: { fd: true, qnh: 1013, std: false },
+    callsign: "Training 123",
+    fms: {
+      page: "MENU",
+      from: "VIDP",
+      to: "VABB",
+      fltNbr: "RZ123",
+      costIndex: 30,
+      crzFl: 360,
+      crzTemp: -56,
+      depRwy: "28",
+      arrRwy: "27",
+      legs: ["RZ101", "RZ102", "RZ103"],
+      disco: false,
+    },
+    clearance: {
+      station: "delivery",
+      atc: "Training 123, Delhi Delivery, cleared to Mumbai via runway 28, RZ101, climb 5000 feet, squawk 4521.",
+      readbacks: [
+        "Cleared to Mumbai via runway 28, RZ101, climb 5000 feet, squawk 4521, Training 123.",
+        "Cleared to Mumbai via runway 28, RZ101, climb 3000 feet, squawk 4521, Training 123.",
+        "Cleared to Mumbai, squawk 4512, Training 123.",
+      ],
+      hint: "Read back the route, the altitude and the squawk code exactly, then your callsign.",
+    },
+    finished: "You used the radio panel, the ATIS, the clearance, the transponder and the RAD NAV page. All frequencies and navaids here are made up for training.",
+    steps: [
+      {
+        title: "The radio management panel (RMP)",
+        why: "On the pedestal, next to the lower ECAM: VHF 1 shows the active frequency (left) and the standby (right). You tune the standby, then transfer it with ⇆. The frequencies are made up for training. Press Next.",
+        targets: ["rmp"],
+        panel: "ped",
+      },
+      {
+        title: "VHF 1: tune 126.025 (ATIS), then ⇆",
+        why: "Use MHz and kHz − and + (Shift for bigger kHz steps), then transfer. The ATIS plays in the radio box at the top.",
+        targets: ["rmp", "rmp-swap"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.vhf1[0] === 126025,
+      },
+      {
+        title: "Read the ATIS",
+        why: "Runway, wind, weather and QNH. Note the QNH. Press Next.",
+        targets: [],
+        panel: "ped",
+      },
+      {
+        title: "BARO: set QNH 1008",
+        why: "On the main panel, set the baro on the EFIS panel to the ATIS QNH.",
+        targets: ["efis-baro-down"],
+        panel: "main",
+        done: (_s, c) => !!c.efis && !c.efis.std && c.efis.qnh === 1008,
+      },
+      {
+        title: "VHF 1: tune 121.825 (DELIVERY), then ⇆",
+        why: "Clearance Delivery gives the departure clearance before engine start.",
+        targets: ["rmp", "rmp-swap"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.vhf1[0] === 121825,
+      },
+      {
+        title: "Read back the clearance",
+        why: "Pick the correct read-back in the radio box. Repeat the route, the altitude and the squawk exactly, then the callsign.",
+        targets: ["readback-0", "readback-1", "readback-2"],
+        panel: "ped",
+        done: (_s, c) => !!c.extras?.readBack,
+      },
+      {
+        title: "ATC: set squawk 4521",
+        why: "On the ATC panel, type 4, 5, 2, 1. The code identifies you on radar. Only digits 0 to 7 exist.",
+        targets: ["atc"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.xpdrCode === "4521",
+      },
+      {
+        title: "ATC: AUTO",
+        why: "In AUTO the transponder starts sending by itself once the aircraft is airborne. Many airports also want it on during taxi: follow the local rules.",
+        targets: ["atc-AUTO"],
+        panel: "ped",
+        done: (_s, c) => c.extras?.xpdrMode === "AUTO",
+      },
+      {
+        title: "FCU ALT: set 5000, the cleared altitude",
+        why: "The clearance said climb 5000 feet. Set it on the FCU now so the aircraft levels off there.",
+        targets: ["fcu-alt"],
+        panel: "main",
+        done: (s) => s.fcc.fcu.alt === 5000,
+      },
+      {
+        title: "MCDU RAD NAV: check the ILS, tune VOR 1",
+        why: "Press RAD NAV on the MCDU. The ILS for runway 28 (IRZ 110.55, course 285) is tuned by the flight computer in small letters. Type RZV and press the key beside VOR1/FREQ to tune the training VOR.",
+        targets: ["mcdu-radnav", "mcdu-L1"],
+        panel: "ped",
+        done: (_s, _c, f) => f.vor1 === "RZV",
       },
     ],
   },

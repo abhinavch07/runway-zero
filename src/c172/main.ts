@@ -15,7 +15,11 @@ import {
   type C172Start,
   type C172State,
   type C172ToWorker,
+  defaultC172Radios,
 } from "./sim/types";
+import { RadioBox } from "../radio/radioBox";
+import { readNav, type NavReading } from "../radio/navReceiver";
+import { tune } from "../radio/training";
 import { LessonPanel } from "../cockpit/lessonPanel";
 import { QuizDialog } from "../cockpit/quiz";
 import { Sound } from "../audio/sound";
@@ -49,8 +53,11 @@ const controls: C172Controls = {
   switches: coldC172Switches(),
   baro: { qnh: 1013, std: false },
   hdgBug: 330,
+  radios: defaultC172Radios(),
 };
 let worldQnh = 1013;
+/** Transponder code being typed (4 digits complete it). */
+let xpdrTyping = "";
 
 // ---------- Worker ----------
 const worker = new Worker(new URL("./sim/worker.ts", import.meta.url), { type: "module" });
@@ -100,7 +107,10 @@ function onReady() {
     ...lesson.controls,
     switches: sw,
     baro: { qnh: 1013, std: false },
+    radios: { ...defaultC172Radios(), ...lesson.radios },
   });
+  xpdrTyping = "";
+  radioBox.reset();
   worldQnh = lesson.qnh ?? 1013;
   lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
@@ -125,7 +135,10 @@ document.querySelectorAll<HTMLElement>("#tabs button").forEach((b) =>
 const pfd = new C172Pfd($<HTMLCanvasElement>("c172-pfd"));
 const mfd = new C172Mfd($<HTMLCanvasElement>("c172-mfd"));
 const lower = new C172LowerPanel($("p-lower"), controls);
-const lessonPanel = new LessonPanel<C172State, C172Controls, null, C172Panel>($("lesson-slot"), showPanel, () => panel);
+const lessonPanel = new LessonPanel<C172State, C172Controls, NavReading, C172Panel>($("lesson-slot"), showPanel, () => panel);
+const radioBox = new RadioBox($("lesson-slot"));
+radioBox.onReadback = () => (controls.radios.readBack = true);
+let nav: NavReading = readNav(0, 0, { latDeg: 0, lonDeg: 0 }, 0);
 
 // Bezel knobs.
 const MAP_RANGES = [1, 2, 5, 10, 20];
@@ -148,6 +161,33 @@ document.querySelectorAll<HTMLElement>(".c-knobs [data-k]").forEach((b) =>
       case "baro-std":
         controls.baro.std = !controls.baro.std;
         break;
+      case "nav-mhz-down":
+      case "nav-mhz-up":
+      case "nav-khz-down":
+      case "nav-khz-up":
+      case "com-mhz-down":
+      case "com-mhz-up":
+      case "com-khz-down":
+      case "com-khz-up": {
+        const [kind, unit, dir] = b.dataset.k!.split("-") as ["nav" | "com", "mhz" | "khz", "up" | "down"];
+        const r = controls.radios[kind];
+        // Shift on the kHz buttons moves four steps at a time.
+        const steps = unit === "khz" && big ? 4 : 1;
+        for (let i = 0; i < steps; i++) r[1] = tune(r[1], kind, unit === "mhz", dir === "up" ? 1 : -1);
+        break;
+      }
+      case "nav-swap":
+      case "com-swap": {
+        const r = controls.radios[b.dataset.k === "nav-swap" ? "nav" : "com"];
+        [r[0], r[1]] = [r[1], r[0]];
+        break;
+      }
+      case "crs-down":
+        controls.radios.obs = ((controls.radios.obs - (big ? 10 : 1) + 359) % 360) + 1;
+        break;
+      case "crs-up":
+        controls.radios.obs = ((controls.radios.obs + (big ? 10 : 1) - 1) % 360) + 1;
+        break;
       case "range-down":
       case "range-up": {
         const i = MAP_RANGES.indexOf(mfd.rangeNm) + (b.dataset.k === "range-up" ? 1 : -1);
@@ -159,9 +199,27 @@ document.querySelectorAll<HTMLElement>(".c-knobs [data-k]").forEach((b) =>
   }),
 );
 
+// Transponder: type four digits (0 to 7), then pick the mode.
+document.querySelectorAll<HTMLElement>("[data-xd]").forEach((b) =>
+  b.addEventListener("click", () => {
+    xpdrTyping += b.dataset.xd;
+    if (xpdrTyping.length === 4) {
+      controls.radios.xpdrCode = xpdrTyping;
+      xpdrTyping = "";
+    }
+    b.blur();
+  }),
+);
+document.querySelectorAll<HTMLElement>("[data-xm]").forEach((b) =>
+  b.addEventListener("click", () => {
+    controls.radios.xpdrMode = b.dataset.xm as C172Controls["radios"]["xpdrMode"];
+    b.blur();
+  }),
+);
+
 function fit() {
   const box = $("cockpit").getBoundingClientRect();
-  const w = Math.floor(Math.max(260, Math.min((box.width - 70) / 2, ((box.height - 90) * 4) / 3)));
+  const w = Math.floor(Math.max(260, Math.min((box.width - 70) / 2, ((box.height - 150) * 4) / 3)));
   document.documentElement.style.setProperty("--c172w", `${w}px`);
   if (panel === "lower") {
     lower.el.style.zoom = "1";
@@ -248,13 +306,19 @@ function frame() {
   if (!ready || !latest) return;
   const s = latest;
   send({ type: "controls", controls });
+  const radiosOn = s.elec.avionicsBus;
+  nav = radiosOn ? readNav(controls.radios.nav[0], controls.radios.obs, { latDeg: s.latDeg, lonDeg: s.lonDeg }, s.altFt) : readNav(0, 0, { latDeg: 0, lonDeg: 0 }, 0);
+  radioBox.update(radiosOn ? controls.radios.com[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? "VT-RZA");
+  const code = document.querySelector<HTMLElement>(".c-xpdr-code");
+  if (code) code.textContent = xpdrTyping ? xpdrTyping.padEnd(4, "_") : controls.radios.xpdrCode;
+  document.querySelectorAll<HTMLElement>("[data-xm]").forEach((b) => b.classList.toggle("on", b.dataset.xm === controls.radios.xpdrMode));
   if (panel === "inst") {
-    if (s.elec.essBus) pfd.draw(s, controls, worldQnh);
+    if (s.elec.essBus) pfd.draw(s, controls, worldQnh, nav, radiosOn);
     else blank(pfd.canvas);
     if (s.elec.avionicsBus) mfd.draw(s);
     else blank(mfd.canvas);
   }
-  lessonPanel.update(s, controls, null);
+  lessonPanel.update(s, controls, nav);
   const power = s.elec.mainBus ? (s.elec.avionicsBus ? 1 : 0.6) : s.elec.essBus ? 0.3 : 0;
   sound.updatePiston(s.engine.rpm, s.engine.running, s.engine.cranking, power);
   $("status").textContent = `Engine: ${s.engine.running ? `${Math.round(s.engine.rpm / 10) * 10} RPM` : s.engine.cranking ? "CRANKING" : "OFF"} · Bus: ${
@@ -290,4 +354,6 @@ showPanel("lower");
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
 w.__runwayZeroControls = () => controls;
+w.__runwayZeroNav = () => nav;
+w.__runwayZeroReadback = () => radioBox.readbackOk;
 w.__runwayZeroSound = () => sound.debug();

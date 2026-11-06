@@ -2,12 +2,14 @@
 // our own words from general public knowledge. Not the manufacturer's checklist: real pilots use
 // the POH and their school's checklist. A flight instructor should review these.
 import type { LessonBase, StepBase } from "../lessons/types";
-import type { C172Controls, C172State, C172Switches } from "./sim/types";
+import type { C172Controls, C172Radios, C172State, C172Switches } from "./sim/types";
+import type { NavReading } from "../radio/navReceiver";
+import type { Clearance } from "../radio/radioBox";
 
 export type C172Panel = "inst" | "lower";
-export type C172Step = StepBase<C172State, C172Controls, null, C172Panel>;
+export type C172Step = StepBase<C172State, C172Controls, NavReading, C172Panel>;
 
-export interface C172Lesson extends LessonBase<C172State, C172Controls, null, C172Panel> {
+export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReading, C172Panel> {
   /** Engine running at the start. */
   running: boolean;
   /** Changes to the starting switches. */
@@ -16,6 +18,12 @@ export interface C172Lesson extends LessonBase<C172State, C172Controls, null, C1
   controls?: Partial<Omit<C172Controls, "switches">>;
   /** Today's QNH in hPa, for the altimeter. */
   qnh?: number;
+  /** Radio settings at the start. */
+  radios?: Partial<C172Radios>;
+  /** ATC clearance given on the delivery or ground frequency. */
+  clearance?: Clearance;
+  /** Our callsign on the radio. */
+  callsign?: string;
 }
 
 const rpmBetween = (s: C172State, lo: number, hi: number) => s.engine.running && s.engine.rpm >= lo && s.engine.rpm <= hi;
@@ -215,6 +223,98 @@ export const C172_LESSONS: C172Lesson[] = [
         targets: ["throttle"],
         panel: "lower",
         done: (s) => rpmBetween(s, 900, 1100),
+      },
+    ],
+  },
+  {
+    id: "c172-radios",
+    title: "Radios and ATC clearance",
+    summary: "Engine running: tune and swap COM frequencies, listen to the ATIS, set the QNH, get a clearance from Ground and read it back, then set the transponder.",
+    minutes: 8,
+    running: true,
+    controls: { throttle: 0.15, mixture: 1 },
+    qnh: 1008,
+    callsign: "VT-RZA",
+    radios: { com: [118325, 118000] },
+    clearance: {
+      station: "ground",
+      atc: "VT-RZA, Delhi Ground, cleared to the training area via runway 28, climb 2500 feet, squawk 4521.",
+      readbacks: [
+        "Cleared to the training area via runway 28, climb 2500 feet, squawk 4521, VT-RZA.",
+        "Cleared via runway 28, climb 2500 feet, squawk 4251, VT-RZA.",
+        "Roger, VT-RZA.",
+      ],
+      hint: "Read back the route, the altitude and the squawk code exactly, then your callsign.",
+    },
+    finished: "You tuned the radios, used the ATIS, read back a clearance and set the transponder. These frequencies are made up for training: always use the real published ones in a real aircraft.",
+    steps: [
+      {
+        title: "The radios on the PFD",
+        why: "The top of the PFD shows NAV1 on the left and COM1 on the right. Each has an active frequency (green, the one you use) and a standby frequency (in the cyan box, the one you tune). These frequencies are made up for training. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "COM: tune 126.025 on standby (ATIS)",
+        why: "Use the COM buttons under the PFD. The MHz − and + change the part before the dot, the kHz − and + the part after it (hold Shift for bigger steps). Set 126.025.",
+        targets: ["c-com"],
+        panel: "inst",
+        done: (_s, c) => c.radios.com.includes(126025),
+      },
+      {
+        title: "COM: press ⇆ to make it active",
+        why: "The swap button moves the standby frequency to active. You now hear the ATIS in the radio box.",
+        targets: ["c-com-swap"],
+        panel: "inst",
+        done: (_s, c) => c.radios.com[0] === 126025,
+      },
+      {
+        title: "Read the ATIS",
+        why: "The ATIS is a recorded message with the runway, wind, weather and QNH. Pilots listen to it before calling ATC. Note the QNH. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "BARO: set the QNH from the ATIS",
+        why: "The ATIS said QNH 1008. Set it with BARO −.",
+        targets: ["c-baro-down"],
+        panel: "inst",
+        done: (_s, c) => !c.baro.std && c.baro.qnh === 1008,
+      },
+      {
+        title: "COM: tune GROUND 121.775 and make it active",
+        why: "Tune 121.775 on standby, then press ⇆. Ground will give you a clearance.",
+        targets: ["c-com", "c-com-swap"],
+        panel: "inst",
+        done: (_s, c) => c.radios.com[0] === 121775,
+      },
+      {
+        title: "Read back the clearance",
+        why: "Ground gives the clearance in the radio box. Pick the correct read-back. A read-back repeats the important parts exactly (route, altitude, squawk) so ATC can catch any mistake.",
+        targets: ["readback-0", "readback-1", "readback-2"],
+        panel: "inst",
+        done: (_s, c) => c.radios.readBack,
+      },
+      {
+        title: "XPDR: set 4521",
+        why: "The squawk code identifies you on the ATC radar. Type 4, 5, 2, 1 on the XPDR buttons. Only the digits 0 to 7 exist.",
+        targets: ["c-xpdr"],
+        panel: "inst",
+        done: (_s, c) => c.radios.xpdrCode === "4521",
+      },
+      {
+        title: "XPDR: ALT",
+        why: "ALT sends your code and your altitude to ATC radar. Normally you select it when you line up on the runway. Select it now to see it.",
+        targets: ["c-xpdr-ALT"],
+        panel: "inst",
+        done: (_s, c) => c.radios.xpdrMode === "ALT",
+      },
+      {
+        title: "COM: put TOWER 118.325 on standby",
+        why: "Get the next frequency ready: tune 118.325 on standby. When Ground says \"contact Tower\", one press of ⇆ is all you need.",
+        targets: ["c-com"],
+        panel: "inst",
+        done: (_s, c) => c.radios.com[1] === 118325,
       },
     ],
   },

@@ -233,3 +233,27 @@
   background: #fff;
   border-radius: 2px;
 }
+.c-knob i {
+  font-style: normal;
+  font-size: 9px;
+  color: #8a96a3;
+  margin-right: 4px;
+}
+.c-knob button.on {
+  background: #e9edf1;
+  color: #111;
+}
+.c-xpdr-code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 14px;
+  color: #2fd24a;
+  background: #0b0e12;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-right: 4px;
+  min-width: 44px;
+  text-align: center;
+}
+.c-display {
+  gap: 6px;
+}

@@ -22,6 +22,8 @@ import { coldSwitches, startSwitches } from "./sim/systems";
 import type { FcuAction } from "./sim/fcc";
 import { defaultExtras, type Controls, type EcamPage, type FromWorker, type SimState, type StartPosition, type ToWorker } from "./sim/types";
 import { SystemDisplay } from "./cockpit/sd";
+import { RadioPanels } from "./cockpit/rmp";
+import { RadioBox } from "./radio/radioBox";
 import { activeAlerts, shownAlerts, toConfigTest, trackGen1Cycle } from "./cockpit/ecam";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -110,6 +112,8 @@ function onReady(start: StartPosition, throttle: number) {
   controls.efis = { fd: true, qnh: 1013, std: false, ...lesson?.efis };
   controls.extras = { ...defaultExtras(), ...structuredClone(lesson?.extras ?? {}) };
   knownAlerts = new Set();
+  radioPanels.reset();
+  radioBox.reset();
   gen1Seen.off = false;
   failSent = false;
   readyAt = performance.now();
@@ -158,6 +162,9 @@ const overhead = new OverheadPanel($("p-ovhd"), () => controls.switches);
 const levers = new LeverPanel($("ped-controls"), controls);
 const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel<SimState, Controls, FmsData, PanelName>($("lesson-slot"), showPanel, () => panel);
+const radioPanels = new RadioPanels($("radio-slot"), () => controls.extras!);
+const radioBox = new RadioBox($("lesson-slot"));
+radioBox.onReadback = () => (controls.extras!.readBack = true);
 
 // ---------- ECAM control panel (pedestal) ----------
 const ECAM_PAGES: EcamPage[] = ["ENG", "BLEED", "ELEC", "HYD", "FUEL", "DOOR", "F/CTL"];
@@ -353,6 +360,8 @@ function frame() {
     for (const cv of [pfd.canvas, nd.canvas, ewd.canvas, sd.canvas]) blank(cv);
   }
   ecamFrame(s);
+  radioPanels.update(s.systems.acPower);
+  radioBox.update(s.systems.acPower ? controls.extras!.vhf1[0] : null, currentLesson?.clearance ?? null, currentLesson?.callsign ?? "Training 123");
   $("glareshield").classList.toggle("unpowered", !s.systems.dcPower);
   fcu.update(s.fcc, managedSpeed(s, mcdu.fms));
   efis.update(controls.efis!);

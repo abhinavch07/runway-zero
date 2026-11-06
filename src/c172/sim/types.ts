@@ -41,6 +41,25 @@ export interface C172Controls {
   /** Display only: baro setting and heading bug. */
   baro: { qnh: number; std: boolean };
   hdgBug: number;
+  /** Radios (page only): frequencies in kHz, [active, standby]. */
+  radios: C172Radios;
+}
+
+export type XpdrMode = "STBY" | "ON" | "ALT";
+
+export interface C172Radios {
+  com: [number, number];
+  nav: [number, number];
+  /** Course selected for NAV1 (the OBS), degrees. */
+  obs: number;
+  xpdrCode: string;
+  xpdrMode: XpdrMode;
+  /** The lesson's ATC clearance was read back correctly. */
+  readBack: boolean;
+}
+
+export function defaultC172Radios(): C172Radios {
+  return { com: [118325, 118000], nav: [108000, 108000], obs: 360, xpdrCode: "2000", xpdrMode: "STBY", readBack: false };
 }
 
 export interface C172Start {

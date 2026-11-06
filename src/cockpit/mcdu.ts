@@ -7,9 +7,10 @@
 // cyan for values you can change, green for values the computer works out). It is not a copy of
 // the real software, and many pages and functions are left out.
 import { AIRPORTS, WAYPOINTS, distanceNm } from "../world/route";
+import { NAV_STATIONS, freqText } from "../radio/training";
 import type { LatLon } from "../world/geo";
 
-export type McduPage = "MENU" | "INITA" | "INITB" | "FPLN" | "LATREV" | "DEP" | "ARR" | "PERF";
+export type McduPage = "RADNAV" | "MENU" | "INITA" | "INITB" | "FPLN" | "LATREV" | "DEP" | "ARR" | "PERF";
 
 export interface FmsData {
   page: McduPage;
@@ -39,6 +40,9 @@ export interface FmsData {
   tmpyRwy: string | null;
   /** Where the LAT REV page was opened. */
   latRevAt: "origin" | "dest";
+  /** RAD NAV: VOR 1 tuned by the pilot (ident), and the ILS (ident) if tuned by hand. */
+  vor1: string | null;
+  ilsManual: string | null;
 }
 
 export const TAXI_FUEL_T = 0.2;
@@ -68,6 +72,8 @@ export function emptyFms(): FmsData {
     flex: null,
     tmpyRwy: null,
     latRevAt: "origin",
+    vor1: null,
+    ilsManual: null,
   };
 }
 
@@ -216,6 +222,7 @@ export class Mcdu {
     } else if (key === "INIT") this.go("INITA");
     else if (key === "F-PLN") this.go("FPLN");
     else if (key === "PERF") this.go("PERF");
+    else if (key === "RAD NAV") this.go("RADNAV");
     else if (key === "NEXT PAGE") {
       if (d.page === "INITA") this.go("INITB");
       else if (d.page === "INITB") this.go("INITA");
@@ -357,6 +364,24 @@ export class Mcdu {
       case "MENU":
         if (side === "L" && n === 1) this.go("INITA");
         return;
+      case "RADNAV": {
+        if (side === "L" && (n === 1 || n === 3)) {
+          if (!s) return;
+          const kind = n === 1 ? "vor" : "ils";
+          const st = NAV_STATIONS.find((x) => x.kind === kind && (x.ident === s || freqText(x.freq, 2) === s));
+          if (s === "CLR") {
+            if (n === 1) d.vor1 = null;
+            else d.ilsManual = null;
+            return this.accept();
+          }
+          if (!st) return this.msg(/^\d{3}\.\d{1,2}$/.test(s) || /^[A-Z]{2,3}$/.test(s) ? "NOT IN DATA BASE" : "FORMAT ERROR");
+          if (n === 1) d.vor1 = st.ident;
+          else d.ilsManual = st.ident;
+          return this.accept();
+        }
+        if (s) this.msg("NOT ALLOWED");
+        return;
+      }
       case "LATREV": {
         if (side === "L" && n === 6) return this.go("FPLN");
         if (side === "L" && n === 1 && this.fms.latRevAt === "origin") return this.go("DEP");
@@ -447,6 +472,34 @@ export class Mcdu {
   private screen(): Screen {
     const d = this.fms;
     switch (d.page) {
+      case "RADNAV": {
+        const vor = NAV_STATIONS.find((x) => x.ident === d.vor1);
+        // The ILS of the departure runway is tuned by the flight computer (small font) unless set by hand.
+        const ilsSt = NAV_STATIONS.find((x) => x.kind === "ils");
+        const autoIls = d.depRwy === "28" && !d.ilsManual;
+        const ils = d.ilsManual ? ilsSt : autoIls ? ilsSt : undefined;
+        const ilsText = ils ? `${ils.ident}/${freqText(ils.freq, 2)}` : `${"[ ]"}/[    ]`;
+        return {
+          title: f("RADIO NAV"),
+          rows: [
+            {
+              lLabel: "VOR1/FREQ",
+              l: vor ? f(`${vor.ident}/${freqText(vor.freq, 2)}`, "c", "vor1") : f("[ ]/[    ]", "c", "vor1"),
+              rLabel: "FREQ/VOR2",
+              r: f("[    ]/[ ]", "c"),
+            },
+            { lLabel: "CRS", l: f(vor ? "---" : "[ ]", "c"), rLabel: "CRS", r: f("[ ]", "c") },
+            {
+              lLabel: "LS /FREQ",
+              l: autoIls ? fs(ilsText, "c") : f(ilsText, "c", "ils"),
+              rLabel: "",
+            },
+            { lLabel: "CRS", l: ils ? f(`${String(Math.round(ils.courseT ?? 0)).padStart(3, "0")}`, "c", "ilscrs") : f("[ ]", "c") },
+            { lLabel: "ADF1/FREQ", l: f("[ ]/[    ]", "c"), rLabel: "FREQ/ADF2", r: f("[    ]/[ ]", "c") },
+            {},
+          ],
+        };
+      }
       case "MENU":
         return {
           title: f("MCDU MENU"),
