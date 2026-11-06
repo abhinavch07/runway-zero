@@ -122,6 +122,7 @@ function onReady() {
   mcpLocal = null;
   pedestal.reset();
   radioBox.reset();
+  lastSnd = null;
   setRate(1);
   lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
@@ -325,10 +326,37 @@ function frame() {
   }
   lessonPanel.update(s, controls, { fms: cdu.fms, cduPage: cdu.page, scratch: cdu.scratch, preflight: cdu.preflightComplete, nav });
   sound.updateJet(s.sys);
+  systemSounds(s);
   const e = s.sys.engines;
   $("status").textContent = `Power: ${ac ? "AC" : s.sys.dcPower ? "BATTERY" : "OFF"} · N2 ${e[0].n2.toFixed(0)} / ${e[1].n2.toFixed(0)}${s.onGround ? "" : ` · ${Math.round(s.altFt)} ft`}`;
 }
 requestAnimationFrame(frame);
+
+// Extra sounds: systems that run while switched on, and one-off events found by comparing frames.
+let lastSnd: { apuOn: boolean; phases: string[]; cmdA: boolean; pitch: string } | null = null;
+function systemSounds(s: State737) {
+  const sys = s.sys;
+  const sw = controls.switches;
+  const ac = sys.acPower;
+  sound.systems({
+    startAir: sys.engines.filter((e) => e.startValve).length * 0.8 * Math.min(1, sys.ductPsi / 30),
+    igniters: sys.engines.some((e) => e.phase === "LIGHT") || sys.engines.some((e, i) => e.phase === "RUN" && sw.engStart[i] === "CONT"),
+    elecHydPumps: (sw.hydPumps[1] && ac ? 1 : 0) + (sw.hydPumps[2] && ac ? 1 : 0),
+    fuelPumps: sys.fuelLowPress.filter((x) => !x).length,
+    packs: sys.packOn.filter(Boolean).length,
+    fans: ac,
+  });
+  const now = { apuOn: sw.apuOn, phases: sys.engines.map((e) => e.phase), cmdA: s.afcs.cmdA, pitch: s.afcs.pitch };
+  if (lastSnd) {
+    if (now.apuOn && !lastSnd.apuOn && sys.dcPower) sound.apuDoor();
+    now.phases.forEach((p, i) => {
+      if (p === "LIGHT" && lastSnd!.phases[i] !== "LIGHT") sound.lightOff();
+    });
+    if (lastSnd.cmdA && !now.cmdA) sound.apDisconnect("warble");
+    if (now.pitch === "ALT ACQ" && lastSnd.pitch !== "ALT ACQ") sound.altitudeAlert();
+  }
+  lastSnd = now;
+}
 
 function blank(cv: HTMLCanvasElement) {
   const g = cv.getContext("2d")!;
@@ -357,3 +385,5 @@ w.__runwayZeroControls = () => controls;
 w.__runwayZeroNav = () => nav;
 w.__runwayZeroCdu = () => cdu;
 w.__runwayZeroSpoken = () => radioBox.voice.spoken;
+w.__runwayZeroSoundEvents = () => sound.events;
+w.__runwayZeroSound = () => sound.debug();

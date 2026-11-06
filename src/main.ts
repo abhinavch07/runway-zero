@@ -117,6 +117,7 @@ function onReady(start: StartPosition, throttle: number) {
   knownAlerts = new Set();
   radioPanels.reset();
   radioBox.reset();
+  lastSnd = null;
   gen1Seen.off = false;
   failSent = false;
   readyAt = performance.now();
@@ -389,6 +390,7 @@ function frame() {
   mcdu.setPowered(s.systems.acPower);
   lessonPanel.update(s, controls, mcdu.fms);
   sound.update(s);
+  systemSounds(s);
 
   const eng = s.systems.engines.map((e) => e.phase).join(" / ");
   $("status").textContent = `Power: ${s.systems.acSource || (s.systems.dcPower ? "BAT" : "OFF")} · Engines: ${eng}`;
@@ -424,6 +426,34 @@ function ecamFrame(s: SimState) {
 /** On the ground with V2 entered, the speed target is managed: V2 from the MCDU. */
 function managedSpeed(s: SimState, f: FmsData): number | null {
   return s.onGround && f.v2 !== null ? f.v2 : null;
+}
+
+// Extra sounds: systems that run while switched on, and one-off events found by comparing frames.
+let lastSnd: { apuMaster: boolean; phases: string[]; ap: boolean; vert: string } | null = null;
+function systemSounds(s: SimState) {
+  const sys = s.systems;
+  const sw = controls.switches;
+  const ac = sys.acPower;
+  const anyRunning = sys.engines.some((e) => e.phase === "RUN");
+  sound.systems({
+    startAir: sys.engines.filter((e) => e.phase === "CRANK" || e.phase === "LIGHT").length * 0.8,
+    igniters: sys.engines.some((e) => e.phase === "LIGHT"),
+    ptu: sys.ptuRunning,
+    elecHydPumps: (sw.hydYellowElec && ac ? 1 : 0) + (sw.hydBlueElec && ac && anyRunning ? 1 : 0),
+    fuelPumps: ac ? [sw.fuelL1, sw.fuelL2, sw.fuelR1, sw.fuelR2, sw.fuelCtr1, sw.fuelCtr2].filter(Boolean).length : 0,
+    packs: sys.packFlow.filter(Boolean).length,
+    fans: ac,
+  });
+  const now = { apuMaster: sw.apuMaster, phases: sys.engines.map((e) => e.phase), ap: s.fcc.ap, vert: s.fcc.vert };
+  if (lastSnd) {
+    if (now.apuMaster && !lastSnd.apuMaster && sys.dcPower) sound.apuDoor();
+    now.phases.forEach((p, i) => {
+      if (p === "LIGHT" && lastSnd!.phases[i] !== "LIGHT") sound.lightOff();
+    });
+    if (lastSnd.ap && !now.ap) sound.apDisconnect("trumpet");
+    if (now.vert === "ALT*" && lastSnd.vert !== "ALT*") sound.altitudeAlert();
+  }
+  lastSnd = now;
 }
 
 function blank(cv: HTMLCanvasElement) {
@@ -465,6 +495,8 @@ w.__runwayZero = () => latest;
 w.__runwayZeroFcu = fcuSend;
 w.__runwayZeroFms = () => mcdu.fms;
 w.__runwayZeroSound = () => sound.debug();
+w.__runwayZeroSoundEvents = () => sound.events;
+w.__runwayZeroControls = () => controls;
 w.__runwayZeroSpoken = () => radioBox.voice.spoken;
 w.__runwayZeroLesson = (id: string) => {
   const l = LESSONS.find((x) => x.id === id);

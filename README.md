@@ -32,7 +32,14 @@ Panels:
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
-Sound: cockpit hum when powered, APU, engine start and idle, switch clicks and a chime for each finished step. All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
+Sound, on every aircraft: cockpit hum when powered, APU, engines, switch clicks and a chime for each finished step. Also:
+
+- Engine and APU starts: start valve air, igniter ticks, a light-off rumble, the APU door.
+- Airliner systems: the A320 PTU bark, electric hydraulic pumps, fuel pumps, packs airflow, cockpit fans.
+- Light aircraft: the electric fuel pump ticking, primer strokes, the standby gyro spinning up, cylinder chugs while cranking.
+- Alerts: autopilot disconnect (a warble on the 737, a short trumpet call on the A320), altitude alert, caution chimes, the PA-28 FUEL PRESS beep.
+
+All sound is made in the browser with Web Audio, with no recordings. Use the speaker button and slider in the top bar, or M. Sound starts after your first click (browsers require that).
 
 Radio voice: in the radio lessons, the ATIS, ATC and your correct read-back are spoken aloud with the browser's built-in voices (Web Speech API, free, nothing to download). ATC uses an Indian English voice when your computer has one, and the pilot uses a different voice. Numbers and callsigns are said the radio way (two eight, Victor Tango Romeo Zulu Alfa). The speaker button also mutes the voice. Which voices you hear depends on your browser and operating system.
 
@@ -175,6 +182,7 @@ src/
   radio/navReceiver.ts  VOR radial, TO/FROM and needle, localizer and glide slope
   radio/radioBox.ts     what is heard on the radio, clearance read-back
   audio/sound.ts        cockpit sound made with Web Audio
+  audio/extras.ts       system sounds, start sounds and alerts
   radio/voice.ts        spoken radio messages (Web Speech API)
   cockpit/levers.ts     pedestal: engine masters, thrust, flaps, gear, parking brake
   cockpit/overhead.ts   overhead panel

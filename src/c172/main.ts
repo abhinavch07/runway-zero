@@ -122,6 +122,8 @@ function onReady() {
   });
   xpdrTyping = "";
   radioBox.reset();
+  lastSnd = null;
+  pressWarned = false;
   failSent = false;
   altSeenOff = false;
   warned = false;
@@ -359,11 +361,33 @@ function frame() {
   lessonPanel.update(s, controls, nav);
   const power = s.elec.mainBus ? (s.elec.avionicsBus ? 1 : 0.6) : s.elec.essBus ? 0.3 : 0;
   sound.updatePiston(s.engine.rpm, s.engine.running, s.engine.cranking, power);
+  systemSounds(s);
   $("status").textContent = `Engine: ${s.engine.running ? `${Math.round(s.engine.rpm / 10) * 10} RPM` : s.engine.cranking ? "CRANKING" : "OFF"} · Bus: ${
     s.elec.mainBus ? `${s.elec.mainVolts.toFixed(1)} V` : "OFF"
   }`;
 }
 requestAnimationFrame(frame);
+
+// Extra sounds: the electric fuel pump, the standby gyro and avionics fans, cylinder chugs while
+// cranking, primer strokes, and the FUEL PRESS beep (PA-28).
+let lastSnd: { strokes: number } | null = null;
+let pressWarned = false;
+function systemSounds(s: C172State) {
+  const sw = controls.switches;
+  sound.systems({
+    gaFuelPump: sw.fuelPump && s.elec.mainBus,
+    gyro: s.elec.essBus,
+    fans: s.elec.avionicsBus,
+    crankRpm: s.engine.cranking && !s.engine.running ? Math.max(60, s.engine.rpm) : 0,
+  });
+  const strokes = controls.primeStrokes ?? 0;
+  if (lastSnd && strokes > lastSnd.strokes) sound.primer();
+  lastSnd = { strokes };
+  if (variant.primer && s.engine.running && s.fuelPressPsi < 0.5 && !pressWarned) {
+    pressWarned = true;
+    sound.beep();
+  }
+}
 
 function blank(cv: HTMLCanvasElement) {
   const g = cv.getContext("2d")!;
@@ -396,3 +420,4 @@ w.__runwayZeroNav = () => nav;
 w.__runwayZeroReadback = () => radioBox.readbackOk;
 w.__runwayZeroSound = () => sound.debug();
 w.__runwayZeroSpoken = () => radioBox.voice.spoken;
+w.__runwayZeroSoundEvents = () => sound.events;

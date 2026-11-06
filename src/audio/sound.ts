@@ -2,6 +2,7 @@
 // Layers: background hum (fans and electrics), APU, engines, switch clicks and lesson chimes.
 // Browsers only allow sound after the user clicks or types, so the audio starts on the first input.
 import type { SimState } from "../sim/types";
+import { ExtraSounds, type SysSounds } from "./extras";
 
 const STORE_KEY = "runway-zero-sound";
 
@@ -21,8 +22,11 @@ export class Sound {
   private engFilter!: BiquadFilterNode;
   private engWhine!: GainNode;
   private engTone!: OscillatorNode;
+  private extras: ExtraSounds | null = null;
   on = true;
   volume = 0.7;
+  /** For tests: the one-off sounds played, newest last. */
+  readonly events: string[] = [];
 
   constructor() {
     const saved = load();
@@ -100,6 +104,38 @@ export class Sound {
     const whineFilter = this.filter("lowpass", 2500, 1, this.engWhine);
     this.engTone.connect(whineFilter);
     this.engTone.start();
+
+    this.extras = new ExtraSounds(ctx, this.master, this.noise);
+  }
+
+  /** Systems that run while switched on (pumps, packs, fans, start air, PTU...). Called every frame. */
+  systems(x: SysSounds) {
+    this.extras?.update(x);
+  }
+
+  private event(name: string, play: (x: ExtraSounds) => void) {
+    this.events.push(name);
+    if (this.events.length > 50) this.events.shift();
+    if (this.extras) play(this.extras);
+  }
+
+  apuDoor() {
+    this.event("apuDoor", (x) => x.apuDoor());
+  }
+  lightOff() {
+    this.event("lightOff", (x) => x.lightOff());
+  }
+  primer() {
+    this.event("primer", (x) => x.primer());
+  }
+  apDisconnect(style: "warble" | "trumpet") {
+    this.event(`apDisconnect-${style}`, (x) => x.apDisconnect(style));
+  }
+  altitudeAlert() {
+    this.event("altitudeAlert", (x) => x.altitudeAlert());
+  }
+  beep() {
+    this.event("beep", (x) => x.beep());
   }
 
   private gain(v: number): GainNode {
