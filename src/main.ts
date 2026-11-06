@@ -1,6 +1,7 @@
 // Runway Zero: an A320neo-type cockpit procedures trainer.
 // The flight model and aircraft systems run in a worker. The page shows one cockpit panel at a time
 // (Overhead, Main panel, Pedestal) and a lesson sidebar that guides the learner step by step.
+import { glossarize, enableGlossaryTips } from "./glossary/glossary";
 import "./style.css";
 import { STARTS } from "./config";
 import { Pfd } from "./cockpit/pfd";
@@ -10,6 +11,8 @@ import { FcuPanel } from "./cockpit/fcu";
 import { LeverPanel } from "./cockpit/levers";
 import { OverheadPanel } from "./cockpit/overhead";
 import { ChecklistPanel } from "./shell/checklist";
+import { ExploreMode } from "./shell/explore";
+import { A320_EXPLORE } from "./explore/a320";
 import { A320_CHECKLISTS, type A320Check } from "./checklists/a320";
 import { LessonPanel } from "./cockpit/lessonPanel";
 import { Mcdu, type FmsData } from "./cockpit/mcdu";
@@ -171,6 +174,9 @@ const mcdu = new Mcdu($("mcdu-slot"));
 const lessonPanel = new LessonPanel<SimState, Controls, FmsData, PanelName>($("lesson-slot"), showPanel, () => panel);
 const radioPanels = new RadioPanels($("radio-slot"), () => controls.extras!);
 const checklist = new ChecklistPanel<A320Check>(A320_CHECKLISTS, "A320");
+const explore = new ExploreMode(A320_EXPLORE);
+explore.decorate = glossarize;
+enableGlossaryTips();
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -508,6 +514,7 @@ $("loading").classList.add("hidden");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroExplore = explore;
 w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls, fms: mcdu.fms }) : null);
 w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroFcu = fcuSend;

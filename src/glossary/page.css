@@ -1,0 +1,113 @@
+.g-main {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 104px 24px 64px;
+}
+.g-main h1 {
+  font-size: clamp(36px, 6vw, 56px);
+  margin: 0 0 8px;
+  letter-spacing: 0.01em;
+}
+.g-lead {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 0 0 24px;
+}
+.g-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--apron);
+  border: 1px solid var(--apron-line);
+  border-radius: 8px;
+  padding: 4px 4px 4px 14px;
+}
+.g-search span {
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+  font-size: 14px;
+}
+.g-search input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--paint);
+  font: 18px var(--body);
+  padding: 10px 6px;
+  outline: none;
+}
+.g-search:focus-within {
+  border-color: var(--taxi);
+}
+.g-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 16px 0 4px;
+  font-family: var(--display);
+  font-size: 18px;
+}
+.g-letters a,
+.g-letters span {
+  width: 28px;
+  text-align: center;
+  padding: 2px 0;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.g-letters a:hover {
+  background: var(--apron);
+}
+.g-letters span {
+  color: #4a5361;
+}
+.g-count {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 8px 0 12px;
+}
+.g-list {
+  margin: 0;
+}
+.g-item {
+  padding: 14px 0;
+  border-top: 1px solid var(--apron-line);
+  scroll-margin-top: 24px;
+}
+.g-item dt {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--paint);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+.g-also {
+  font-family: var(--body);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--muted);
+}
+.g-where {
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--asphalt);
+  background: var(--amber);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.g-item dd {
+  margin: 4px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.g-note {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 14px;
+}

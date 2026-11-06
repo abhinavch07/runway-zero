@@ -30,6 +30,8 @@
 - 🧭 **31 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
 - ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
 - 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
+- 🔍 **Explore mode**: press EXPLORE and point at any switch, knob or screen to learn what it is and when you use it. Nothing moves while you explore.
+- 📖 **Glossary**: words like QNH, N1 or magneto have a dotted underline in lessons, quizzes and explore cards. Point at one (or tap it) for a plain English meaning. All of them are on the [glossary page](https://www.runwayzero.in/glossary.html).
 - 📝 **A quiz after every lesson**: 5 questions, with the answer and the reason after each one.
 - 🎙️ **Spoken ATC**: listen to the ATIS, get a clearance and pick the right read-back. ATC speaks with an Indian English voice when your computer has one.
 - 🔊 **Cockpit sound**: APU and engine starts, the A320 PTU bark, pumps, packs, the autopilot disconnect, the fuel pump ticking in a Cessna. All made in the browser, no recordings.
@@ -130,12 +132,14 @@
 3. Read the step on the left. The control to use pulses yellow, and the right panel opens by itself.
 4. Do what the step says. It ticks off when the aircraft is really in that state.
 5. At the end, take the quiz. Press <kbd>C</kbd> any time to open the checklists.
+6. Not sure what something is? Press **EXPLORE** and point at it. Press <kbd>Esc</kbd> to stop exploring.
 
 | Key | Action |
 | --- | --- |
 | <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> | Switch panels (overhead, main panel, pedestal, or instruments and lower panel on the light aircraft) |
 | <kbd>L</kbd> | Lesson list |
 | <kbd>C</kbd> | Checklists |
+| <kbd>Esc</kbd> | Stop exploring |
 | <kbd>M</kbd> | Sound on or off |
 | Arrow keys | A320 sidestick |
 | Shift + click | Bigger steps on the − and + buttons |
@@ -210,7 +214,7 @@ The site is the built `dist/` folder on the `gh-pages` branch, served at [www.ru
 
 ### How it is built
 
-`index.html` is the welcome page (`src/welcome/`): the runway hero, the aircraft, suggested learning paths and how a lesson works. Each aircraft has its own page: `a320.html`, `737.html`, `c172.html` and `pa28.html` (the light aircraft share one script). Old links like `/?lesson=powerup` are sent on to `a320.html`. The "Runway Zero" name in each trainer's top bar goes back to the welcome page. The flight model runs in a Web Worker at 120 Hz. The page draws the panels and screens, runs the lessons and plays the sound.
+`index.html` is the welcome page (`src/welcome/`): the runway hero, the aircraft, suggested learning paths and how a lesson works. Each aircraft has its own page: `a320.html`, `737.html`, `c172.html` and `pa28.html` (the light aircraft share one script). `glossary.html` lists every glossary word with a search box. Old links like `/?lesson=powerup` are sent on to `a320.html`. The "Runway Zero" name in each trainer's top bar goes back to the welcome page. The flight model runs in a Web Worker at 120 Hz. The page draws the panels and screens, runs the lessons and plays the sound.
 
 ```
 src/
@@ -220,6 +224,8 @@ src/
   lessons/              lessons.ts (A320), quizzes.ts (every aircraft), catalog.ts, progress.ts
   shell/picker.ts       lesson list with aircraft tabs, shared by every page
   shell/checklist.ts    checklist panel, shared by every page
+  shell/explore.ts      explore mode (cards for every control), with the cards in explore/
+  glossary/             terms.ts (the words), glossary.ts (underlines and pop-ups), page.ts (glossary.html)
   checklists/           a320.ts, b737.ts, ga.ts (C172 and PA-28)
   sim/                  A320: worker, JSBSim core, normal law and autopilot (fcc.ts), systems, ILS
   cockpit/              A320: PFD, ND, engine and warning display, ECAM pages, FCU, EFIS, MCDU,
@@ -254,7 +260,7 @@ RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the R
 
 ### Data sources
 
-- Lessons, checklists and quiz questions are our own simplified training flows, written from general public knowledge. A type-rated pilot (or a flight instructor for the light aircraft) should review them.
+- Lessons, checklists, quiz questions, explore cards and the glossary are our own simplified training flows, written from general public knowledge. A type-rated pilot (or a flight instructor for the light aircraft) should review them.
 - VIDP runway ends, headings and elevations: [OurAirports](https://github.com/davidmegginson/ourairports-data) (public domain).
 - The MCDU and CDU are small training versions, not copies of the real software. VABB is listed by runway ident only. ILS 28 is built from the runway geometry, a training stand-in, not the published procedure.
 

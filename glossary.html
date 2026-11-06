@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glossary · Runway Zero</title>
+    <meta name="description" content="Plain English meanings of the cockpit words used in Runway Zero: N1, QNH, V1, squawk, magneto and more." />
+    <meta property="og:title" content="Cockpit glossary · Runway Zero" />
+    <meta property="og:image" content="https://www.runwayzero.in/img/share.png" />
+    <meta name="theme-color" content="#121821" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class="welcome">
+    <header class="w-top">
+      <a class="w-brand" href="./">Runway Zero</a>
+      <nav aria-label="Page">
+        <a href="./#aircraft">Aircraft</a>
+        <a href="./#start">Where to start</a>
+        <a href="glossary.html" aria-current="page">Glossary</a>
+        <a href="https://github.com/abhinavch07/runway-zero">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="g-main">
+      <h1>Cockpit glossary</h1>
+      <p class="g-lead">
+        The words you meet in the lessons, in plain English. In the trainer, any word with a dotted underline shows
+        its meaning when you point at it or tap it.
+      </p>
+      <label class="g-search">
+        <span>Search</span>
+        <input id="g-q" type="search" placeholder="Try QNH, squawk or magneto" autocomplete="off" />
+      </label>
+      <div id="g-letters" class="g-letters" aria-label="Jump to letter"></div>
+      <p id="g-count" class="g-count" aria-live="polite"></p>
+      <dl id="g-list" class="g-list"></dl>
+      <p class="g-note">
+        These are simplified explanations written for Runway Zero, for learning only. They are not taken from any
+        aircraft manual. Spotted a mistake or a missing word?
+        <a href="https://github.com/abhinavch07/runway-zero/issues">Tell us on GitHub</a>.
+      </p>
+    </main>
+
+    <footer class="w-foot">
+      <span>Runway Zero</span>
+      <a href="https://github.com/abhinavch07/runway-zero">Source code on GitHub</a>
+      <a href="https://github.com/abhinavch07/runway-zero/issues">Report a problem or suggest a lesson</a>
+    </footer>
+
+    <script type="module" src="/src/glossary/page.ts"></script>
+  </body>
+</html>

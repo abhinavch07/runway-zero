@@ -3,6 +3,7 @@
 // It works for any aircraft: S is the simulation state, C the controls (with a switches object),
 // X any extra data the lessons check (the A320 MCDU), P the panel names.
 import type { LessonBase } from "../lessons/types";
+import { glossarize } from "../glossary/glossary";
 
 export class LessonPanel<S, C extends { switches: object }, X, P extends string> {
   readonly el: HTMLElement;
@@ -45,7 +46,7 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
     this.list.innerHTML = lesson.steps
       .map(
         (st) =>
-          `<li><div class="ls-title">${esc(st.title)}</div><div class="ls-why">${esc(st.why)}</div>` +
+          `<li><div class="ls-title">${esc(st.title)}</div><div class="ls-why">${glossarize(st.why)}</div>` +
           `${st.done ? "" : '<button class="ls-next">Next</button>'}</li>`,
       )
       .join("");

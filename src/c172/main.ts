@@ -2,6 +2,7 @@
 // and the PA-28 (pa28.html, body data-aircraft="pa28"). The JSBSim model runs in a worker. The page
 // shows the PFD and MFD, or the lower panel, with the same lesson list, quiz, progress and sound
 // as the A320.
+import { glossarize, enableGlossaryTips } from "../glossary/glossary";
 import "../style.css";
 import "./style.css";
 import { C172Pfd } from "./cockpit/pfd";
@@ -24,6 +25,8 @@ import { RadioBox } from "../radio/radioBox";
 import { readNav, type NavReading } from "../radio/navReceiver";
 import { tune } from "../radio/training";
 import { ChecklistPanel } from "../shell/checklist";
+import { ExploreMode } from "../shell/explore";
+import { gaExplore } from "../explore/ga";
 import { gaChecklists, type GaCheck } from "../checklists/ga";
 import { LessonPanel } from "../cockpit/lessonPanel";
 import { QuizDialog } from "../cockpit/quiz";
@@ -158,6 +161,9 @@ pfd.fuelPress = mfd.fuelPress = variant.primer;
 const lower = new C172LowerPanel($("p-lower"), controls, variant);
 const lessonPanel = new LessonPanel<C172State, C172Controls, NavReading, C172Panel>($("lesson-slot"), showPanel, () => panel);
 const checklist = new ChecklistPanel<GaCheck>(gaChecklists(variant), variant.name);
+const explore = new ExploreMode(gaExplore(variant));
+explore.decorate = glossarize;
+enableGlossaryTips();
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -419,6 +425,7 @@ showPanel("lower");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroExplore = explore;
 w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls }) : null);
 w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroControls = () => controls;

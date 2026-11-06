@@ -1,6 +1,7 @@
 // Quiz shown after a lesson: one question at a time, the answer and why after each pick,
 // then the score. 4 out of 5 passes.
 import { PASS_MARK, type Question } from "../lessons/quizzes";
+import { glossarize } from "../glossary/glossary";
 
 export class QuizDialog {
   private el: HTMLElement;
@@ -45,15 +46,21 @@ export class QuizDialog {
     const { q, order } = this.questions[this.index];
     this.box.innerHTML = `
       <div class="quiz-head"><span>Quiz: ${esc(this.title)}</span><span>Question ${this.index + 1} of ${this.questions.length}</span></div>
-      <div class="quiz-q">${esc(q.q)}</div>
+      <div class="quiz-q">${glossarize(q.q)}</div>
       <div class="quiz-options">${order
-        .map((i, n) => `<button class="quiz-opt" data-i="${i}"><b>${"ABCD"[n]}</b> ${esc(q.options[i])}</button>`)
+        .map((i, n) => `<button class="quiz-opt" data-i="${i}"><b>${"ABCD"[n]}</b> ${glossarize(q.options[i])}</button>`)
         .join("")}</div>
       <div class="quiz-why"></div>
       <div class="quiz-actions"><button class="quiz-close">Close</button></div>`;
     this.box.querySelector(".quiz-close")!.addEventListener("click", () => this.close());
+    // On a touch screen, tapping an underlined word shows its meaning instead of picking the answer.
+    let touch = false;
+    this.box.addEventListener("pointerdown", (e) => (touch = e.pointerType === "touch"));
     this.box.querySelectorAll<HTMLButtonElement>(".quiz-opt").forEach((b) =>
-      b.addEventListener("click", () => this.answer(Number(b.dataset.i))),
+      b.addEventListener("click", (e) => {
+        if (touch && (e.target as Element).closest(".gl")) return;
+        this.answer(Number(b.dataset.i));
+      }),
     );
   }
 
@@ -68,7 +75,7 @@ export class QuizDialog {
       else if (bi === i) b.classList.add("wrong");
     });
     const why = this.box.querySelector(".quiz-why")!;
-    why.innerHTML = `<b class="${right ? "ok" : "no"}">${right ? "Right." : "Not quite."}</b> ${esc(q.why)}`;
+    why.innerHTML = `<b class="${right ? "ok" : "no"}">${right ? "Right." : "Not quite."}</b> ${glossarize(q.why)}`;
     const last = this.index === this.questions.length - 1;
     const next = document.createElement("button");
     next.className = "quiz-next";

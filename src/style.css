@@ -1548,3 +1548,101 @@ kbd {
   color: #6a6555;
   font-family: system-ui, sans-serif;
 }
+
+/* ---------- Explore mode ---------- */
+#explore-btn {
+  background: #1b1f27;
+  color: #c9d2db;
+  border: 1px solid #3a414b;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: ui-monospace, Menlo, monospace;
+  cursor: pointer;
+  margin-left: auto;
+}
+#explore-btn.on {
+  background: #5aa8ff;
+  color: #111;
+  border-color: #5aa8ff;
+}
+#explore-btn + #checklist-btn {
+  margin-left: 10px;
+}
+body.exploring #cockpit {
+  cursor: help;
+}
+body.exploring #cockpit [data-ctl]:hover,
+body.exploring #cockpit canvas[id]:hover,
+body.exploring .explore-pinned {
+  outline: 2px solid #5aa8ff !important;
+  outline-offset: 2px;
+}
+body.exploring #cockpit * {
+  cursor: help !important;
+}
+#explore-card {
+  position: fixed;
+  z-index: 30;
+  max-width: 320px;
+  background: #0f1620;
+  color: #d8dee6;
+  border: 1px solid #5aa8ff;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+#explore-card.hidden {
+  display: none;
+}
+#explore-card b {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+#explore-card p {
+  margin: 0 0 4px;
+}
+#explore-card .ex-when {
+  color: #a8b4c2;
+}
+#explore-card .ex-when i {
+  font-style: normal;
+  color: #5aa8ff;
+}
+
+/* Glossary: dotted underline on aviation words, with a small pop-up explaining them. */
+.gl {
+  text-decoration: underline dotted rgba(140, 200, 255, 0.75);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.gl:focus-visible {
+  outline: 1px solid #6cf;
+  outline-offset: 1px;
+}
+#gl-tip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 300px;
+  padding: 8px 10px;
+  background: #0d1622;
+  border: 1px solid #3a5a7a;
+  border-radius: 6px;
+  color: #dfe8f2;
+  font: 13px/1.4 system-ui, sans-serif;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+#gl-tip.hidden {
+  display: none;
+}
+#gl-tip b {
+  color: #8fd3ff;
+  margin-right: 4px;
+}

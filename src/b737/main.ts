@@ -2,6 +2,7 @@
 // The JSBSim 737 runs in a worker with our systems and autopilot. The page shows the overhead,
 // the main panel (EFIS, MCP, PFD, ND, engine display) and the pedestal (CDU, levers, radios), with
 // the same lesson list, quiz, progress and sound as the other aircraft.
+import { glossarize, enableGlossaryTips } from "../glossary/glossary";
 import "../style.css";
 import "./style.css";
 import { Pfd737 } from "./cockpit/pfd";
@@ -26,6 +27,8 @@ import { STARTER_CUTOUT_N2 } from "./sim/systems";
 import { RadioBox } from "../radio/radioBox";
 import { readNav, type NavReading } from "../radio/navReceiver";
 import { ChecklistPanel } from "../shell/checklist";
+import { ExploreMode } from "../shell/explore";
+import { B737_EXPLORE } from "../explore/b737";
 import { B737_CHECKLISTS, type B737Check } from "../checklists/b737";
 import { LessonPanel } from "../cockpit/lessonPanel";
 import { QuizDialog } from "../cockpit/quiz";
@@ -183,6 +186,9 @@ const nd = new Nd737($<HTMLCanvasElement>("b-nd"));
 const eicas = new Eicas737($<HTMLCanvasElement>("b-eicas"));
 const lessonPanel = new LessonPanel<State737, Controls737, X737, Panel737>($("lesson-slot"), showPanel, () => panel);
 const checklist = new ChecklistPanel<B737Check>(B737_CHECKLISTS, "B737");
+const explore = new ExploreMode(B737_EXPLORE);
+explore.decorate = glossarize;
+enableGlossaryTips();
 const radioBox = new RadioBox($("lesson-slot"));
 radioBox.voice.enabled = () => sound.on;
 radioBox.voice.volume = () => sound.volume;
@@ -385,6 +391,7 @@ showPanel("ovhd");
 // Hooks for automated browser tests.
 const w = window as unknown as Record<string, unknown>;
 w.__runwayZero = () => latest;
+w.__runwayZeroExplore = explore;
 w.__runwayZeroChecklist = () => (latest ? checklist.debug({ s: latest, c: controls, fms: cdu.fms, preflight: cdu.preflightComplete }) : null);
 w.__runwayZeroChecklistSelect = (id: string) => checklist.select(id);
 w.__runwayZeroControls = () => controls;
