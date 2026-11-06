@@ -133,8 +133,12 @@ export class Sound {
 
   /** Follows the aircraft state. Called every frame. */
   update(s: SimState) {
+    this.updateJet(s.systems);
+  }
+
+  /** Jet airliner sound from the electrics, the APU and the two engines (A320 and 737 pages). */
+  updateJet(sys: { acPower: boolean; dcPower: boolean; apuN: number; engines: { n1: number; n2: number }[] }) {
     if (!this.ctx) return;
-    const sys = s.systems;
     this.ramp(this.humGain.gain, sys.acPower ? 0.05 : sys.dcPower ? 0.015 : 0);
 
     const apu = sys.apuN / 100;

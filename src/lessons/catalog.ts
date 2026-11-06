@@ -3,8 +3,9 @@ import type { LessonInfo } from "./types";
 import { LESSONS } from "./lessons";
 import { C172_LESSONS } from "../c172/lessons";
 import { PA28_LESSONS } from "../c172/pa28Lessons";
+import { B737_LESSONS } from "../b737/lessons";
 
-export type AircraftId = "a320" | "c172" | "pa28";
+export type AircraftId = "a320" | "b737" | "c172" | "pa28";
 
 export interface AircraftEntry {
   id: AircraftId;
@@ -22,6 +23,13 @@ export const AIRCRAFT: AircraftEntry[] = [
     blurb: "Airliner: overhead, MCDU, FCU and engine start, Delhi to Mumbai.",
     page: "./",
     lessons: LESSONS,
+  },
+  {
+    id: "b737",
+    name: "737",
+    blurb: "Airliner with large screens: power up, FMC route, engine start, MCP autopilot, radios, VOR and ILS.",
+    page: "./737.html",
+    lessons: B737_LESSONS,
   },
   {
     id: "c172",

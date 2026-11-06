@@ -2,8 +2,8 @@
 // VIDP runway data comes from vidp.ts (OurAirports, public domain). VABB is listed by runway ident
 // only, for the arrival page. The RZ waypoints are made up for training. They are not real fixes,
 // and the digits in their names make sure they can never match one.
-import { bearingDeg, destination, distanceM, M_PER_NM, type LatLon } from "./geo";
-import { VIDP } from "./vidp";
+import { bearingDeg, destination, distanceM, M_PER_NM, type LatLon } from "./geo.ts";
+import { VIDP } from "./vidp.ts";
 
 export interface NavRunway {
   ident: string;

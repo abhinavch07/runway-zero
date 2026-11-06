@@ -993,3 +993,227 @@ QUIZZES["pa28-shutdown"] = [
     why: "Many schools turn it OFF when parked. Follow your school's checklist.",
   },
 ];
+
+// ----- 737 -----
+QUIZZES["b737-power"] = [
+  {
+    q: "With only the battery on, why do the big screens stay dark?",
+    options: ["They need AC power, which the battery cannot give", "The IRS are not aligned", "The APU bleed is off", "The packs are off"],
+    why: "The battery gives DC only. The screens come on when a generator (here the APU) powers the AC buses.",
+  },
+  {
+    q: "What does the blue APU GEN OFF BUS light tell you?",
+    options: [
+      "The APU is ready but not powering any bus",
+      "The APU has failed",
+      "The APU is starting",
+      "The battery is flat",
+    ],
+    why: "It is a blue (information) light: the APU generator is available. Press APU GEN 1 and 2 to use it.",
+  },
+  {
+    q: "Where do you turn the IRS selectors for a normal alignment?",
+    options: ["NAV", "ALIGN, and leave them there", "ATT", "OFF"],
+    why: "Turned to NAV, they align first (ALIGN lights on) and then give navigation data.",
+  },
+  {
+    q: "What does the APU bleed give?",
+    options: ["Compressed air for the packs and for engine start", "Electrical power", "Hydraulic pressure", "Fuel pressure"],
+    why: "The APU gives both: its generator gives electrics and its bleed gives air.",
+  },
+  {
+    q: "What do you do after pressing APU START?",
+    options: [
+      "Let it spring back to ON and wait for the APU to be ready",
+      "Hold it until the APU runs",
+      "Turn it to OFF",
+      "Press it again every 10 seconds",
+    ],
+    why: "START is a spring position. The APU then starts by itself, which takes some time.",
+  },
+];
+
+QUIZZES["b737-fmc"] = [
+  {
+    q: "On the CDU, how do you put text into a line?",
+    options: [
+      "Type it into the scratchpad, then press the line select key next to the line",
+      "Press the line select key, then type",
+      "Type it and press EXEC",
+      "Type it and press ENTER",
+    ],
+    why: "The scratchpad at the bottom holds what you type. The line select key moves it into the line.",
+  },
+  {
+    q: "After ACTIVATE the EXEC key lights up. What does EXEC do?",
+    options: ["Makes the route active", "Deletes the route", "Starts the engines", "Sends the route to ATC"],
+    why: "EXEC confirms a change in the FMC. The title then shows ACT RTE 1.",
+  },
+  {
+    q: "What is the zero fuel weight (ZFW)?",
+    options: [
+      "The aircraft with passengers and cargo, but no fuel",
+      "The aircraft with full fuel",
+      "The empty aircraft with no passengers",
+      "The fuel weight only",
+    ],
+    why: "The FMC adds the fuel on board to the ZFW to get the gross weight.",
+  },
+  {
+    q: "What does a low cost index do?",
+    options: ["Saves fuel by flying slower", "Saves time by flying faster", "Flies higher", "Uses less runway"],
+    why: "The cost index balances fuel against time. Low saves fuel, high saves time.",
+  },
+  {
+    q: "On TAKEOFF REF, what is V1?",
+    options: ["The decision speed", "The rotation speed", "The safe climb speed with one engine out", "The landing speed"],
+    why: "V1 is the decision speed, VR the rotation speed and V2 the safe climb speed with an engine out.",
+  },
+];
+
+QUIZZES["b737-start"] = [
+  {
+    q: "Why are the packs switched off before engine start?",
+    options: [
+      "So all the APU air goes to the starters",
+      "To save fuel",
+      "To cool the engines",
+      "Because they need AC power",
+    ],
+    why: "With both packs on, the duct pressure is too low for a good start.",
+  },
+  {
+    q: "When do you move the start lever to IDLE?",
+    options: ["At about 25% N2", "As soon as the start switch is at GRD", "At 56% N2", "When N1 reaches 20%"],
+    why: "At 25% N2 the engine turns fast enough to light. Too early can give a hot start.",
+  },
+  {
+    q: "What happens at about 56% N2?",
+    options: [
+      "The starter cuts out and the start switch springs back to OFF",
+      "The engine reaches take-off power",
+      "The generator comes on by itself",
+      "The fuel is cut off",
+    ],
+    why: "The starter is no longer needed. START VALVE OPEN goes out.",
+  },
+  {
+    q: "Which engine does this lesson start first?",
+    options: ["Engine 2", "Engine 1", "Both at once", "It does not matter"],
+    why: "Engine 2 is usually started first. Follow your airline's procedure.",
+  },
+  {
+    q: "After both engines run, what do GEN 1 and GEN 2 do?",
+    options: [
+      "Put each engine generator on its bus, taking over from the APU",
+      "Start the APU",
+      "Switch the packs on",
+      "Open the start valves",
+    ],
+    why: "The GEN OFF BUS lights go out when each engine generator powers its bus.",
+  },
+];
+
+QUIZZES["b737-mcp"] = [
+  {
+    q: "Where do you check what the autopilot is actually doing?",
+    options: ["The flight mode annunciations (FMA) on the PFD", "The MCP button lights", "The ND", "The CDU"],
+    why: "The FMA shows the engaged modes. A lit button only shows what was asked for.",
+  },
+  {
+    q: "What does LVL CHG do in a climb?",
+    options: [
+      "Sets climb thrust (N1) and uses pitch to keep the speed",
+      "Holds a fixed vertical speed",
+      "Follows the FMC route",
+      "Holds the present altitude",
+    ],
+    why: "The FMA shows N1 for the thrust and MCP SPD for the pitch.",
+  },
+  {
+    q: "You want to descend at 1000 ft per minute. Which mode?",
+    options: ["V/S", "LVL CHG", "ALT HOLD", "HDG SEL"],
+    why: "Press V/S and set −1000. It still stops at the ALTITUDE window.",
+  },
+  {
+    q: "What does LNAV follow?",
+    options: ["The active FMC route", "The heading bug", "The VOR course", "The runway heading"],
+    why: "LNAV flies to each route waypoint in turn. The active one is magenta on the ND.",
+  },
+  {
+    q: "What does ALT ACQ on the FMA mean?",
+    options: [
+      "The aircraft is levelling off at the selected altitude",
+      "The altitude is lost",
+      "The autopilot is off",
+      "A new altitude has been typed in the FMC",
+    ],
+    why: "It is the level-off phase. Then the FMA changes to ALT HOLD.",
+  },
+];
+
+QUIZZES["b737-radios"] = [
+  {
+    q: "On VHF 1, which frequency do you tune with the knobs?",
+    options: ["The standby, then swap it to active", "The active one directly", "Both at once", "Neither, the FMC tunes it"],
+    why: "You tune the standby so the active frequency stays usable, then press ⇆.",
+  },
+  {
+    q: "What does the ATIS give you?",
+    options: ["Runway, wind, weather and QNH", "Your clearance", "Your squawk code", "The taxi route"],
+    why: "Pilots listen to the ATIS before calling ATC.",
+  },
+  {
+    q: "What must a clearance read-back include?",
+    options: [
+      "The route, the altitude and the squawk, then your callsign",
+      "Only your callsign",
+      "Only the squawk code",
+      "\"Roger\"",
+    ],
+    why: "Reading back the important parts lets ATC catch a mistake.",
+  },
+  {
+    q: "Why set the cleared altitude in the MCP ALTITUDE window?",
+    options: [
+      "So the autopilot will not climb above it",
+      "So ATC can see it",
+      "It sets the cruise altitude in the FMC",
+      "It changes the QNH",
+    ],
+    why: "The MCP altitude is where the autopilot levels off.",
+  },
+  {
+    q: "Which digits exist on a transponder?",
+    options: ["0 to 7", "0 to 9", "1 to 8", "0 to 5"],
+    why: "Squawk codes use the digits 0 to 7 only.",
+  },
+];
+
+QUIZZES["b737-nav"] = [
+  {
+    q: "What must you do before using a VOR?",
+    options: ["Identify it by its Morse code", "Set the transponder", "Switch on the APU", "Set the QNH"],
+    why: "Identifying makes sure you have the right station and it is working.",
+  },
+  {
+    q: "On the 737, where do you set the VOR course?",
+    options: ["The MCP COURSE knob", "The CDU", "The EFIS BARO knob", "The NAV panel"],
+    why: "The MCP COURSE sets the course for NAV 1. The ND in VOR mode shows it.",
+  },
+  {
+    q: "The bar is centred and the ND shows FROM. What is the course number?",
+    options: ["The radial you are on", "The course to the station", "Your heading", "The wind direction"],
+    why: "With FROM, the centred course is the radial. Add 180° for the course TO the station.",
+  },
+  {
+    q: "Which EFIS mode shows the ILS with the glide slope?",
+    options: ["APP", "MAP", "VOR", "PLN"],
+    why: "APP shows the localizer bar and, when in range, the glide slope.",
+  },
+  {
+    q: "Compared with a VOR, how sensitive is a localizer?",
+    options: ["About four times more sensitive", "The same", "Half as sensitive", "Ten times less sensitive"],
+    why: "Full scale is a few degrees on a localizer, much less than on a VOR.",
+  },
+];
