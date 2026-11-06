@@ -58,6 +58,11 @@ const controls: C172Controls = {
 let worldQnh = 1013;
 /** Transponder code being typed (4 digits complete it). */
 let xpdrTyping = "";
+// Lesson failure state.
+let failSent = false;
+let altSeenOff = false;
+let warned = false;
+let readyAt = 0;
 
 // ---------- Worker ----------
 const worker = new Worker(new URL("./sim/worker.ts", import.meta.url), { type: "module" });
@@ -111,6 +116,11 @@ function onReady() {
   });
   xpdrTyping = "";
   radioBox.reset();
+  failSent = false;
+  altSeenOff = false;
+  warned = false;
+  readyAt = performance.now();
+  controls.altCycled = false;
   worldQnh = lesson.qnh ?? 1013;
   lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
@@ -323,6 +333,19 @@ function frame() {
     else blank(pfd.canvas);
     if (s.elec.avionicsBus) mfd.draw(s);
     else blank(mfd.canvas);
+  }
+  // Lesson failure: the alternator fails, LOW VOLTS chimes once, the ALT reset is tracked.
+  if (currentLesson?.failAfterS !== undefined && !failSent && performance.now() - readyAt > currentLesson.failAfterS * 1000) {
+    failSent = true;
+    send({ type: "fail", what: "alternator" });
+  }
+  if (s.elec.lowVolts && !warned) {
+    warned = true;
+    sound.caution(false);
+  }
+  if (s.elec.altFailed && !controls.altCycled) {
+    if (!controls.switches.masterAlt) altSeenOff = true;
+    else if (altSeenOff) controls.altCycled = true;
   }
   lessonPanel.update(s, controls, nav);
   const power = s.elec.mainBus ? (s.elec.avionicsBus ? 1 : 0.6) : s.elec.essBus ? 0.3 : 0;

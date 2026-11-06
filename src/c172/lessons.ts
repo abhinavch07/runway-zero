@@ -24,6 +24,8 @@ export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReadi
   clearance?: Clearance;
   /** Our callsign on the radio. */
   callsign?: string;
+  /** The alternator fails this many seconds after the start. */
+  failAfterS?: number;
 }
 
 const rpmBetween = (s: C172State, lo: number, hi: number) => s.engine.running && s.engine.rpm >= lo && s.engine.rpm <= hi;
@@ -496,6 +498,72 @@ export const C172_LESSONS: C172Lesson[] = [
         targets: ["flaps0", "flaps1"],
         panel: "lower",
         done: (_s, c) => c.flaps <= 1,
+      },
+    ],
+  },
+  {
+    id: "c172-altfail",
+    title: "Alternator failure",
+    summary: "Engine running with lights and pitot heat on when the alternator fails: LOW VOLTS, read the volts and amps, reset the alternator, switch it off, shed electrical load, plan to land.",
+    minutes: 6,
+    running: true,
+    controls: { throttle: 0.2, mixture: 1 },
+    switches: (sw) => {
+      sw.landing = true;
+      sw.taxi = true;
+      sw.strobe = true;
+      sw.pitotHeat = true;
+    },
+    failAfterS: 8,
+    finished: "You handled an alternator failure: reset once, then off, shed load, and land as soon as practical while the battery lasts. In a real aircraft follow the POH checklist.",
+    steps: [
+      {
+        title: "Wait: something is about to fail",
+        why: "Watch the PFD and the MFD electrics. In a few seconds a warning appears.",
+        targets: [],
+        panel: "inst",
+        done: (s) => s.elec.altFailed && s.elec.lowVolts,
+      },
+      {
+        title: "LOW VOLTS: read the MFD",
+        why: "A red LOW VOLTS shows on the PFD. On the MFD the bus has dropped from 28 V to about 24 V, and the battery current (BATT A) is negative: the battery is now powering everything. The alternator has stopped charging. Press Next.",
+        targets: [],
+        panel: "inst",
+      },
+      {
+        title: "MASTER ALT: OFF, then ON",
+        why: "Try to reset the alternator: switch the ALT half of the master switch off, then on again.",
+        targets: ["masterAlt"],
+        panel: "lower",
+        done: (_s, c) => !!c.altCycled,
+      },
+      {
+        title: "Still LOW VOLTS: MASTER ALT OFF",
+        why: "The reset did not work. Switch ALT off so the failed alternator is out of the system. Leave BAT on: the battery now keeps the radios and instruments going.",
+        targets: ["masterAlt"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.masterAlt,
+      },
+      {
+        title: "Shed load: LAND, TAXI, STROBE, PITOT HEAT off",
+        why: "Every amp you save makes the battery last longer. Switch off what you do not need now. (Pitot heat is needed in icing. Today it is 25°C and dry.)",
+        targets: ["landing", "taxi", "strobe", "pitotHeat"],
+        want: false,
+        panel: "lower",
+        done: (_s, c) => !c.switches.landing && !c.switches.taxi && !c.switches.strobe && !c.switches.pitotHeat,
+      },
+      {
+        title: "Check the battery current again",
+        why: "On the lower panel or the MFD, BATT A is still negative, but much smaller than before. Press Next.",
+        targets: ["mini-amps"],
+        panel: "lower",
+      },
+      {
+        title: "Plan: land as soon as practical",
+        why: "A battery lasts only a limited time, often 30 minutes or less. In flight you would tell ATC, keep only what you need on, and land at the nearest suitable airfield. Press Next.",
+        targets: [],
+        panel: "inst",
       },
     ],
   },

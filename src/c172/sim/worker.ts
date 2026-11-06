@@ -72,6 +72,9 @@ self.onmessage = async (ev: MessageEvent<C172ToWorker>) => {
       case "controls":
         controls = msg.controls;
         break;
+      case "fail":
+        core?.fail(msg.what);
+        break;
     }
   } catch (err) {
     if (ticker) clearInterval(ticker);

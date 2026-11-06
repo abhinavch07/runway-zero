@@ -49,6 +49,21 @@ export class C172Pfd {
     if (nav.gs !== null && nav.valid) this.gsScale(nav.gs);
     this.topBar(c, radiosOn, nav);
     this.bottomBar(s, c);
+    if (s.elec.lowVolts) this.annunciate("LOW VOLTS");
+    g.restore();
+  }
+
+  /** Red warning box under the top bar, on the right (where warnings show on glass cockpits). */
+  private annunciate(text: string) {
+    const g = this.g;
+    g.save();
+    g.font = "bold 15px ui-monospace, Menlo, monospace";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillStyle = RED;
+    g.fillRect(W - 140, 32, 108, 24);
+    g.fillStyle = WHITE;
+    g.fillText(text, W - 86, 45);
     g.restore();
   }
 

@@ -18,6 +18,10 @@ export class C172Core {
   /** True once the engine has caught and keeps running on its own. */
   private firing = false;
   private alternatorWarm = 0;
+  private altFailed = false;
+  /** Battery charge used, amp-hours (a 13 Ah battery). */
+  private drainAh = 0;
+  private lastLoadA = 0;
   /** Switch positions from the last step, for the electrics in state(). */
   private lastSwitches: C172Controls["switches"] | null = null;
 
@@ -52,6 +56,8 @@ export class C172Core {
     this.primeS = start.running ? 10 : 0;
     this.crankS = 0;
     this.firing = start.running;
+    this.altFailed = false;
+    this.drainAh = 0;
     this.alternatorWarm = start.running ? 10 : 0;
     if (start.running) {
       this.set("fcs/mixture-cmd-norm", 1);
@@ -110,9 +116,16 @@ export class C172Core {
     this.set("fcs/left-brake-cmd-norm", brakes);
     this.set("fcs/right-brake-cmd-norm", brakes);
 
-    this.alternatorWarm = sw.masterAlt && mainBus && rpm > 800 ? Math.min(10, this.alternatorWarm + dt) : 0;
+    this.alternatorWarm = sw.masterAlt && mainBus && rpm > 800 && !this.altFailed ? Math.min(10, this.alternatorWarm + dt) : 0;
+    // The battery runs down while it supplies the load and recharges from the alternator.
+    if (mainBus && this.alternatorWarm <= 1) this.drainAh += (this.lastLoadA * dt) / 3600;
+    else if (this.alternatorWarm > 1) this.drainAh = Math.max(0, this.drainAh - (5 * dt) / 3600);
     this.set("position/terrain-elevation-asl-ft", this.terrainFt);
     this.sdk.run();
+  }
+
+  fail(what: "alternator") {
+    if (what === "alternator") this.altFailed = true;
   }
 
   state(): C172State {
@@ -125,12 +138,15 @@ export class C172Core {
     const mainBus = !!sw?.masterBat;
     const avionics = mainBus && !!sw?.avionics;
     // Battery 24 V system. Alternator 28 V. Cranking pulls the battery down.
-    let mainVolts = mainBus ? (altOn ? 28.0 : cranking ? 21.5 : 24.4) : 0;
+    // A 24 V battery reads about 24.4 V full, falling as it is used (13 Ah capacity).
+    const batV = Math.max(20, 24.4 - (this.drainAh / 13) * 4);
+    let mainVolts = mainBus ? (altOn ? 28.0 : cranking ? batV - 3 : batV) : 0;
     let load = 0;
     if (mainBus) {
       load = 6 + (avionics ? 9 : 0) + (sw!.fuelPump ? 3 : 0) + (sw!.beacon ? 1.5 : 0) + (sw!.landing ? 6 : 0) +
         (sw!.taxi ? 4 : 0) + (sw!.nav ? 2 : 0) + (sw!.strobe ? 2 : 0) + (sw!.pitotHeat ? 10 : 0) + (cranking ? 120 : 0);
     }
+    this.lastLoadA = load;
     const mainAmps = !mainBus ? 0 : altOn ? Math.max(1.5, 8 - this.alternatorWarm * 0.6) : -load;
     const stbyOnly = !mainBus && !!sw?.stbyBatt;
     if (stbyOnly) mainVolts = 0;
@@ -172,6 +188,8 @@ export class C172Core {
         essBus: essVolts > 0,
         avionicsBus: avionics,
         alternatorOn: altOn,
+        altFailed: this.altFailed,
+        lowVolts: mainBus && running && mainVolts < 24.5,
       },
       primeS: this.primeS,
     };

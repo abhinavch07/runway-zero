@@ -630,6 +630,53 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "An engine that stops at idle could stop on the landing approach. Check it now on the ground.",
     },
   ],
+  "c172-altfail": [
+    {
+      q: "What does LOW VOLTS with a negative battery current mean?",
+      options: [
+        "The alternator has stopped charging and the battery is powering everything",
+        "The battery is full",
+        "The engine is about to stop",
+        "The avionics are off",
+      ],
+      why: "About 24 V and a negative current mean the battery is being used up. With a working alternator it is about 28 V and charging.",
+    },
+    {
+      q: "What is the first thing to try?",
+      options: ["MASTER ALT off, then on (reset)", "MASTER BAT off", "Mixture to idle cut-off", "Magnetos off"],
+      why: "One reset of the alternator. If it does not come back, switch ALT off.",
+    },
+    {
+      q: "Why leave the BAT half of the master switch ON?",
+      options: [
+        "The battery is now the only power for the radios and instruments",
+        "It charges the alternator",
+        "It keeps the engine running",
+        "It is not allowed to switch it off",
+      ],
+      why: "With the alternator gone, the battery keeps the radios and the glass displays working.",
+    },
+    {
+      q: "Why switch off the landing light, strobes and pitot heat?",
+      options: [
+        "To reduce the load so the battery lasts longer",
+        "They stop the engine",
+        "They cause the failure",
+        "ATC requires it",
+      ],
+      why: "Shedding load stretches the battery time. Keep pitot heat on in icing conditions.",
+    },
+    {
+      q: "Does the engine stop when the alternator fails?",
+      options: [
+        "No: the magnetos make the spark without the electrical system",
+        "Yes, at once",
+        "Yes, when the battery is flat",
+        "Only if the fuel pump is off",
+      ],
+      why: "The engine keeps running on its magnetos. What you lose are the electrics: radios, displays, lights.",
+    },
+  ],
   "c172-shutdown": [
     {
       q: "How do you normally stop the engine?",

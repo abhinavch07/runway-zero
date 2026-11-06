@@ -43,6 +43,8 @@ export interface C172Controls {
   hdgBug: number;
   /** Radios (page only): frequencies in kHz, [active, standby]. */
   radios: C172Radios;
+  /** The ALT half of the master switch was switched off and on again after the failure. */
+  altCycled?: boolean;
 }
 
 export type XpdrMode = "STBY" | "ON" | "ALT";
@@ -114,6 +116,10 @@ export interface C172State {
     essBus: boolean;
     avionicsBus: boolean;
     alternatorOn: boolean;
+    /** The alternator has failed (a lesson failure). */
+    altFailed: boolean;
+    /** Main bus below 24.5 V with the engine running: the LOW VOLTS warning. */
+    lowVolts: boolean;
   };
   /** Seconds the fuel pump has run with the engine stopped (priming). */
   primeS: number;
@@ -122,7 +128,8 @@ export interface C172State {
 export type C172ToWorker =
   | { type: "init"; baseUrl: string; start: C172Start }
   | { type: "reset"; start: C172Start }
-  | { type: "controls"; controls: C172Controls };
+  | { type: "controls"; controls: C172Controls }
+  | { type: "fail"; what: "alternator" };
 
 export type C172FromWorker =
   | { type: "ready"; start: C172Start }
