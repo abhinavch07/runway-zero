@@ -16,7 +16,9 @@
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@0x62/jsbsim-wasm": "^1.2.4-beta.4"
+    "@0x62/jsbsim-wasm": "^1.2.4-beta.4",
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

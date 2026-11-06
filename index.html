@@ -3,86 +3,105 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Runway Zero</title>
+    <script>
+      // Old links opened a lesson on this address (the A320 used to live here). Send them on.
+      if (new URLSearchParams(location.search).has("lesson")) location.replace("a320.html" + location.search);
+    </script>
+    <title>Runway Zero · Learn the cockpit before you fly it</title>
+    <meta name="description" content="Free guided cockpit lessons for the A320, B737, C172 and PA-28 in your browser. Power up, set up the flight computer, start the engines and talk to ATC, one switch at a time." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.runwayzero.in/" />
+    <meta property="og:title" content="Runway Zero · Learn the cockpit before you fly it" />
+    <meta property="og:description" content="Free guided cockpit lessons for the A320, B737, C172 and PA-28 in your browser." />
+    <meta property="og:image" content="https://www.runwayzero.in/img/share.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#121821" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   </head>
-  <body>
-    <header id="topbar">
-      <span class="brand">RUNWAY ZERO</span>
-      <button id="lessons-btn">Lessons</button>
-      <nav id="tabs">
-        <button data-panel="ovhd" data-ctl="tab-ovhd">Overhead <kbd>1</kbd></button>
-        <button data-panel="main" data-ctl="tab-main">Main panel <kbd>2</kbd></button>
-        <button data-panel="ped" data-ctl="tab-ped">Pedestal <kbd>3</kbd></button>
+  <body class="welcome">
+    <header class="w-top">
+      <a class="w-brand" href="./">Runway Zero</a>
+      <nav aria-label="Page">
+        <a href="#aircraft">Aircraft</a>
+        <a href="#start">Where to start</a>
+        <a href="#how">How it works</a>
+        <a href="https://github.com/abhinavch07/runway-zero">GitHub</a>
       </nav>
-      <button id="time-btn" data-ctl="time-rate" title="Speed up time for long waits (1, 4 or 8 times)">TIME ×1</button>
-      <span id="sound-ctl">
-        <button id="sound-btn" title="Sound on / off (M)">🔊</button>
-        <input id="sound-vol" type="range" min="0" max="100" title="Volume" />
-      </span>
-      <span id="status"></span>
     </header>
 
-    <div id="layout">
-      <div id="lesson-slot"></div>
-      <main id="cockpit">
-        <section id="p-ovhd" class="cp-panel"></section>
-        <section id="p-main" class="cp-panel">
-          <div id="glareshield"></div>
-          <div id="displays">
-            <canvas id="pfd" title="PFD"></canvas>
-            <canvas id="nd" title="ND"></canvas>
-            <canvas id="ewd" title="Engine and warning display"></canvas>
+    <main>
+      <section class="w-hero" aria-labelledby="hero-title">
+        <div class="w-hero-text">
+          <h1 id="hero-title">Learn the cockpit before you fly it.</h1>
+          <p class="w-lede">
+            Free guided lessons for the A320, B737, C172 and PA-28. Power up from cold and dark, set up the flight
+            computer, start the engines and talk to ATC, one switch at a time. It all runs in your browser.
+          </p>
+          <div class="w-actions">
+            <a class="w-btn w-btn-main" href="#aircraft">Choose an aircraft</a>
+            <a class="w-btn w-btn-quiet" href="#start">Not sure? Find your starting point</a>
           </div>
-          <div id="stick" data-ctl="sidestick" title="Sidestick: hold a button, or use the arrow keys">
-            <span class="stick-title">SIDESTICK</span>
-            <button data-stick="left" data-ctl="stick-left">◀</button>
-            <button data-stick="up" data-ctl="stick-pull">PULL ▼</button>
-            <button data-stick="down" data-ctl="stick-push">PUSH ▲</button>
-            <button data-stick="right" data-ctl="stick-right">▶</button>
-            <span class="stick-hint">or arrow keys</span>
-          </div>
-        </section>
-        <section id="p-ped" class="cp-panel">
-          <div id="ped-row">
-            <div id="mcdu-slot"></div>
-            <div id="ped-side">
-              <div id="ped-top">
-              <div id="sd-col">
-                <canvas id="sd" title="Lower ECAM (system display)"></canvas>
-                <div id="ecam-cp"></div>
-              </div>
-              <div id="radio-slot"></div>
-            </div>
-              <div id="ped-controls"></div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
+          <p class="w-small">No account, nothing to install. Best on a laptop or desktop.</p>
+        </div>
+        <div class="w-runway" id="runway" aria-hidden="true"></div>
+      </section>
 
-    <footer id="notice">
-      Runway Zero is an A320neo-type procedures trainer, for learning only. Not approved for flight training credit or
-      real-world operations. Not affiliated with Airbus or any airline. Lessons are simplified training flows, not
-      operator procedures.
+      <section class="w-section" id="aircraft" aria-labelledby="aircraft-title">
+        <h2 id="aircraft-title">Pick your aircraft</h2>
+        <div id="aircraft-groups"></div>
+      </section>
+
+      <section class="w-section" id="start" aria-labelledby="start-title">
+        <h2 id="start-title">Where to start</h2>
+        <p class="w-intro">Each path is three lessons in a row. Start with the first one and the lesson list shows you the rest.</p>
+        <div id="paths" class="w-paths"></div>
+      </section>
+
+      <section class="w-section w-how" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">How a lesson works</h2>
+        <ol class="w-steps">
+          <li>
+            <h3>Read the step</h3>
+            <p>The guide on the left says what to do and why. The panel you need opens by itself.</p>
+          </li>
+          <li>
+            <h3>Find the yellow highlight</h3>
+            <p>The switch or button to use pulses yellow. The step ticks off only when the aircraft is really set that way.</p>
+          </li>
+          <li>
+            <h3>Take the quiz</h3>
+            <p>Five questions at the end, with the reason after each answer. Get four right to pass.</p>
+          </li>
+        </ol>
+        <div class="w-inside">
+          <h3>Also inside</h3>
+          <ul>
+            <li><b>Checklists</b> for every aircraft that check the real switch positions. Press C in any lesson.</li>
+            <li><b>Spoken ATC.</b> Hear the ATIS and your clearance, then pick the right read-back.</li>
+            <li><b>Cockpit sound.</b> APU and engine starts, pumps, packs and alerts, made in the browser.</li>
+            <li><b>A real flight model</b> underneath: JSBSim, the open source flight dynamics engine.</li>
+            <li><b>Progress saved</b> in your browser, with a tick for each lesson and quiz you pass.</li>
+            <li><b>Free and open source</b> under the GPL v3.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="w-notice" aria-label="Important">
+        <p>
+          <b>For learning only.</b> Runway Zero is not approved for flight training credit or real-world operations.
+          Lessons and checklists are simplified, written in our own words, and are not airline, manufacturer or POH
+          procedures. Radio frequencies, navaids and waypoints are made up for training. Not affiliated with Airbus,
+          Boeing, Cessna, Textron, Piper, Garmin, CFM or any airline.
+        </p>
+      </section>
+    </main>
+
+    <footer class="w-foot">
+      <span>Runway Zero</span>
+      <a href="https://github.com/abhinavch07/runway-zero">Source code on GitHub</a>
+      <a href="https://github.com/abhinavch07/runway-zero/issues">Report a problem or suggest a lesson</a>
     </footer>
 
-    <div id="picker" class="hidden">
-      <div class="picker-box">
-        <h2>Choose a lesson</h2>
-        <div id="picker-tabs"></div>
-        <div id="picker-list"></div>
-        <div class="picker-foot">
-          Progress is saved in this browser only.
-          <button id="reset-progress">Reset progress</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="loading">Loading the aircraft…</div>
-    <div id="notice-msg" class="hidden"></div>
-    <div id="error" class="hidden"></div>
-
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/welcome/main.ts"></script>
   </body>
 </html>

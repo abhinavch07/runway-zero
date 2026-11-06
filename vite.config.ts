@@ -23,10 +23,11 @@ export default defineConfig({
   build: {
     target: "es2022",
     rollupOptions: {
-      // Four pages: the A320 (index.html), the C172 (c172.html), the PA-28 (pa28.html, same script as the C172)
-      // and the 737 (737.html).
+      // Pages: the welcome page (index.html), the A320 (a320.html), the C172 (c172.html), the PA-28
+      // (pa28.html, same script as the C172) and the B737 (737.html).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        a320: fileURLToPath(new URL("./a320.html", import.meta.url)),
         c172: fileURLToPath(new URL("./c172.html", import.meta.url)),
         pa28: fileURLToPath(new URL("./pa28.html", import.meta.url)),
         b737: fileURLToPath(new URL("./737.html", import.meta.url)),

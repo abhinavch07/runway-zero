@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Runway Zero</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header id="topbar">
+      <a class="brand" href="./" title="Home">RUNWAY ZERO</a>
+      <button id="lessons-btn">Lessons</button>
+      <nav id="tabs">
+        <button data-panel="ovhd" data-ctl="tab-ovhd">Overhead <kbd>1</kbd></button>
+        <button data-panel="main" data-ctl="tab-main">Main panel <kbd>2</kbd></button>
+        <button data-panel="ped" data-ctl="tab-ped">Pedestal <kbd>3</kbd></button>
+      </nav>
+      <button id="time-btn" data-ctl="time-rate" title="Speed up time for long waits (1, 4 or 8 times)">TIME ×1</button>
+      <span id="sound-ctl">
+        <button id="sound-btn" title="Sound on / off (M)">🔊</button>
+        <input id="sound-vol" type="range" min="0" max="100" title="Volume" />
+      </span>
+      <span id="status"></span>
+    </header>
+
+    <div id="layout">
+      <div id="lesson-slot"></div>
+      <main id="cockpit">
+        <section id="p-ovhd" class="cp-panel"></section>
+        <section id="p-main" class="cp-panel">
+          <div id="glareshield"></div>
+          <div id="displays">
+            <canvas id="pfd" title="PFD"></canvas>
+            <canvas id="nd" title="ND"></canvas>
+            <canvas id="ewd" title="Engine and warning display"></canvas>
+          </div>
+          <div id="stick" data-ctl="sidestick" title="Sidestick: hold a button, or use the arrow keys">
+            <span class="stick-title">SIDESTICK</span>
+            <button data-stick="left" data-ctl="stick-left">◀</button>
+            <button data-stick="up" data-ctl="stick-pull">PULL ▼</button>
+            <button data-stick="down" data-ctl="stick-push">PUSH ▲</button>
+            <button data-stick="right" data-ctl="stick-right">▶</button>
+            <span class="stick-hint">or arrow keys</span>
+          </div>
+        </section>
+        <section id="p-ped" class="cp-panel">
+          <div id="ped-row">
+            <div id="mcdu-slot"></div>
+            <div id="ped-side">
+              <div id="ped-top">
+              <div id="sd-col">
+                <canvas id="sd" title="Lower ECAM (system display)"></canvas>
+                <div id="ecam-cp"></div>
+              </div>
+              <div id="radio-slot"></div>
+            </div>
+              <div id="ped-controls"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer id="notice">
+      Runway Zero is an A320neo-type procedures trainer, for learning only. Not approved for flight training credit or
+      real-world operations. Not affiliated with Airbus or any airline. Lessons are simplified training flows, not
+      operator procedures.
+    </footer>
+
+    <div id="picker" class="hidden">
+      <div class="picker-box">
+        <h2>Choose a lesson</h2>
+        <div id="picker-tabs"></div>
+        <div id="picker-list"></div>
+        <div class="picker-foot">
+          Progress is saved in this browser only.
+          <button id="reset-progress">Reset progress</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading">Loading the aircraft…</div>
+    <div id="notice-msg" class="hidden"></div>
+    <div id="error" class="hidden"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

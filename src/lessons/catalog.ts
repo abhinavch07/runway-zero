@@ -21,7 +21,7 @@ export const AIRCRAFT: AircraftEntry[] = [
     id: "a320",
     name: "A320neo",
     blurb: "Airliner: overhead, MCDU, FCU and engine start, Delhi to Mumbai.",
-    page: "./",
+    page: "./a320.html",
     lessons: LESSONS,
   },
   {

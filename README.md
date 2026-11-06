@@ -210,10 +210,11 @@ The site is the built `dist/` folder on the `gh-pages` branch, served at [www.ru
 
 ### How it is built
 
-Each aircraft has its own page: `index.html` (A320), `737.html` (B737), `c172.html` and `pa28.html` (the light aircraft share one script). The flight model runs in a Web Worker at 120 Hz. The page draws the panels and screens, runs the lessons and plays the sound.
+`index.html` is the welcome page (`src/welcome/`): the runway hero, the aircraft, suggested learning paths and how a lesson works. Each aircraft has its own page: `a320.html`, `737.html`, `c172.html` and `pa28.html` (the light aircraft share one script). Old links like `/?lesson=powerup` are sent on to `a320.html`. The "Runway Zero" name in each trainer's top bar goes back to the welcome page. The flight model runs in a Web Worker at 120 Hz. The page draws the panels and screens, runs the lessons and plays the sound.
 
 ```
 src/
+  welcome/              the welcome page (fonts: Barlow and Barlow Condensed, self-hosted)
   main.ts               A320 page, panels, lesson picker, display loop
   config.ts             A320 start positions
   lessons/              lessons.ts (A320), quizzes.ts (every aircraft), catalog.ts, progress.ts
@@ -233,6 +234,7 @@ src/
 public/jsbsim/          JSBSim aircraft and engine files
 scripts/                Node test scripts
 docs/images/            the pictures in this README
+public/img/             pictures on the welcome page, and the share image for link previews
 ```
 
 ### Writing a lesson
@@ -265,5 +267,6 @@ RZ ATIS 126.025, RZ DELIVERY 121.825, RZ GROUND 121.775, RZ TOWER 118.325, the R
 - JSBSim PA-28-180 (`aircraft/pa28`, `engine/engIO360C.xml`): LGPL 2.1. The aircraft file is modified (two tanks, fixed-pitch propeller, main wheel steering off, 10° first flap stage), and the changes are noted in its header.
 - Each JSBSim model notes it is built from public data, for educational and entertainment use, and not to be sold.
 - JSBSim WebAssembly build: `@0x62/jsbsim-wasm`, MIT.
+- Barlow and Barlow Condensed fonts: SIL Open Font License 1.1, through `@fontsource`.
 
 <p align="center"><sub>Clear skies. ✈️</sub></p>

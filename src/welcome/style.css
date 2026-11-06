@@ -1,0 +1,488 @@
+/* Welcome page: an airfield at night. Asphalt, runway paint, edge-light amber, taxiway blue. */
+:root {
+  --asphalt: #121821;
+  --apron: #1c2430;
+  --apron-line: #2c3644;
+  --paint: #ece6d6;
+  --text: #c9cfd8;
+  --muted: #8d97a5;
+  --amber: #ffb21a;
+  --taxi: #5aa8ff;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Barlow", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+body.welcome {
+  margin: 0;
+  background: var(--asphalt);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.welcome a {
+  color: var(--taxi);
+}
+.welcome a:focus-visible,
+.welcome button:focus-visible {
+  outline: 2px solid var(--taxi);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+/* Resets with zero specificity, so each component's own spacing wins. */
+:where(.welcome) :where(h1, h2, h3, h4) {
+  font-family: var(--display);
+  color: var(--paint);
+  margin: 0;
+  letter-spacing: 0.005em;
+}
+:where(.welcome) :where(p) {
+  margin: 0;
+}
+
+/* ---------- Header ---------- */
+.w-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px clamp(20px, 5vw, 64px);
+}
+.w-brand {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--paint) !important;
+  text-decoration: none;
+}
+.w-top nav {
+  display: flex;
+  gap: 22px;
+  font-size: 1rem;
+}
+.w-top nav a {
+  color: var(--text);
+  text-decoration: none;
+}
+.w-top nav a:hover {
+  color: var(--paint);
+}
+
+/* ---------- Hero ---------- */
+.w-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  min-height: min(92vh, 860px);
+  padding: 0 clamp(20px, 5vw, 64px);
+  background: radial-gradient(ellipse at 75% 0%, #1d2a40 0%, var(--asphalt) 60%);
+  overflow: hidden;
+}
+.w-hero-text {
+  align-self: center;
+  max-width: 34rem;
+  padding: 120px 0 72px;
+  position: relative;
+  z-index: 2;
+}
+.w-hero h1 {
+  font-weight: 700;
+  font-size: clamp(3.2rem, 6.4vw, 5.8rem);
+  line-height: 0.95;
+  margin-bottom: 28px;
+}
+.w-lede {
+  font-size: 1.2rem;
+  max-width: 32rem;
+  margin-bottom: 32px;
+}
+.w-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.w-small {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.w-runway {
+  position: relative;
+  margin-right: calc(-1 * clamp(20px, 5vw, 64px));
+}
+.w-runway svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.r-paint {
+  fill: var(--paint);
+  opacity: 0.86;
+}
+.r-dash {
+  opacity: 0.7;
+}
+.r-edge {
+  fill: #ffd98a;
+  filter: drop-shadow(0 0 4px #ffb21a);
+  opacity: 0;
+  animation: edge-on 0.35s ease-out forwards;
+  animation-delay: calc(400ms + var(--i) * 70ms);
+}
+.r-thr {
+  fill: #5bff8a;
+  filter: drop-shadow(0 0 4px #2fd36a);
+}
+.r-app {
+  fill: #fff3d0;
+  filter: drop-shadow(0 0 5px #ffd98a);
+  opacity: 0.85;
+}
+.r-rabbit {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 10px #ffffff);
+  opacity: 0;
+  animation: rabbit 1s linear 6;
+  animation-delay: calc(1600ms + var(--k) * 90ms);
+}
+@keyframes edge-on {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rabbit {
+  0% {
+    opacity: 1;
+  }
+  10%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .r-edge {
+    animation: none;
+    opacity: 1;
+  }
+  .r-rabbit {
+    animation: none;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.w-btn {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 1.02rem;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.welcome .w-btn-main {
+  background: var(--amber);
+  color: var(--asphalt);
+}
+.welcome .w-btn-main:hover {
+  background: #ffc54a;
+}
+.welcome .w-btn-quiet {
+  border: 1px solid var(--taxi);
+  color: var(--taxi);
+}
+.welcome .w-btn-quiet:hover {
+  background: rgba(90, 168, 255, 0.1);
+}
+
+/* ---------- Sections ---------- */
+.w-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 96px clamp(20px, 5vw, 64px) 0;
+}
+.w-section h2 {
+  font-weight: 600;
+  font-size: clamp(2.2rem, 3.6vw, 3rem);
+  line-height: 1;
+  margin-bottom: 18px;
+}
+.w-intro {
+  max-width: 40rem;
+  margin-bottom: 36px;
+}
+
+/* Aircraft, grouped */
+.w-group {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: 32px;
+  padding: 36px 0;
+  border-top: 1px solid var(--apron-line);
+}
+.w-group:first-child {
+  margin-top: 28px;
+}
+.w-group-head h3 {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.w-group-head p {
+  color: var(--muted);
+  font-size: 1rem;
+}
+.w-planes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+.w-shot {
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--apron-line);
+  background: #0d1218;
+}
+.w-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.w-plane-body {
+  padding-top: 16px;
+}
+.w-plane h4 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.w-plane p {
+  max-width: 30rem;
+}
+.w-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 8px 0 16px;
+}
+
+/* Where to start */
+.w-paths {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+.w-path {
+  background: var(--apron);
+  border-radius: 6px;
+  padding: 26px 26px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.w-path h3 {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.w-path > p {
+  font-size: 1rem;
+  margin-bottom: 18px;
+}
+.w-path ol {
+  list-style: none;
+  counter-reset: step;
+  margin: 0 0 22px;
+  padding: 0;
+  flex: 1;
+}
+.w-path li {
+  counter-increment: step;
+  border-top: 1px solid var(--apron-line);
+}
+.w-path li a {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  padding: 10px 0;
+  text-decoration: none;
+  color: var(--paint);
+}
+.w-path li a::before {
+  content: counter(step);
+  grid-row: span 2;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--amber);
+}
+.w-path li a span {
+  font-weight: 600;
+}
+.w-path li a small {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.w-path li a:hover span {
+  color: var(--taxi);
+}
+.w-path .w-btn {
+  align-self: flex-start;
+}
+
+/* How it works */
+.w-steps {
+  list-style: none;
+  counter-reset: how;
+  padding: 0;
+  margin: 28px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+.w-steps li {
+  counter-increment: how;
+  border-top: 2px solid var(--paint);
+  padding-top: 16px;
+}
+.w-steps li::before {
+  content: counter(how);
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--paint);
+  margin-bottom: 8px;
+}
+.w-steps h3 {
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.w-steps p {
+  max-width: 22rem;
+}
+.w-inside {
+  margin-top: 64px;
+}
+.w-inside h3 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.w-inside ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+}
+.w-inside li {
+  padding: 12px 0;
+  border-top: 1px solid var(--apron-line);
+  max-width: 34rem;
+}
+.w-inside b {
+  color: var(--paint);
+  font-weight: 600;
+}
+
+/* Notice and footer */
+.w-notice {
+  max-width: 1200px;
+  margin: 96px auto 0;
+  padding: 0 clamp(20px, 5vw, 64px);
+}
+.w-notice p {
+  background: var(--apron);
+  border-radius: 6px;
+  padding: 20px 24px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  max-width: none;
+}
+.w-notice b {
+  color: var(--paint);
+}
+.w-foot {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px clamp(20px, 5vw, 64px) 56px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.w-foot span {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--paint);
+  margin-right: auto;
+}
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 980px) {
+  .w-group {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .w-paths,
+  .w-steps {
+    grid-template-columns: 1fr;
+  }
+  .w-inside ul {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  body.welcome {
+    font-size: 17px;
+  }
+  .w-top nav a:not(:last-child) {
+    display: none;
+  }
+  .w-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .w-runway {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0.16;
+  }
+  .w-hero-text {
+    padding: 110px 0 56px;
+  }
+  .w-planes {
+    grid-template-columns: 1fr;
+  }
+  .w-section {
+    padding-top: 72px;
+  }
+}
