@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://abhinavch07.github.io/runway-zero/"><b>▶ Try it now in your browser</b></a>
+  <a href="https://www.runwayzero.in/"><b>▶ Try it now in your browser</b></a>
   &nbsp;·&nbsp; free &nbsp;·&nbsp; nothing to install &nbsp;·&nbsp; no account
 </p>
 
@@ -125,7 +125,7 @@
 
 ## How to use it
 
-1. Open **[the trainer](https://abhinavch07.github.io/runway-zero/)** in Chrome, Edge, Firefox or Safari on a desktop or laptop.
+1. Open **[the trainer](https://www.runwayzero.in/)** in Chrome, Edge, Firefox or Safari on a desktop or laptop.
 2. Pick an aircraft tab and a lesson. Click anywhere once so the browser lets the sound play.
 3. Read the step on the left. The control to use pulses yellow, and the right panel opens by itself.
 4. Do what the step says. It ticks off when the aircraft is really in that state.
@@ -206,7 +206,7 @@ npm run test:flights  # scripted test flights: cold start and taxi, ground, norm
 
 ### Publishing
 
-The site is the built `dist/` folder on the `gh-pages` branch. To publish the latest `main`, run `npm run publish:pages`. GitHub Pages is set to Deploy from a branch: `gh-pages`, `/ (root)`.
+The site is the built `dist/` folder on the `gh-pages` branch, served at [www.runwayzero.in](https://www.runwayzero.in/). To publish the latest `main`, run `npm run publish:pages`. GitHub Pages is set to Deploy from a branch: `gh-pages`, `/ (root)`. The custom domain comes from `public/CNAME`, which is copied into every build, so publishing never loses it.
 
 ### How it is built
 
