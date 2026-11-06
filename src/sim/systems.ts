@@ -175,6 +175,10 @@ export interface SystemsStatus {
   batVolts: [number, number];
   extPwrAvail: boolean;
   apuN: number;
+  /** APU exhaust gas temperature, °C (an approximation: the stand-in model has no APU). */
+  apuEgtC: number;
+  /** The lower ECAM shows the APU page by itself: APU master on, until 10 s after AVAIL. */
+  apuPageAuto: boolean;
   apuFlapOpen: boolean;
   apuStarting: boolean;
   apuAvail: boolean;
@@ -220,6 +224,8 @@ export class Systems {
   private irTime: [number, number, number] = [0, 0, 0];
   private apuFlapTime = 0;
   private apuPressesSeen = 0;
+  /** Seconds since the APU became available. */
+  private apuAvailS = 0;
   /** Seconds stopped on the ground. Ground power is plugged in after 20 s stopped. */
   private stoppedS = 30;
 
@@ -236,6 +242,8 @@ export class Systems {
       batVolts: [25.5, 25.5],
       extPwrAvail: true,
       apuN: 0,
+      apuEgtC: AMBIENT_C,
+      apuPageAuto: false,
       apuFlapOpen: false,
       apuStarting: false,
       apuAvail: false,
@@ -275,6 +283,8 @@ export class Systems {
       this.irTime = [IR_ALIGN_SECONDS, IR_ALIGN_SECONDS, IR_ALIGN_SECONDS];
       this.st.irAligned = [true, true, true];
       this.st.apuN = 100;
+      this.st.apuEgtC = 420;
+      this.apuAvailS = 30;
       this.st.apuAvail = true;
       this.apuFlapTime = 5;
     } else {
@@ -346,6 +356,12 @@ export class Systems {
       s.apuN = Math.max(0, s.apuN - 5 * dt);
     }
     s.apuAvail = sw.apuMaster && s.dcPower && s.apuN >= 95;
+    this.apuAvailS = s.apuAvail ? this.apuAvailS + dt : 0;
+    s.apuPageAuto = sw.apuMaster && s.dcPower && this.apuAvailS < 10;
+    // EGT: a peak during the start (fuel lights at about 20% N), then about 420 °C running.
+    const egtTarget =
+      s.apuN < 1 ? AMBIENT_C : s.apuStarting ? (s.apuN < 20 ? AMBIENT_C + s.apuN * 3 : 420 + 380 * Math.sin(Math.min(1, (s.apuN - 20) / 70) * Math.PI)) : s.apuAvail ? 420 : AMBIENT_C + s.apuN * 4;
+    s.apuEgtC += (egtTarget - s.apuEgtC) * Math.min(1, dt * 1.2);
 
     // ----- Bleed air -----
     const apuAir = sw.apuBleed && s.apuAvail ? 35 : 0;

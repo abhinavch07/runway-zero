@@ -32,6 +32,8 @@ Panels:
 
 Under the panels there is a real simulation: the JSBSim flight model, simple systems (electrics, APU, ADIRS alignment in 1 minute, fuel, bleed, engine start) and an autopilot with HDG, ALT, V/S, LOC and G/S. Screens stay dark without AC power, and the PFD and ND show flags until the ADIRS are aligned.
 
+The A320 lower ECAM has an APU page (N, EGT, APU GEN, APU BLEED, intake flap). It opens by itself while the APU starts and closes 10 seconds after AVAIL.
+
 Sound, on every aircraft: cockpit hum when powered, APU, engines, switch clicks and a chime for each finished step. Also:
 
 - Engine and APU starts: start valve air, igniter ticks, a light-off rumble, the APU door.

@@ -118,6 +118,7 @@ function onReady(start: StartPosition, throttle: number) {
   radioPanels.reset();
   radioBox.reset();
   lastSnd = null;
+  pageBeforeApu = null;
   gen1Seen.off = false;
   failSent = false;
   readyAt = performance.now();
@@ -173,7 +174,9 @@ radioBox.voice.volume = () => sound.volume;
 radioBox.onReadback = () => (controls.extras!.readBack = true);
 
 // ---------- ECAM control panel (pedestal) ----------
-const ECAM_PAGES: EcamPage[] = ["ENG", "BLEED", "ELEC", "HYD", "FUEL", "DOOR", "F/CTL"];
+const ECAM_PAGES: EcamPage[] = ["ENG", "BLEED", "ELEC", "HYD", "FUEL", "APU", "DOOR", "F/CTL"];
+/** The page shown before the APU page opened by itself, to go back to afterwards. */
+let pageBeforeApu: EcamPage | null = null;
 $("ecam-cp").innerHTML =
   `<div class="ecam-row">${ECAM_PAGES.map((p) => `<button data-page="${p}" data-ctl="ecam-${p.replace("/", "").toLowerCase()}">${p}</button>`).join("")}</div>` +
   `<div class="ecam-row"><button data-ecam="clr" data-ctl="ecam-clr" class="clr">CLR</button><button data-ecam="to" data-ctl="ecam-toconfig">T.O CONFIG</button></div>`;
@@ -412,6 +415,15 @@ function ecamFrame(s: SimState) {
     }
   }
   trackGen1Cycle(s, controls, x(), gen1Seen);
+  // The APU page opens by itself while the APU starts, and closes 10 s after AVAIL.
+  const auto = s.systems.apuPageAuto;
+  if (auto && pageBeforeApu === null) {
+    pageBeforeApu = x().ecamPage;
+    x().ecamPage = "APU";
+  } else if (!auto && pageBeforeApu !== null) {
+    if (x().ecamPage === "APU") x().ecamPage = pageBeforeApu;
+    pageBeforeApu = null;
+  }
   masterCaut.classList.toggle("lit", x().masterCaution && s.systems.dcPower);
   const f = x().fctl;
   if (controls.pitch > 0.5) f.up = true;

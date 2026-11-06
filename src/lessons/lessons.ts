@@ -111,7 +111,7 @@ export const LESSONS: Lesson[] = [
       },
       {
         title: "APU START: press, wait for AVAIL",
-        why: "The APU is a small jet engine in the tail. Once running it gives electrical power and the air needed to start the main engines. It takes about 45 seconds.",
+        why: "The APU is a small jet engine in the tail. Once running it gives electrical power and the air needed to start the main engines. It takes about 45 seconds. The lower ECAM (on the pedestal) shows the APU page by itself: watch its speed (N) and EGT rise, then AVAIL.",
         targets: ["apuStart"],
         panel: "ovhd",
         done: (s) => s.systems.apuAvail,

@@ -27,7 +27,7 @@ export interface Controls {
   efis?: { fd: boolean; qnh: number; std: boolean };
 }
 
-export type EcamPage = "ENG" | "BLEED" | "ELEC" | "HYD" | "FUEL" | "DOOR" | "F/CTL";
+export type EcamPage = "ENG" | "BLEED" | "ELEC" | "HYD" | "FUEL" | "APU" | "DOOR" | "F/CTL";
 
 export interface A320Extras {
   /** Ground spoilers armed (speedbrake lever in ARM). */

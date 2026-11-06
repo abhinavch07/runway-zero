@@ -1,4 +1,4 @@
-// Lower ECAM (system display): ENG, BLEED, ELEC, HYD, FUEL, DOOR and F/CTL pages.
+// Lower ECAM (system display): ENG, BLEED, ELEC, HYD, FUEL, APU, DOOR and F/CTL pages.
 // Simplified training pages in the spirit of the A320 family, our own drawings and layout.
 import type { Controls, EcamPage, SimState } from "../sim/types";
 
@@ -61,6 +61,9 @@ export class SystemDisplay {
         break;
       case "FUEL":
         this.fuel(s, c);
+        break;
+      case "APU":
+        this.apu(s, c);
         break;
       case "DOOR":
         this.door(s);
@@ -279,6 +282,66 @@ export class SystemDisplay {
     this.text("KG", 210, 342, CYAN, "center", 12);
     const diff = Math.abs(l - r);
     if (diff > 300) this.text(`IMBALANCE ${Math.round(diff / 10) * 10} KG`, 210, 362, AMBER, "center", 12);
+  }
+
+  /** A round gauge from lo to hi over 240 degrees, with an amber and a red band near the top. */
+  private gauge(x: number, y: number, r: number, v: number, lo: number, hi: number, amber: number, red: number, digits: string, label: string, unit: string) {
+    const g = this.g;
+    const a0 = Math.PI * 0.75;
+    const span = Math.PI * 1.25;
+    const ang = (val: number) => a0 + ((Math.max(lo, Math.min(hi, val)) - lo) / (hi - lo)) * span;
+    g.lineWidth = 2;
+    const arc = (from: number, to: number, colour: string) => {
+      g.strokeStyle = colour;
+      g.beginPath();
+      g.arc(x, y, r, ang(from), ang(to));
+      g.stroke();
+    };
+    arc(lo, amber, WHITE);
+    arc(amber, red, AMBER);
+    arc(red, hi, "#ff3b3b");
+    g.strokeStyle = GREEN;
+    g.lineWidth = 3;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + Math.cos(ang(v)) * (r - 4), y + Math.sin(ang(v)) * (r - 4));
+    g.stroke();
+    this.text(digits, x + 18, y + 28, GREEN, "center", 20);
+    this.text(label, x - r - 14, y - r + 6, WHITE, "left", 14);
+    this.text(unit, x + r + 4, y + 28, CYAN, "left", 12);
+  }
+
+  private apu(s: SimState, c: Controls) {
+    const sys = s.systems;
+    const sw = c.switches;
+    // APU GEN: shown once the APU runs. Our own simple load figure.
+    this.box(30, 50, 130, 96, sys.apuAvail ? WHITE : GREY);
+    this.text("APU GEN", 95, 66, sys.apuAvail && !sw.apuGen ? AMBER : WHITE, "center", 14);
+    if (sys.apuAvail && sw.apuGen) {
+      const load = sys.apuGenOn ? (sys.engines.some((e) => e.phase === "RUN") ? 12 : 28) : 0;
+      this.text(String(load), 80, 90, GREEN, "right", 16);
+      this.text("%", 88, 90, CYAN, "left", 12);
+      this.text("115", 80, 112, GREEN, "right", 16);
+      this.text("V", 88, 112, CYAN, "left", 12);
+      this.text("400", 80, 134, GREEN, "right", 16);
+      this.text("HZ", 88, 134, CYAN, "left", 12);
+    } else if (sys.apuAvail) this.text("OFF", 95, 110, WHITE, "center", 14);
+    // APU BLEED: pressure while the APU runs, valve open or shut.
+    this.box(260, 50, 130, 70, sys.apuAvail ? WHITE : GREY);
+    this.text("APU BLEED", 325, 66, WHITE, "center", 14);
+    this.text(sys.apuAvail ? "35" : "XX", 320, 96, sys.apuAvail ? GREEN : AMBER, "right", 18);
+    this.text("PSI", 326, 96, CYAN, "left", 12);
+    const open = sw.apuBleed && sys.apuAvail;
+    this.line(325, 120, 325, open ? 160 : 136, open ? GREEN : WHITE);
+    this.text(open ? "VALVE OPEN" : "VALVE SHUT", 325, 174, open ? GREEN : WHITE, "center", 12);
+    // AVAIL and the intake flap.
+    if (sys.apuAvail) this.text("AVAIL", 210, 66, GREEN, "center", 18);
+    this.text(sys.apuFlapOpen ? "FLAP OPEN" : sw.apuMaster && sys.dcPower ? "FLAP MOVING" : "", 325, 360, GREEN, "center", 14);
+    // Speed (N) and EGT gauges.
+    const on = sw.apuMaster && sys.dcPower;
+    this.gauge(110, 240, 52, sys.apuN, 0, 120, 102, 107, on ? Math.round(sys.apuN).toString() : "XX", "N", "%");
+    this.gauge(110, 340 - 14, 40, sys.apuEgtC, 300, 1100, 900, 1000, on ? String(Math.round(sys.apuEgtC / 5) * 5) : "XX", "EGT", "°C");
+    if (sys.apuStarting) this.text("STARTING", 325, 230, GREEN, "center", 14);
   }
 
   private door(s: SimState) {
