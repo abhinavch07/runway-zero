@@ -949,3 +949,87 @@
 .gf-dark {
   fill: #5c6573;
 }
+
+/* Figures added with Modules 6 to 10 */
+.gf-fog {
+  fill: rgba(220, 224, 230, 0.45);
+}
+.gf-runway {
+  fill: #2a2a2a;
+  stroke: var(--paint);
+  stroke-dasharray: 6 4;
+}
+.gf-sight {
+  stroke: var(--ok);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.gf-sight2 {
+  stroke: var(--no);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.gf-green {
+  fill: var(--ok);
+}
+.gf-red {
+  fill: var(--no);
+}
+.gf-star {
+  fill: var(--paint);
+}
+.gf-coldsurf {
+  fill: rgba(90, 168, 255, 0.45);
+}
+.gf-wfront {
+  fill: none;
+  stroke: var(--no);
+  stroke-width: 3;
+}
+.gf-cfront {
+  fill: none;
+  stroke: var(--taxi);
+  stroke-width: 3;
+}
+.gf-wsym {
+  fill: var(--no);
+}
+.gf-csym {
+  fill: var(--taxi);
+}
+.gf-danger {
+  fill: rgba(255, 107, 94, 0.22);
+}
+.gf-cellbox {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 2;
+  stroke-dasharray: 8 5;
+}
+.gf-bar-fog {
+  fill: #a7b0bd;
+}
+.gf-bar-wd {
+  fill: #7e93b0;
+}
+.gf-bar-dust {
+  fill: #c9a26b;
+}
+.gf-bar-ts {
+  fill: #b48cff;
+}
+.gf-bar-mon {
+  fill: var(--taxi);
+}
+.gf-bar-tc {
+  fill: var(--no);
+}
+.gf-bar-jet {
+  fill: var(--amber);
+}
+.gf-land {
+  fill: #3a3326;
+}
+.gf-hills {
+  fill: #6b5b3e;
+}

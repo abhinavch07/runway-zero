@@ -518,7 +518,304 @@ function clouds(): string {
   return s + "</svg>";
 }
 
+/** Shallow fog: good vertical visibility, poor slant visibility on the approach. */
+function slantvis(): string {
+  const W = 620;
+  const H = 260;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Over shallow fog the runway is visible from overhead but not along the slant approach path">`;
+  s += `<rect class="gf-ground2" x="20" y="210" width="580" height="30"/>`;
+  s += `<rect class="gf-runway" x="430" y="204" width="160" height="8"/>`;
+  s += `<rect class="gf-fog" x="20" y="160" width="580" height="50"/>`;
+  s += `<text class="gf-small" x="30" y="182">Shallow fog layer</text>`;
+  s += `<path class="gf-plane" d="M500,40 l40,0 l8,-6 l4,0 l-4,8 l-12,2 l-6,10 l-6,0 l2,-10 l-26,0 z"/>`;
+  s += `<line class="gf-sight" x1="510" y1="58" x2="510" y2="204"/>`;
+  s += `<text class="gf-label gf-green" x="500" y="120" text-anchor="end">Overhead: runway in sight</text>`;
+  s += `<path class="gf-plane" d="M120,90 l40,0 l8,-6 l4,0 l-4,8 l-12,2 l-6,10 l-6,0 l2,-10 l-26,0 z"/>`;
+  s += `<line class="gf-sight2" x1="165" y1="104" x2="440" y2="204"/>`;
+  s += `<text class="gf-label gf-red" x="30" y="128">Approach: long slant path</text>`;
+  s += `<text class="gf-label gf-red" x="30" y="146">through fog hides the runway</text>`;
+  return s + "</svg>";
+}
+
+/** Radiation fog and advection fog side by side. */
+function fogtypes(): string {
+  const W = 640;
+  const H = 250;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Radiation fog forms on clear calm nights over land, advection fog when warm moist air moves over a cold surface">`;
+  s += head("fg1");
+  // Radiation fog panel.
+  s += `<text class="gf-label" x="160" y="24" text-anchor="middle">Radiation fog</text>`;
+  for (const [x, y] of [[40, 50], [90, 40], [150, 58], [210, 44], [270, 54]] as const) s += `<circle class="gf-star" cx="${x}" cy="${y}" r="2"/>`;
+  s += `<text class="gf-small" x="160" y="80" text-anchor="middle">Clear sky: ground loses heat</text>`;
+  for (const x of [70, 160, 250]) s += `<line class="gf-arrowthin" x1="${x}" y1="180" x2="${x}" y2="100" marker-end="url(#fg1)"/>`;
+  s += `<rect class="gf-fog" x="20" y="170" width="280" height="30"/>`;
+  s += `<rect class="gf-ground2" x="20" y="200" width="280" height="20"/>`;
+  s += `<text class="gf-small" x="160" y="240" text-anchor="middle">Light wind 2 to 8 kt, moist air, long night, over land</text>`;
+  // Advection fog panel.
+  s += `<text class="gf-label" x="480" y="24" text-anchor="middle">Advection fog</text>`;
+  s += `<rect class="gf-warm" x="340" y="110" width="120" height="60"/>`;
+  s += `<text class="gf-small" x="400" y="138" text-anchor="middle">Warm moist air</text>`;
+  s += `<line class="gf-arrow" x1="400" y1="160" x2="470" y2="160" marker-end="url(#fg1)" style="stroke-width:3"/>`;
+  s += `<rect class="gf-fog" x="470" y="160" width="150" height="40"/>`;
+  s += `<rect class="gf-sea" x="340" y="200" width="130" height="20"/>`;
+  s += `<rect class="gf-coldsurf" x="470" y="200" width="150" height="20"/>`;
+  s += `<text class="gf-small" x="545" y="150" text-anchor="middle">Cooled from below</text>`;
+  s += `<text class="gf-small" x="545" y="214" text-anchor="middle">Cold sea or land</text>`;
+  s += `<text class="gf-small" x="480" y="240" text-anchor="middle">Day or night, wind up to about 15 kt</text>`;
+  return s + "</svg>";
+}
+
+/** Warm and cold front cross sections. */
+function fronts(): string {
+  const W = 640;
+  const H = 400;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cross sections of a warm front and a cold front">`;
+  s += head("fr1");
+  // Warm front: cold wedge on the right, gentle slope.
+  s += `<text class="gf-label" x="20" y="22">Warm front: warm air rides up a gentle slope</text>`;
+  s += `<path class="gf-coldair" d="M180,170 L620,170 L620,70 Z"/>`;
+  s += `<text class="gf-small" x="520" y="160">Cold air</text>`;
+  s += `<text class="gf-small" x="40" y="150">Warm air</text>`;
+  s += `<line class="gf-arrow" x1="60" y1="160" x2="170" y2="160" marker-end="url(#fr1)"/>`;
+  s += `<rect class="gf-dark" x="200" y="110" width="110" height="48" rx="6"/><text class="gf-small" x="255" y="138" text-anchor="middle" style="fill:#fff">Ns</text>`;
+  for (const x of [215, 235, 255, 275, 295]) s += `<line class="gf-rain" x1="${x}" x2="${x - 4}" y1="158" y2="170"/>`;
+  s += `<rect class="gf-cloud2" x="320" y="90" width="120" height="16" rx="5"/><text class="gf-small" x="380" y="86" text-anchor="middle">As</text>`;
+  s += `<rect class="gf-veil" x="450" y="60" width="90" height="8" rx="4"/><text class="gf-small" x="495" y="54" text-anchor="middle">Cs</text>`;
+  s += `<path class="gf-wisp" d="M555,44 q20,-8 40,-2"/><text class="gf-small" x="575" y="32" text-anchor="middle">Ci</text>`;
+  s += `<line class="gf-axis" x1="20" y1="170" x2="620" y2="170"/>`;
+  s += `<text class="gf-small" x="180" y="188" text-anchor="middle">Surface front</text>`;
+  s += `<text class="gf-small" x="620" y="188" text-anchor="end">Cloud up to about 1,000 km ahead</text>`;
+  // Cold front: cold wedge on the left, steep slope.
+  const y0 = 370;
+  s += `<text class="gf-label" x="20" y="${y0 - 150}">Cold front: cold air pushes under, lifting warm air steeply</text>`;
+  s += `<path class="gf-coldair" d="M20,${y0} L330,${y0} C300,${y0 - 30} 270,${y0 - 70} 240,${y0 - 110} L20,${y0 - 110} Z"/>`;
+  s += `<text class="gf-small" x="60" y="${y0 - 20}">Cold air</text>`;
+  s += `<line class="gf-arrow" x1="120" y1="${y0 - 40}" x2="230" y2="${y0 - 40}" marker-end="url(#fr1)"/>`;
+  s += `<text class="gf-small" x="500" y="${y0 - 20}">Warm air</text>`;
+  s += `<path class="gf-cloud" d="M330,${y0 - 6} L338,${y0 - 70} C328,${y0 - 92} 340,${y0 - 112} 352,${y0 - 116} L312,${y0 - 120} L396,${y0 - 120} L372,${y0 - 114} C384,${y0 - 100} 384,${y0 - 80} 376,${y0 - 64} L382,${y0 - 6} Z"/>`;
+  s += `<text class="gf-small" x="356" y="${y0 - 126}" text-anchor="middle">CB</text>`;
+  for (const x of [340, 352, 364, 376]) s += `<line class="gf-rain" x1="${x}" x2="${x - 4}" y1="${y0 - 6}" y2="${y0}"/>`;
+  s += `<path class="gf-cloud2" d="M120,${y0 - 120} c10,-14 30,-14 36,-2 c10,-8 26,-2 26,8 z"/><text class="gf-small" x="150" y="${y0 - 128}" text-anchor="middle">Cu behind</text>`;
+  s += `<line class="gf-axis" x1="20" y1="${y0}" x2="620" y2="${y0}"/>`;
+  s += `<text class="gf-small" x="356" y="${y0 + 18}" text-anchor="middle">Surface front: narrow band of CB, squalls, heavy showers</text>`;
+  return s + "</svg>";
+}
+
+/** Plan view of a frontal depression with warm and cold fronts and the warm sector (NH). */
+function depression(): string {
+  const W = 560;
+  const H = 360;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="A frontal depression: low centre with a warm front to the east, a cold front to the south west and the warm sector between">`;
+  s += head("dp1");
+  for (const [rx, ry] of [[50, 40], [110, 85], [180, 140]] as const) s += `<ellipse class="gf-iso" cx="230" cy="140" rx="${rx}" ry="${ry}"/>`;
+  s += `<text class="gf-bigL" x="230" y="148" text-anchor="middle">L</text>`;
+  // Warm front (red, half circles) to the east and south east.
+  s += `<path class="gf-wfront" d="M232,150 C300,160 360,190 420,250"/>`;
+  for (let i = 0; i < 5; i++) {
+    const t = 0.15 + i * 0.17;
+    const x = 232 + (420 - 232) * t;
+    const y = 150 + (250 - 150) * (t * t * 0.8 + t * 0.2);
+    s += `<path class="gf-wsym" d="M${f(x - 6)},${f(y)} A6,6 0 0 1 ${f(x + 6)},${f(y)} Z"/>`;
+  }
+  // Cold front (blue, triangles) to the south west.
+  s += `<path class="gf-cfront" d="M232,150 C210,210 170,260 110,320"/>`;
+  for (let i = 0; i < 5; i++) {
+    const t = 0.15 + i * 0.17;
+    const x = 232 + (110 - 232) * t;
+    const y = 150 + (320 - 150) * t;
+    s += `<path class="gf-csym" d="M${f(x)},${f(y)} l14,2 l-9,9 z"/>`;
+  }
+  s += `<text class="gf-label" x="290" y="250" text-anchor="middle">Warm sector</text>`;
+  s += `<text class="gf-small" x="290" y="266" text-anchor="middle">mild, humid, St, drizzle</text>`;
+  s += `<text class="gf-small gf-red" x="430" y="236">Warm front</text>`;
+  s += `<text class="gf-small gf-blue" x="40" y="300">Cold front</text>`;
+  s += `<text class="gf-small" x="70" y="80">Cold air</text>`;
+  s += `<line class="gf-arrow" x1="300" y1="300" x2="380" y2="270" marker-end="url(#dp1)"/>`;
+  s += `<text class="gf-small" x="300" y="330">Moves roughly with the warm sector isobars</text>`;
+  return s + "</svg>";
+}
+
+/** Cross section of a tropical cyclone: eye, eye wall, rain bands. */
+function tcsection(): string {
+  const W = 640;
+  const H = 300;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cross section of a tropical cyclone with the calm eye, the eye wall and spiral rain bands">`;
+  s += `<rect class="gf-sea" x="20" y="250" width="600" height="30"/>`;
+  // Eye wall towers and bands, symmetric about x=320.
+  const cb = (cx: number, top: number, w: number) =>
+    `<path class="gf-cloud" d="M${cx - w},250 L${cx - w + 4},${top + 20} C${cx - w},${top} ${cx + w},${top} ${cx + w - 4},${top + 20} L${cx + w},250 Z"/>`;
+  s += cb(270, 40, 28) + cb(370, 40, 28) + cb(190, 110, 22) + cb(450, 110, 22) + cb(120, 160, 18) + cb(520, 160, 18);
+  s += `<path class="gf-veil" d="M100,40 C200,26 440,26 540,40 L540,48 C440,36 200,36 100,48 Z"/>`;
+  s += `<text class="gf-small" x="320" y="22" text-anchor="middle">Cirrus outflow at the top</text>`;
+  s += `<text class="gf-label" x="320" y="150" text-anchor="middle">Eye</text>`;
+  s += `<text class="gf-small" x="320" y="168" text-anchor="middle">calm, sinking air</text>`;
+  s += `<text class="gf-small" x="320" y="184" text-anchor="middle">lowest pressure</text>`;
+  s += `<text class="gf-label" x="270" y="270" text-anchor="middle">Eye wall</text>`;
+  s += `<text class="gf-small" x="190" y="270" text-anchor="middle">Rain band</text>`;
+  s += `<text class="gf-small" x="450" y="270" text-anchor="middle">Rain band</text>`;
+  s += `<text class="gf-small" x="610" y="92" text-anchor="end">Strongest winds in the eye wall</text>`;
+  s += `<line class="gf-dash" x1="296" x2="344" y1="210" y2="210"/><text class="gf-small" x="320" y="226" text-anchor="middle">20 to 50 km</text>`;
+  return s + "</svg>";
+}
+
+/** Plan view of a typical NH track with the dangerous semicircle shaded on the right. */
+function tctrack(): string {
+  const W = 560;
+  const H = 330;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Typical northern hemisphere cyclone track, moving west then recurving north east, with the dangerous semicircle on the right of the track">`;
+  s += head("tt1");
+  s += `<path class="gf-line" d="M520,270 C400,260 260,230 200,170 C160,130 180,80 260,40" marker-end="url(#tt1)"/>`;
+  s += `<text class="gf-small" x="550" y="316" text-anchor="end">Moves west or north west at 10 to 15 kt</text>`;
+  s += `<text class="gf-small" x="280" y="40">Often recurves north east</text>`;
+  // Storm symbol with the right half shaded.
+  const cx = 360;
+  const cy = 248;
+  s += `<path class="gf-danger" d="M${cx},${cy - 50} A50,50 0 0 1 ${cx},${cy + 50} Z" transform="rotate(-82 ${cx} ${cy})"/>`;
+  s += `<circle class="gf-iso" cx="${cx}" cy="${cy}" r="50"/>`;
+  s += `<circle class="gf-dot" cx="${cx}" cy="${cy}" r="5"/>`;
+  s += `<text class="gf-label gf-red" x="${cx}" y="${cy - 60}" text-anchor="middle">Dangerous semicircle</text>`;
+  s += `<text class="gf-small" x="${cx}" y="${cy - 76}" text-anchor="middle">right of track (NH)</text>`;
+  s += `<text class="gf-small" x="40" y="100">Anticlockwise circulation</text>`;
+  s += `<text class="gf-small" x="40" y="116">in the NH</text>`;
+  return s + "</svg>";
+}
+
+/** Three cell model and surface wind belts, NH half. */
+function threecell(): string {
+  const W = 620;
+  const H = 360;
+  const y = (lat: number) => 330 - lat * 3.3; // 0 to 90°
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Three cell model with Hadley, Ferrel and polar cells and the surface wind belts">`;
+  s += head("tc1");
+  for (const lat of [0, 30, 60, 90]) {
+    s += `<line class="gf-dash" x1="60" x2="600" y1="${y(lat)}" y2="${y(lat)}"/>`;
+    s += `<text class="gf-tick" x="52" y="${y(lat) + 4}" text-anchor="end">${lat}°${lat ? "N" : ""}</text>`;
+  }
+  const cell = (a: number, b: number, name: string) => {
+    const ya = y(a);
+    const yb = y(b);
+    const x1 = 300;
+    const x2 = 360;
+    let c = `<rect class="gf-cellbox" x="${x1 - 70}" y="${yb + 6}" width="${x2 - x1 + 140}" height="${ya - yb - 12}" rx="30"/>`;
+    c += `<text class="gf-label" x="330" y="${(ya + yb) / 2 + 5}" text-anchor="middle">${name}</text>`;
+    return c;
+  };
+  s += cell(0, 30, "Hadley cell") + cell(30, 60, "Ferrel cell") + cell(60, 90, "Polar cell");
+  for (const [lat, word] of [[0, "air rises"], [30, "air sinks"], [60, "air rises"], [90, "air sinks"]] as const) {
+    s += `<text class="gf-small gf-blue" x="444" y="${y(lat) + 16}">${word}</text>`;
+  }
+  // Surface wind arrows on the left.
+  const wind = (lat: number, dx: number, dy: number, label: string) =>
+    `<line class="gf-arrow" x1="${130 - dx / 2}" y1="${y(lat) - dy / 2}" x2="${130 + dx / 2}" y2="${y(lat) + dy / 2}" marker-end="url(#tc1)"/><text class="gf-small" x="170" y="${y(lat) + 4}">${label}</text>`;
+  s += wind(15, -36, 22, "NE trades");
+  s += wind(45, 36, -22, "Westerlies");
+  s += wind(75, -36, 22, "Polar easterlies");
+  s += `<text class="gf-small" x="600" y="${y(0) - 6}" text-anchor="end">Doldrums, ITCZ: low</text>`;
+  s += `<text class="gf-small" x="600" y="${y(30) - 6}" text-anchor="end">Subtropical high: deserts</text>`;
+  s += `<text class="gf-small" x="600" y="${y(60) - 6}" text-anchor="end">Polar front: low</text>`;
+  s += `<text class="gf-small" x="600" y="${y(90) - 6}" text-anchor="end">Polar high</text>`;
+  return s + "</svg>";
+}
+
+/** Jet stream cross section looking downstream (NH): core under the tropopause break, CAT on the cold side. */
+function jetsection(): string {
+  const W = 620;
+  const H = 300;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Jet stream core near the tropopause break, with the worst clear air turbulence on the cold side below the core">`;
+  s += `<path class="gf-line" d="M20,130 L300,130"/><path class="gf-line" d="M260,80 L600,80"/>`;
+  s += `<text class="gf-small" x="24" y="122">Polar tropopause (lower)</text>`;
+  s += `<text class="gf-small" x="596" y="72" text-anchor="end">Tropical tropopause (higher)</text>`;
+  for (const [r, cls] of [[70, "gf-iso"], [48, "gf-iso"], [26, "gf-iso"]] as const) s += `<ellipse class="${cls}" cx="300" cy="150" rx="${r * 1.8}" ry="${r * 0.7}"/>`;
+  s += `<circle class="gf-jet" cx="300" cy="150" r="12"/><text class="gf-jett" x="300" y="155" text-anchor="middle">J</text>`;
+  s += `<text class="gf-small" x="300" y="128" text-anchor="middle">Core, 60 kt or more</text>`;
+  s += `<path class="gf-danger" d="M150,170 C190,215 260,215 290,190 L270,200 C240,215 190,205 160,175 Z"/>`;
+  s += `<ellipse class="gf-danger" cx="215" cy="190" rx="70" ry="22"/>`;
+  s += `<text class="gf-label gf-red" x="140" y="236">Worst CAT: cold side,</text>`;
+  s += `<text class="gf-label gf-red" x="140" y="254">just below the core</text>`;
+  s += `<text class="gf-label gf-blue" x="40" y="200">Cold side (poleward)</text>`;
+  s += `<text class="gf-small" x="40" y="216">left, looking downstream</text>`;
+  s += `<text class="gf-label" x="580" y="200" text-anchor="end">Warm side</text>`;
+  s += `<path class="gf-wisp" d="M380,108 q30,-10 60,-2 M400,116 q30,-8 60,0"/><text class="gf-small" x="470" y="112">Cirrus streaks</text>`;
+  return s + "</svg>";
+}
+
+/** Month by month hazard calendar for India. */
+function calendar(): string {
+  const W = 640;
+  const H = 300;
+  const months = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+  const x = (m: number) => 190 + m * 36; // m from 0 (Jan) to 12 (end of Dec)
+  const rows: [string, [number, number][], string][] = [
+    ["Fog, north India", [[0, 2], [11, 12]], "gf-bar-fog"],
+    ["Western disturbances", [[0, 4], [9.5, 12]], "gf-bar-wd"],
+    ["Dust storms, NW India", [[3, 6]], "gf-bar-dust"],
+    ["Norwesters, east India", [[2, 5]], "gf-bar-ts"],
+    ["SW monsoon", [[5, 9.5]], "gf-bar-mon"],
+    ["NE monsoon, Tamil Nadu", [[9.5, 12]], "gf-bar-mon"],
+    ["Cyclones", [[3.5, 5.5], [9.5, 12]], "gf-bar-tc"],
+    ["Subtropical jet, CAT", [[0, 5], [9.5, 12]], "gf-bar-jet"],
+  ];
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Calendar of weather hazards in India by month">`;
+  months.forEach((m, i) => (s += `<text class="gf-tick" x="${x(i) + 18}" y="24" text-anchor="middle">${m}</text>`));
+  rows.forEach(([name, spans, cls], r) => {
+    const yy = 40 + r * 31;
+    s += `<text class="gf-small" x="180" y="${yy + 15}" text-anchor="end">${name}</text>`;
+    s += `<rect class="gf-band1" x="${x(0)}" y="${yy}" width="${x(12) - x(0)}" height="22" rx="3"/>`;
+    for (const [a, b] of spans) s += `<rect class="${cls}" x="${x(a)}" y="${yy}" width="${x(b) - x(a)}" height="22" rx="3"/>`;
+  });
+  for (const m of [2, 5, 9]) s += `<line class="gf-dash" x1="${x(m)}" x2="${x(m)}" y1="32" y2="${40 + rows.length * 31}"/>`;
+  return s + "</svg>";
+}
+
+/** Weather sequence as a western disturbance passes: pressure trace and weather stages. */
+function wdpass(): string {
+  const W = 620;
+  const H = 260;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="As a western disturbance passes, pressure falls then rises, cloud thickens to rain then clears, followed by fog and a cold wave">`;
+  s += `<path class="gf-line" d="M40,60 C150,64 220,120 300,150 C340,160 380,120 460,80 C520,62 560,60 600,58"/>`;
+  s += `<text class="gf-small" x="44" y="50">Pressure</text>`;
+  const stage = (x: number, w: number, title: string, lines: string[]) => {
+    let t = `<rect class="gf-band0" x="${x}" y="176" width="${w}" height="74" rx="6"/>`;
+    t += `<text class="gf-label" x="${x + w / 2}" y="194" text-anchor="middle">${title}</text>`;
+    lines.forEach((l, i) => (t += `<text class="gf-small" x="${x + w / 2}" y="${212 + i * 16}" text-anchor="middle">${l}</text>`));
+    return t;
+  };
+  s += stage(20, 190, "Approach", ["Wind backs, warmer", "Ci, then As and Ns"]);
+  s += stage(215, 190, "Passage", ["Rain, snow on hills", "CB, thunder, hail"]);
+  s += stage(410, 190, "After", ["Clear, cold NW wind", "Fog and cold wave"]);
+  s += `<text class="gf-small" x="300" y="170" text-anchor="middle">lowest</text>`;
+  return s + "</svg>";
+}
+
+/** Schematic of the two monsoon branches. Not a map. */
+function monsoon(): string {
+  const W = 600;
+  const H = 380;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Schematic of the Arabian Sea and Bay of Bengal branches of the south west monsoon">`;
+  s += head("mn1", "gf-headb");
+  s += `<rect class="gf-sea" x="0" y="0" width="${W}" height="${H}"/>`;
+  s += `<rect class="gf-hills" x="150" y="20" width="400" height="34" rx="8"/><text class="gf-label" x="350" y="43" text-anchor="middle">Himalayas</text>`;
+  s += `<path class="gf-land" d="M150,60 L560,60 L560,150 L470,190 L380,330 L330,360 L260,210 L180,150 Z"/>`;
+  s += `<path class="gf-hills" d="M262,214 L300,300 L318,340 L326,336 L290,250 L272,206 Z"/>`;
+  s += `<text class="gf-small" x="345" y="352">Western Ghats</text>`;
+  s += `<line class="gf-dash" x1="180" y1="110" x2="530" y2="150"/><text class="gf-small" x="356" y="122" text-anchor="middle">Monsoon trough</text>`;
+  s += `<text class="gf-small" x="350" y="230" text-anchor="middle">Rain shadow</text>`;
+  s += `<text class="gf-label" x="60" y="250" text-anchor="middle">Arabian</text><text class="gf-label" x="60" y="268" text-anchor="middle">Sea</text>`;
+  s += `<text class="gf-label" x="520" y="270" text-anchor="middle">Bay of</text><text class="gf-label" x="520" y="288" text-anchor="middle">Bengal</text>`;
+  const arr = (d: string) => `<path class="gf-arrowb" d="${d}" fill="none" marker-end="url(#mn1)"/>`;
+  s += arr("M60,360 C150,330 220,300 262,260");
+  s += arr("M40,320 C130,280 200,230 230,190");
+  s += arr("M470,360 C520,300 560,240 560,180");
+  s += arr("M560,170 C500,120 420,96 300,90");
+  s += `<text class="gf-small" x="40" y="350">Arabian Sea branch</text>`;
+  s += `<text class="gf-small" x="440" y="356">Bay branch</text>`;
+  s += `<text class="gf-small" x="420" y="82" text-anchor="middle">turned west along the plains</text>`;
+  s += `<text class="gf-tick" x="590" y="372" text-anchor="end">Schematic, not a map</text>`;
+  return s + "</svg>";
+}
+
 export const FIGURES: Record<string, () => string> = {
   layers, tropopause, isa, composition, diurnal, saturation, columns, systems, altimetry, hightolow,
   geostrophic, friction, seabreeze, foehn, stability, lifting, clouds,
+  slantvis, fogtypes, fronts, depression, tcsection, tctrack, threecell, jetsection, calendar, wdpass, monsoon,
 };

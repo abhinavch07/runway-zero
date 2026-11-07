@@ -5,6 +5,11 @@ import { M02 } from "./met/m02-temp-density-humidity.ts";
 import { M03 } from "./met/m03-pressure.ts";
 import { M04 } from "./met/m04-wind.ts";
 import { M05 } from "./met/m05-stability-clouds.ts";
+import { M06 } from "./met/m06-precip-visibility-fog.ts";
+import { M07 } from "./met/m07-airmasses-fronts.ts";
+import { M08 } from "./met/m08-pressure-systems-tc.ts";
+import { M09 } from "./met/m09-circulation-jets-cat.ts";
+import { M10 } from "./met/m10-climate-india.ts";
 
 export const SUBJECTS: Subject[] = [
   {
@@ -17,11 +22,11 @@ export const SUBJECTS: Subject[] = [
       M03,
       M04,
       M05,
-      { n: 6, title: "Precipitation, Visibility, Fog and Optical Phenomena", car: "1.4 b, 1.5, 1.9 g" },
-      { n: 7, title: "Air Masses and Fronts", car: "1.6" },
-      { n: 8, title: "Pressure Systems and Tropical Cyclones", car: "1.7" },
-      { n: 9, title: "General Circulation, Jet Streams and CAT", car: "1.2 c, d" },
-      { n: 10, title: "Climate of India: Monsoon, Western Disturbances, Local Storms", car: "1.8" },
+      M06,
+      M07,
+      M08,
+      M09,
+      M10,
       { n: 11, title: "Thunderstorms, Microburst and Windshear", car: "1.9 c, d" },
       { n: 12, title: "Icing, Turbulence, Mountain Waves and Inversions", car: "1.2 g, 1.9 a, b, e, f" },
       { n: 13, title: "Observations, Instruments, Radar, Satellites and Charts", car: "1.10 a, b" },
