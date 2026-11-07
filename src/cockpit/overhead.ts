@@ -84,6 +84,18 @@ const SECTIONS: { title: string; cols: number; items: (Pb | { key: "sep" } | { k
     ],
   },
   {
+    title: "ENG FIRE",
+    cols: 6,
+    items: [
+      { key: "fire1Out", label: "ENG 1 FIRE (PUSH)", onLight: false, offLight: false },
+      { key: "agent1Eng1", label: "ENG 1 AGENT 1", onLight: false, offLight: false },
+      { key: "agent2Eng1", label: "ENG 1 AGENT 2", onLight: false, offLight: false },
+      { key: "fire2Out", label: "ENG 2 FIRE (PUSH)", onLight: false, offLight: false },
+      { key: "agent1Eng2", label: "ENG 2 AGENT 1", onLight: false, offLight: false },
+      { key: "agent2Eng2", label: "ENG 2 AGENT 2", onLight: false, offLight: false },
+    ],
+  },
+  {
     title: "APU",
     cols: 2,
     items: [
@@ -158,7 +170,14 @@ export class OverheadPanel {
         btn.addEventListener("click", () => {
           const sw = this.getSwitches();
           if (pb.key === "apuStart") sw.apuStartPresses++;
-          else sw[pb.key] = !sw[pb.key];
+          else if (pb.key === "fire1Out" || pb.key === "fire2Out") {
+            // Pushing releases the fire pushbutton: it stays out.
+            sw[pb.key] = true;
+          } else if (pb.key.startsWith("agent")) {
+            // A bottle can be fired only once, and only after the fire pushbutton is released.
+            const eng2 = pb.key.endsWith("Eng2");
+            if (eng2 ? sw.fire2Out : sw.fire1Out) sw[pb.key] = true;
+          } else sw[pb.key] = !sw[pb.key];
           btn.blur();
         });
         const label = document.createElement("div");
@@ -208,6 +227,14 @@ export class OverheadPanel {
         } else if (item.key.startsWith("ir")) {
           const i = Number(item.key.slice(2)) - 1;
           set(item.key, sys.irAligning[i] ? ["ALIGN", "white"] : null, offLight(on));
+        } else if (item.key === "fire1Out" || item.key === "fire2Out") {
+          const i = item.key === "fire1Out" ? 0 : 1;
+          set(item.key, sys.fire[i] ? ["FIRE", "red"] : null, on ? ["OUT", "white"] : null);
+          this.buttons.get(item.key)?.btn.classList.toggle("fire-out", on);
+        } else if (item.key.startsWith("agent")) {
+          const eng2 = item.key.endsWith("Eng2");
+          const armed = eng2 ? sw.fire2Out : sw.fire1Out;
+          set(item.key, armed && !on ? ["SQUIB", "white"] : null, on ? ["DISCH", "amber"] : null);
         } else if (item.key === "gen1") {
           // FAULT when GEN 1 has failed with its engine running and the switch still on.
           const fault = sys.gen1Failed && on && sys.engines[0].phase === "RUN";

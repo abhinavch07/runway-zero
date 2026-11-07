@@ -56,6 +56,13 @@ export interface Switches {
   wingAntiIce: boolean;
   engAntiIce1: boolean;
   engAntiIce2: boolean;
+  /** ENG FIRE panel: the fire pushbutton released (out), and each fire bottle discharged. */
+  fire1Out: boolean;
+  fire2Out: boolean;
+  agent1Eng1: boolean;
+  agent2Eng1: boolean;
+  agent1Eng2: boolean;
+  agent2Eng2: boolean;
 }
 
 /** Switch positions for an aircraft that is powered up with both engines running. */
@@ -102,6 +109,12 @@ export function runningSwitches(): Switches {
     wingAntiIce: false,
     engAntiIce1: false,
     engAntiIce2: false,
+    fire1Out: false,
+    fire2Out: false,
+    agent1Eng1: false,
+    agent2Eng1: false,
+    agent1Eng2: false,
+    agent2Eng2: false,
   };
 }
 
@@ -200,6 +213,9 @@ export interface SystemsStatus {
   apuGenOn: boolean;
   /** GEN 1 has failed (a lesson failure). */
   gen1Failed: boolean;
+  /** Engine fire detected (a lesson failure), and fires put out by the bottles. */
+  fire: [boolean, boolean];
+  fireOut: [boolean, boolean];
   /** Hydraulic pressure, psi: green, blue, yellow. */
   hydPsi: [number, number, number];
   ptuRunning: boolean;
@@ -261,6 +277,8 @@ export class Systems {
       genOn: [false, false],
       apuGenOn: false,
       gen1Failed: false,
+      fire: [false, false],
+      fireOut: [false, false],
       hydPsi: [0, 0, 0],
       ptuRunning: false,
       packFlow: [false, false],
@@ -273,6 +291,7 @@ export class Systems {
   /** Called after a start position is set. Cold: everything off. Otherwise: powered, aligned, running. */
   reset(cold: boolean, switches: Switches, powered = false) {
     this.st = this.blank();
+    this.fireAgentS = [0, 0];
     this.st.doorsClosed = !cold;
     this.stoppedS = 30;
     this.apuPressesSeen = switches.apuStartPresses;
@@ -302,9 +321,12 @@ export class Systems {
     this.st.tanksKg = [l, c, r];
   }
 
+  private fireAgentS = [0, 0];
+
   /** Triggers a failure for a lesson. */
-  fail(what: "gen1") {
+  fail(what: "gen1" | "fire1") {
     if (what === "gen1") this.st.gen1Failed = true;
+    if (what === "fire1") this.st.fire[0] = true;
   }
 
   status(): SystemsStatus {
@@ -324,7 +346,9 @@ export class Systems {
 
     // ----- Electrics -----
     s.extPwrAvail = this.stoppedS > 20;
-    const genOn: [boolean, boolean] = [running[0] && sw.gen1 && !s.gen1Failed, running[1] && sw.gen2];
+    // A released fire pushbutton cuts its engine's fuel, generator and bleed.
+    const fireOut = [sw.fire1Out, sw.fire2Out];
+    const genOn: [boolean, boolean] = [running[0] && sw.gen1 && !s.gen1Failed && !fireOut[0], running[1] && sw.gen2 && !fireOut[1]];
     s.genOn = genOn;
     const ext = sw.extPwr && s.extPwrAvail;
     const apuGen = sw.apuGen && s.apuAvail;
@@ -365,7 +389,7 @@ export class Systems {
 
     // ----- Bleed air -----
     const apuAir = sw.apuBleed && s.apuAvail ? 35 : 0;
-    const engAir = Math.max(sw.engBleed1 && running[0] ? 40 : 0, sw.engBleed2 && running[1] ? 40 : 0);
+    const engAir = Math.max(sw.engBleed1 && running[0] && !sw.fire1Out ? 40 : 0, sw.engBleed2 && running[1] && !sw.fire2Out ? 40 : 0);
     s.bleedPsi = Math.max(apuAir, engAir);
 
     // ----- ADIRS -----
@@ -416,7 +440,18 @@ export class Systems {
     s.parkBrake = sw.parkBrake;
 
     // ----- Engine start and shutdown -----
-    const masters = [sw.engMaster1, sw.engMaster2];
+    const masters = [sw.engMaster1 && !fireOut[0], sw.engMaster2 && !fireOut[1]];
+    // ----- Engine fire: a bottle discharged into the engine puts the fire out after a few seconds -----
+    for (let i = 0; i < 2; i++) {
+      const agents = i === 0 ? sw.agent1Eng1 || sw.agent2Eng1 : sw.agent1Eng2 || sw.agent2Eng2;
+      if (s.fire[i] && agents && fireOut[i]) {
+        this.fireAgentS[i] += dt;
+        if (this.fireAgentS[i] > 4) {
+          s.fire[i] = false;
+          s.fireOut[i] = true;
+        }
+      }
+    }
     for (let i = 0; i < 2; i++) {
       const e = s.engines[i];
       const n2 = f.get(`propulsion/engine[${i}]/n2`);

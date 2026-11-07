@@ -420,6 +420,33 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "If the imbalance comes from a leak, crossfeeding would feed the leak. The real procedure checks for that first.",
     },
   ],
+  engfire: [
+    {
+      q: "MASTER WARN flashes red with a chime that keeps repeating. What does red mean?",
+      options: ["A warning: act now", "A caution: deal with it soon", "A memo, for information", "A system is switched on"],
+      why: "Red is a warning that needs action at once, like a fire. Amber is a caution.",
+    },
+    {
+      q: "Which engine do you shut down first, and how do you make sure?",
+      options: ["The one named in ENG 1 FIRE, checking it is engine 1 before moving the master", "Both, to be safe", "Engine 2, it is closest", "None, wait for the fire service"],
+      why: "Shutting down the wrong engine is a classic mistake. Read the warning, then check the number before you touch the master switch.",
+    },
+    {
+      q: "What does pushing the ENG 1 FIRE pushbutton do?",
+      options: ["Cuts the engine's fuel, bleed air and generator, and arms its fire bottles", "Fires both bottles at once", "Starts the APU", "Silences the warning"],
+      why: "The pushbutton isolates the engine and arms the bottles (SQUIB lights). The bottles are fired with the AGENT buttons.",
+    },
+    {
+      q: "Can the AGENT buttons fire a bottle before the fire pushbutton is pushed?",
+      options: ["No, the bottles are armed by pushing the fire pushbutton", "Yes, any time", "Only AGENT 2", "Only in flight"],
+      why: "Pushing the fire pushbutton arms the bottles. Until then the AGENT buttons do nothing.",
+    },
+    {
+      q: "On the ground, when do you fire the second bottle?",
+      options: ["Straight after the first", "Only after 30 seconds if the fire is still there", "Never on the ground", "After the evacuation"],
+      why: "On the ground there is no reason to wait. Both bottles go in one after the other.",
+    },
+  ],
   genfault: [
     {
       q: "What does pressing MASTER CAUT do?",
@@ -1333,5 +1360,33 @@ QUIZZES["b737-nav"] = [
     q: "Compared with a VOR, how sensitive is a localizer?",
     options: ["About four times more sensitive", "The same", "Half as sensitive", "Ten times less sensitive"],
     why: "Full scale is a few degrees on a localizer, much less than on a VOR.",
+  },
+];
+
+QUIZZES["b737-fire"] = [
+  {
+    q: "The fire bell rings. What does pressing FIRE WARN do?",
+    options: ["Silences the bell and turns off the FIRE WARN lights", "Puts the fire out", "Fires a bottle", "Shuts down the engine"],
+    why: "It only silences the bell. The fire handle stays lit until the fire is out.",
+  },
+  {
+    q: "How do you know which engine is on fire?",
+    options: ["Its fire handle glows red", "The bell is louder on that side", "The engine display goes blank", "The parking brake light"],
+    why: "The handle of the burning engine lights up red. Check the number before you move anything.",
+  },
+  {
+    q: "What do you do with the start lever of the burning engine?",
+    options: ["Move it to CUTOFF", "Move it to IDLE", "Leave it alone", "Move both start levers to CUTOFF"],
+    why: "CUTOFF stops the fuel to that engine. Only the burning engine's lever.",
+  },
+  {
+    q: "How is a fire bottle fired on this aircraft?",
+    options: ["Pull the fire handle, then turn it left or right", "Press the handle down", "Press FIRE WARN twice", "With a switch on the overhead"],
+    why: "Pulling arms the system and isolates the engine. Turning the handle to a side fires that bottle.",
+  },
+  {
+    q: "What does pulling the fire handle cut off?",
+    options: ["The engine's fuel, bleed air and generator", "Only the bell", "Power to the whole aircraft", "The hydraulics on both sides"],
+    why: "Pulling the handle isolates that one engine: fuel valve closed, bleed and generator off.",
   },
 ];

@@ -480,3 +480,84 @@
 #b-ped .cdu-keys button {
   padding: 5px 0;
 }
+
+/* ---------- Engine fire handles and the FIRE WARN lights ---------- */
+.b-fire-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.b-fire-eng {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+#b-ped .b-fire-handle {
+  width: 74px;
+  height: 34px;
+  border-radius: 6px;
+  border: 2px solid #8a1d16;
+  background: linear-gradient(#5b1410, #3a0b08);
+  color: #f5d7d4;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+#b-ped .b-fire-handle small {
+  font-size: 9px;
+  opacity: 0.7;
+}
+#b-ped .b-fire-handle.fire {
+  background: linear-gradient(#ff3b30, #b3140e);
+  color: #fff;
+  box-shadow: 0 0 14px #ff3b30;
+}
+#b-ped .b-fire-handle.pulled {
+  transform: translateY(-5px) scale(1.04);
+  box-shadow: 0 6px 0 #222;
+}
+#b-ped .b-fire-handle.pulled small::after {
+  content: "ED";
+}
+.b-fire-rot {
+  display: flex;
+  gap: 3px;
+}
+#b-ped .b-fire-rot button {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.b-fire-lts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#b-glare .b-firewarn {
+  align-self: center;
+  background: #2a1414;
+  color: #6b3a3a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
+  padding: 6px 9px;
+  cursor: pointer;
+}
+#b-glare .b-firewarn.lit {
+  color: #fff;
+  background: #e0201b;
+  box-shadow: 0 0 12px #ff3b30;
+  animation: b-fire-flash 0.6s steps(2) infinite;
+}
+@keyframes b-fire-flash {
+  50% {
+    background: #7a0d0a;
+  }
+}

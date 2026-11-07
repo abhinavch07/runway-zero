@@ -75,6 +75,9 @@ self.onmessage = async (ev: MessageEvent<ToWorker737>) => {
       case "mcp":
         core?.command(msg.action);
         break;
+      case "fail":
+        core?.systems.fail(msg.what);
+        break;
       case "rate":
         rate = msg.rate;
         break;

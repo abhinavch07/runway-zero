@@ -43,6 +43,8 @@ export interface A320Extras {
   toConfigNormal: boolean;
   /** MASTER CAUT light on (a new caution not yet acknowledged). */
   masterCaution: boolean;
+  /** MASTER WARN light on (a new warning not yet acknowledged). */
+  masterWarning: boolean;
   /** Alerts the crew has cleared with CLR. */
   cleared: string[];
   /** GEN 1 was switched off and on again after it failed. */
@@ -71,6 +73,7 @@ export function defaultExtras(): A320Extras {
     fctl: { up: false, down: false, left: false, right: false },
     toConfigNormal: false,
     masterCaution: false,
+    masterWarning: false,
     cleared: [],
     gen1Cycled: false,
     ecamPage: "DOOR",
@@ -167,7 +170,7 @@ export type ToWorker =
   | { type: "pause"; paused: boolean }
   | { type: "reset"; start: StartPosition; displayOffsetM: number }
   | { type: "fcu"; action: FcuAction }
-  | { type: "fail"; what: "gen1" }
+  | { type: "fail"; what: "gen1" | "fire1" }
   | { type: "rate"; rate: number }
   | { type: "tanks"; kg: [number, number, number] };
 

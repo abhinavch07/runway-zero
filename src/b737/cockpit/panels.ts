@@ -219,6 +219,7 @@ export class Glareshield737 extends PanelBase {
       "b-glare",
       c,
       `
+      <button class="b-firewarn" data-ctl="fire-warn" data-firewarn>FIRE<br>WARN</button>
       <section class="b-box b-efis">
         <div class="b-title">EFIS</div>
         <div class="b-knob" data-ctl="efis-baro"><span>BARO</span><b data-win="baro"></b><div><button data-baro="-1">−</button><button data-baro="1">+</button><button data-baro="std">STD</button></div></div>
@@ -242,6 +243,11 @@ export class Glareshield737 extends PanelBase {
         <div class="b-hint">Hold Shift on − or + for bigger steps.</div>
       </section>`,
     );
+    this.el.querySelector<HTMLElement>("[data-firewarn]")!.addEventListener("click", (e) => {
+      // Pressing a FIRE WARN light silences the bell and turns the lights off.
+      this.c.x.fireWarn = false;
+      (e.currentTarget as HTMLElement).blur();
+    });
     this.cb = cb;
     this.el.querySelectorAll<HTMLElement>("[data-mcp]").forEach((b) =>
       b.addEventListener("click", () => {
@@ -281,6 +287,7 @@ export class Glareshield737 extends PanelBase {
 
   update(s: State737 | null) {
     super.update(s);
+    this.el.querySelector("[data-firewarn]")?.classList.toggle("lit", this.c.x.fireWarn && !!s?.sys.dcPower);
     const w = (k: string, t: string) => ((this.el.querySelector(`[data-win="${k}"]`) as HTMLElement).textContent = t);
     const x = this.c.x;
     w("baro", x.baro.std ? "STD" : `${x.baro.qnh} HPA`);
@@ -318,6 +325,7 @@ export interface PedestalCallbacks {
 
 export class Pedestal737 extends PanelBase {
   private typing = "";
+
 
   constructor(parent: HTMLElement, c: Controls737, cdu: HTMLElement, cb: PedestalCallbacks) {
     const radio = (k: "vhf" | "nav", title: string) => `
@@ -362,6 +370,24 @@ export class Pedestal737 extends PanelBase {
             ${radio("vhf", "VHF 1")}
             ${radio("nav", "NAV 1")}
           </div>
+          <section class="b-box b-fire">
+            <div class="b-title">ENGINE FIRE</div>
+            <div class="b-fire-row">
+              ${[0, 1]
+                .map(
+                  (i) => `<div class="b-fire-eng">
+                <button class="b-fire-handle" data-ctl="fire-${i + 1}" data-fire="${i}"><span>ENG ${i + 1}</span><small>PULL</small></button>
+                <div class="b-fire-rot">
+                  <button data-ctl="fire-${i + 1}-L" data-rot="${i}" data-b="0">◀ L</button>
+                  <button data-ctl="fire-${i + 1}-R" data-rot="${i}" data-b="1">R ▶</button>
+                </div>
+              </div>`,
+                )
+                .join("")}
+              <div class="b-fire-lts">${light("disch-0")}${light("disch-1")}</div>
+            </div>
+            <div class="b-hint">Pull the handle, then turn it to fire a bottle.</div>
+          </section>
           <section class="b-box b-xpdr" data-ctl="xpdr">
             <div class="b-title">TRANSPONDER</div>
             <b class="b-code"></b>
@@ -372,10 +398,29 @@ export class Pedestal737 extends PanelBase {
       </div>`,
     );
     this.el.querySelector("#b-cdu-slot")!.appendChild(cdu);
+    for (let k = 0; k < 2; k++)
+      this.lights[`disch-${k}`] = (s) => (s.sys.dcPower && this.c.switches.bottle[k] ? `${k ? "R" : "L"} BOTTLE DISCHARGED` : "");
     this.el.querySelectorAll<HTMLElement>("[data-thr]").forEach((b) =>
       b.addEventListener("click", (e) => {
         const v = b.dataset.thr!;
         this.c.throttle = v === "idle" ? 0 : Math.max(0, Math.min(1, Math.round((this.c.throttle + Number(v) * ((e as MouseEvent).shiftKey ? 5 : 1)) * 100) / 100));
+        b.blur();
+      }),
+    );
+    // Engine fire handles: pull once (it stays up). Turning left or right fires bottle L or R into
+    // that engine, only with the handle pulled, and each bottle only once.
+    this.el.querySelectorAll<HTMLElement>("[data-fire]").forEach((b) =>
+      b.addEventListener("click", () => {
+        this.c.switches.fireHandle[Number(b.dataset.fire)] = true;
+        b.blur();
+      }),
+    );
+    this.el.querySelectorAll<HTMLElement>("[data-rot]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const i = Number(b.dataset.rot);
+        const k = Number(b.dataset.b);
+        const sw = this.c.switches;
+        if (sw.fireHandle[i] && sw.bottle[k] === 0) sw.bottle[k] = i + 1;
         b.blur();
       }),
     );
@@ -427,5 +472,11 @@ export class Pedestal737 extends PanelBase {
     f("nav-0", freqText(c.x.nav1[0], 2));
     f("nav-1", freqText(c.x.nav1[1], 2));
     (this.el.querySelector(".b-code") as HTMLElement).textContent = on ? (this.typing ? this.typing.padEnd(4, "_") : c.x.xpdrCode) : "";
+    // Fire handles: red light with a fire, raised when pulled.
+    this.el.querySelectorAll<HTMLElement>("[data-fire]").forEach((b) => {
+      const i = Number(b.dataset.fire);
+      b.classList.toggle("fire", !!s?.sys.fire[i] && !!s?.sys.dcPower);
+      b.classList.toggle("pulled", c.switches.fireHandle[i]);
+    });
   }
 }

@@ -34,6 +34,8 @@ export interface Lesson extends LessonBase<SimState, Controls, FmsData, PanelNam
   extras?: Partial<A320Extras>;
   /** GEN 1 fails this many seconds after the lesson starts. */
   failAfterS?: number;
+  /** What fails (GEN 1 if not set). */
+  failure?: "gen1" | "fire1";
   /** ATC clearance given on the delivery or ground frequency. */
   clearance?: Clearance;
   /** Our callsign on the radio. */
@@ -1098,6 +1100,78 @@ export const LESSONS: Lesson[] = [
         targets: ["ecam-clr"],
         panel: "ped",
         done: (_s, c) => !!c.extras?.cleared.includes("gen1"),
+      },
+    ],
+  },
+  {
+    id: "engfire",
+    title: "Engine fire on the ground",
+    summary: "Engines running at the gate when ENG 1 catches fire: MASTER WARN, read the red ECAM warning, engine master off, push the fire pushbutton, fire both bottles, and decide on an evacuation.",
+    minutes: 5,
+    startId: "parked28",
+    switches: (sw) => {
+      sw.parkBrake = true;
+    },
+    failAfterS: 8,
+    failure: "fire1",
+    extras: { ecamPage: "ENG" },
+    finished: "You handled an engine fire on the ground: silence the warning, read the ECAM, shut the engine down, isolate it with the fire pushbutton and fire the bottles. The real procedure has more to it (ATC, the cabin crew, evacuation): follow the airline's procedures.",
+    steps: [
+      {
+        title: "Wait: something is about to happen",
+        why: "Both engines are running at the gate. Look at the main panel and listen.",
+        targets: [],
+        panel: "main",
+        done: (s) => s.systems.fire[0],
+      },
+      {
+        title: "MASTER WARN: press to silence",
+        why: "The red MASTER WARN light flashes on the glareshield with a chime that keeps repeating. Red means a warning: act now. Press MASTER WARN to silence it. That only stops the chime and the light.",
+        targets: ["master-warn"],
+        panel: "main",
+        done: (_s, c) => !c.extras?.masterWarning,
+      },
+      {
+        title: "Read the ECAM: ENG 1 FIRE",
+        why: "The upper ECAM shows ENG 1 FIRE in red, with the actions in blue below it. Each line goes away as you do it. Thrust levers are already at IDLE and the parking brake is ON, so those two lines are done. Press Next.",
+        targets: [],
+        panel: "main",
+      },
+      {
+        title: "ENG MASTER 1: OFF",
+        why: "Shut down the burning engine: ENG MASTER 1 to OFF on the pedestal. Fuel to the engine stops and it winds down. Make sure it is engine 1, not engine 2.",
+        targets: ["engMaster1"],
+        want: false,
+        panel: "ped",
+        done: (_s, c) => !c.switches.engMaster1,
+      },
+      {
+        title: "ENG 1 FIRE pushbutton: PUSH",
+        why: "On the overhead ENG FIRE panel, the ENG 1 FIRE pushbutton shows a red FIRE light. Push it: it pops out and cuts off the fuel, the bleed air and the generator for engine 1. It also arms the fire bottles (SQUIB lights).",
+        targets: ["fire1Out"],
+        panel: "ovhd",
+        done: (_s, c) => c.switches.fire1Out,
+      },
+      {
+        title: "AGENT 1: DISCH",
+        why: "Press ENG 1 AGENT 1 to fire the first bottle into the engine. DISCH shows when it is empty.",
+        targets: ["agent1Eng1"],
+        panel: "ovhd",
+        done: (_s, c) => c.switches.agent1Eng1,
+      },
+      {
+        title: "AGENT 2: DISCH",
+        why: "On the ground both bottles are fired straight away. Press ENG 1 AGENT 2.",
+        targets: ["agent2Eng1"],
+        panel: "ovhd",
+        done: (_s, c) => c.switches.agent2Eng1,
+      },
+      {
+        title: "Fire out: decide on the evacuation",
+        why: "A few seconds after the bottles, the FIRE light goes out and the warning leaves the ECAM. The crew now tells ATC and decides with the cabin crew whether to evacuate the passengers.",
+        targets: ["fire1Out"],
+        panel: "ovhd",
+        done: (s) => s.systems.fireOut[0],
       },
     ],
   },

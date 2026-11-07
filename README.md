@@ -10,7 +10,7 @@
 <p align="center">
   <img alt="Licence GPL v3" src="https://img.shields.io/badge/licence-GPL%20v3-blue">
   <img alt="Aircraft" src="https://img.shields.io/badge/aircraft-4-orange">
-  <img alt="Lessons" src="https://img.shields.io/badge/lessons-35-brightgreen">
+  <img alt="Lessons" src="https://img.shields.io/badge/lessons-37-brightgreen">
   <img alt="Runs in" src="https://img.shields.io/badge/runs%20in-desktop%20browser-lightgrey">
 </p>
 
@@ -27,7 +27,7 @@
 ## Highlights
 
 - 🛫 **Four aircraft**: an A320neo-type and a B737-type airliner, and C172-type and PA-28-type light aircraft with glass cockpits.
-- 🧭 **35 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
+- 🧭 **37 guided lessons**: the control you need pulses yellow, the right panel opens by itself, and each step explains why.
 - ✅ **Real checks**: steps and checklists look at the actual aircraft state, not at which button you clicked.
 - 📋 **Normal checklists** for every aircraft: cockpit prep, before start, after start, before take-off, before landing, after landing and parking.
 - 🛩️ **First flight**: fly the C172 yourself with the keyboard and a simple 3D view out of the window. Taxi out, take off, fly a circuit around runway 28 and land, with pink guide dots and an aim box until you are ready to turn them off. Fly from the cockpit or from behind the aircraft (V), with a small PFD on the view.
@@ -48,8 +48,8 @@
     <td width="50%"><img src="docs/images/b737-main.png" alt="B737 main panel with the MCP, PFD showing CMD and LNAV, ND with the route"></td>
   </tr>
   <tr>
-    <td><b>A320neo-type</b>: overhead, FCU, PFD, ND, ECAM with system pages, MCDU, radio management panel. 10 lessons from power up to a generator fault.</td>
-    <td><b>B737-type</b>: overhead, MCP, three large screens, CDU, start levers, radios. 6 lessons from cold and dark to LNAV and VNAV.</td>
+    <td><b>A320neo-type</b>: overhead, FCU, PFD, ND, ECAM with system pages, MCDU, radio management panel. 11 lessons from power up to a generator fault and an engine fire.</td>
+    <td><b>B737-type</b>: overhead, MCP, three large screens, CDU, start levers, radios. 7 lessons from cold and dark to LNAV, VNAV and an engine fire.</td>
   </tr>
   <tr>
     <td><img src="docs/images/c172-instruments.png" alt="C172 glass cockpit PFD and MFD"></td>
@@ -104,13 +104,15 @@
 | A320 | 7 | FCU basics | Read the FMA, change speed, heading and altitude, V/S, AP on and off |
 | A320 | 8 | Fuel imbalance and crossfeed | FUEL page, X FEED, pumps off on the lighter side, balance |
 | A320 | 9 | ECAM: a generator fault | GEN 1 fails, MASTER CAUT, ECAM actions, CLR |
-| A320 | 10 | Shutdown and secure | APU start, engines off, ground power, ADIRS off, cold and dark |
+| A320 | 10 | Engine fire on the ground | ENG 1 FIRE, MASTER WARN and the repeating chime, ENG MASTER off, fire pushbutton, both bottles |
+| A320 | 11 | Shutdown and secure | APU start, engines off, ground power, ADIRS off, cold and dark |
 | B737 | 1 | Power up from cold and dark | Battery, IRS, APU start, APU generators, APU bleed |
 | B737 | 2 | FMC route set-up | IDENT, POS INIT, RTE, ACTIVATE and EXEC, PERF INIT, TAKEOFF REF |
 | B737 | 3 | Engine start | Packs off, start switch GRD, start lever IDLE at 25% N2, generators on |
 | B737 | 4 | MCP autopilot basics | F/D, A/T, CMD A, SPEED, HDG SEL, ALT HOLD, LVL CHG, V/S, LNAV, VNAV |
 | B737 | 5 | Radios and ATC clearance | VHF 1, the ATIS, QNH, a spoken clearance, transponder, MCP altitude |
 | B737 | 6 | VOR and ILS | NAV 1, Morse ident, ND in VOR mode, radial TO and FROM, ILS in APP mode |
+| B737 | 7 | Engine fire on the ground | Fire bell, FIRE WARN, start lever CUTOFF, pull the fire handle, turn it to fire both bottles |
 | C172 | 1 | Before start and engine start | Fuel, master, priming with the fuel pump, the key, oil pressure, avionics |
 | C172 | 2 | PFD and MFD basics | Tapes, colours, HSI, baro, heading bug, engine strip, fuel and electrics |
 | C172 | 3 | Radios and ATC clearance | COM tuning, the ATIS, a clearance from Ground, transponder |

@@ -165,6 +165,15 @@ masterCaut.addEventListener("click", () => {
   x().masterCaution = false;
   masterCaut.blur();
 });
+const masterWarn = document.createElement("button");
+masterWarn.id = "master-warn";
+masterWarn.dataset.ctl = "master-warn";
+masterWarn.innerHTML = "MASTER<br>WARN";
+masterWarn.addEventListener("click", () => {
+  x().masterWarning = false;
+  masterWarn.blur();
+});
+gsInner.appendChild(masterWarn);
 gsInner.appendChild(masterCaut);
 const efis = new EfisPanel(gsInner, () => controls.efis!);
 const fcu = new FcuPanel(gsInner, fcuSend, (step) => nd.changeRange(step));
@@ -415,13 +424,16 @@ function ecamFrame(s: SimState) {
   const lesson = currentLesson;
   if (lesson?.failAfterS !== undefined && !failSent && performance.now() - readyAt > lesson.failAfterS * 1000) {
     failSent = true;
-    send({ type: "fail", what: "gen1" });
+    send({ type: "fail", what: lesson.failure ?? "gen1" });
   }
   for (const a of activeAlerts(s, controls)) {
     if (!knownAlerts.has(a.id)) {
       knownAlerts.add(a.id);
-      x().masterCaution = true;
-      sound.caution(false);
+      if (a.level === "warning") x().masterWarning = true;
+      else {
+        x().masterCaution = true;
+        sound.caution(false);
+      }
     }
   }
   trackGen1Cycle(s, controls, x(), gen1Seen);
@@ -435,6 +447,9 @@ function ecamFrame(s: SimState) {
     pageBeforeApu = null;
   }
   masterCaut.classList.toggle("lit", x().masterCaution && s.systems.dcPower);
+  const warn = x().masterWarning && s.systems.dcPower;
+  masterWarn.classList.toggle("lit", warn);
+  sound.alarm(warn ? "crc" : null);
   const f = x().fctl;
   if (controls.pitch > 0.5) f.up = true;
   if (controls.pitch < -0.5) f.down = true;

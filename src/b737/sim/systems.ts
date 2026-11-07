@@ -27,6 +27,9 @@ export interface Eng737 {
 }
 
 export interface Sys737Status {
+  /** Engine fire detected (a lesson failure), and fires put out by a bottle. */
+  fire: [boolean, boolean];
+  fireOut: [boolean, boolean];
   dcPower: boolean;
   /** AC bus 1 and 2 powered. */
   acBus: [boolean, boolean];
@@ -73,6 +76,8 @@ export class Systems737 {
 
   private blank(): Sys737Status {
     return {
+      fire: [false, false],
+      fireOut: [false, false],
       dcPower: false,
       acBus: [false, false],
       acPower: false,
@@ -96,8 +101,16 @@ export class Systems737 {
     };
   }
 
+  private fireAgentS = [0, 0];
+
+  /** Triggers a failure for a lesson. */
+  fail(what: "fire1") {
+    if (what === "fire1") this.s.fire[0] = true;
+  }
+
   reset(state: "cold" | "powered" | "running", sw: Sw737) {
     this.s = this.blank();
+    this.fireAgentS = [0, 0];
     this.apuPressesSeen = sw.apuStartPresses;
     if (state === "cold") {
       this.irsTime = [0, 0];
@@ -149,8 +162,9 @@ export class Systems737 {
     // ----- AC buses: each bus has the source last selected (APU or its engine generator) -----
     for (let i = 0; i < 2; i++) {
       const src = sw.bus[i];
-      s.acBus[i] = s.dcPower && ((src === "APU" && s.apuAvail) || (src === "ENG" && running[i]));
-      s.genOffBus[i] = !(src === "ENG" && running[i]);
+      const gen = running[i] && !sw.fireHandle[i];
+      s.acBus[i] = s.dcPower && ((src === "APU" && s.apuAvail) || (src === "ENG" && gen));
+      s.genOffBus[i] = !(src === "ENG" && gen);
       s.busOff[i] = !s.acBus[i];
     }
     s.acPower = s.acBus[0] || s.acBus[1];
@@ -170,7 +184,7 @@ export class Systems737 {
 
     // ----- Bleed air and packs -----
     const apuAir = sw.apuBleed && s.apuAvail ? 36 : 0;
-    const engAir = Math.max(sw.engBleed[0] && running[0] ? 42 : 0, sw.engBleed[1] && running[1] ? 42 : 0);
+    const engAir = Math.max(sw.engBleed[0] && running[0] && !sw.fireHandle[0] ? 42 : 0, sw.engBleed[1] && running[1] && !sw.fireHandle[1] ? 42 : 0);
     const source = Math.max(apuAir, engAir);
     const packsOn = sw.packs.filter(Boolean).length;
     // The packs take air from the duct. With the APU alone, two packs leave too little for a start.
@@ -201,6 +215,17 @@ export class Systems737 {
       s.hydPsi[i] += Math.sign(d) * Math.min(Math.abs(d), (d > 0 ? 1500 : 400) * dt);
     }
 
+    // ----- Engine fire: a bottle discharged into a pulled handle's engine puts the fire out -----
+    for (let i = 0; i < 2; i++) {
+      if (s.fire[i] && sw.fireHandle[i] && sw.bottle.includes(i + 1)) {
+        this.fireAgentS[i] += dt;
+        if (this.fireAgentS[i] > 4) {
+          s.fire[i] = false;
+          s.fireOut[i] = true;
+        }
+      }
+    }
+
     // ----- Engine start: start switch GRD opens the start valve, start lever IDLE adds fuel -----
     for (let i = 0; i < 2; i++) {
       const e = s.engines[i];
@@ -212,7 +237,8 @@ export class Systems737 {
       const fuelAvail = ctrFeeds || t[wingTank] > 1;
       // The igniters fire with GRD or CONT selected; once running the engine keeps going on its own.
       const lit = running[i] || e.phase === "LIGHT" || (starter && n2 >= 15);
-      const cutoff = sw.startLever[i] === "IDLE" && fuelAvail && (lit || running[i]) ? 0 : 1;
+      // A pulled fire handle closes the engine fuel valve.
+      const cutoff = sw.startLever[i] === "IDLE" && !sw.fireHandle[i] && fuelAvail && (lit || running[i]) ? 0 : 1;
       if (running[i] && cutoff === 0) e.phase = "RUN";
       else if (cutoff === 0) e.phase = "LIGHT";
       else e.phase = starter ? "CRANK" : "OFF";

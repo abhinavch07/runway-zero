@@ -131,7 +131,27 @@ function onReady() {
   setRate(1);
   lessonPanel.start(lesson);
   $("loading").classList.add("hidden");
+  readyAt = performance.now();
+  failSent = false;
+  fireSeen = [false, false];
   ready = true;
+}
+
+// Lesson failure (an engine fire), and the fire bell with the FIRE WARN lights.
+let readyAt = 0;
+let failSent = false;
+let fireSeen = [false, false];
+function fireFrame(s: State737) {
+  const lesson = currentLesson;
+  if (lesson?.failAfterS !== undefined && !failSent && performance.now() - readyAt > lesson.failAfterS * 1000) {
+    failSent = true;
+    send({ type: "fail", what: lesson.failure ?? "fire1" });
+  }
+  for (let i = 0; i < 2; i++) {
+    if (s.sys.fire[i] && !fireSeen[i]) controls.x.fireWarn = true;
+    fireSeen[i] = s.sys.fire[i];
+  }
+  sound.alarm(controls.x.fireWarn && s.sys.dcPower ? "bell" : null);
 }
 
 function sendRoute() {
@@ -333,6 +353,8 @@ function frame() {
     if (ac || s.sys.dcPower) eicas.draw(s);
     else blank(eicas.canvas);
   }
+  // Before the lesson checks, so a new fire lights FIRE WARN before the step that silences it.
+  fireFrame(s);
   lessonPanel.update(s, controls, { fms: cdu.fms, cduPage: cdu.page, scratch: cdu.scratch, preflight: cdu.preflightComplete, nav });
   checklist.update({ s, c: controls, fms: cdu.fms, preflight: cdu.preflightComplete });
   sound.updateJet(s.sys);

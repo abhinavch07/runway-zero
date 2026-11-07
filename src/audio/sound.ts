@@ -225,6 +225,69 @@ export class Sound {
     }
   }
 
+  private alarmKind: "crc" | "bell" | null = null;
+  private alarmTimer = 0;
+
+  /**
+   * A repeating alarm until it is silenced: the A320 continuous repetitive chime (CRC) for a
+   * master warning, or the B737 fire bell. null stops it.
+   */
+  alarm(kind: "crc" | "bell" | null) {
+    if (kind === this.alarmKind) return;
+    this.alarmKind = kind;
+    clearInterval(this.alarmTimer);
+    if (!kind) return;
+    this.events.push(`alarm:${kind}`);
+    const play = () => (kind === "crc" ? this.chimeOnce(1400, 0.75) : this.bellRing());
+    play();
+    this.alarmTimer = window.setInterval(play, kind === "crc" ? 850 : 1000);
+  }
+
+  private chimeOnce(freq: number, len: number) {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    for (const [f, a] of [
+      [freq, 0.2],
+      [freq * 2.01, 0.05],
+    ]) {
+      const o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(a, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + len);
+      o.connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + len + 0.05);
+    }
+  }
+
+  /** A fire bell: a hammer striking a bell about 12 times a second for most of a second. */
+  private bellRing() {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    for (let k = 0; k < 10; k++) {
+      const t = ctx.currentTime + k * 0.08;
+      for (const [f, a] of [
+        [880, 0.12],
+        [2260, 0.06],
+        [3710, 0.03],
+      ]) {
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(a, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+        o.connect(g).connect(this.master);
+        o.start(t);
+        o.stop(t + 0.18);
+      }
+    }
+  }
+
   /** Plays a navaid ident in Morse code (about 7 words per minute, 1020 Hz like a VOR ident). */
   morse(text: string) {
     const ctx = this.ctx;

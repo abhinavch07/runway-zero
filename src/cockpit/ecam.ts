@@ -23,6 +23,29 @@ export function activeAlerts(s: SimState, c: Controls): Alert[] {
   const sw = c.switches;
   const sys = s.systems;
   const out: Alert[] = [];
+  // Engine fire on the ground: a red warning. Our own short version of the action lines.
+  for (let i = 0; i < 2; i++) {
+    if (!sys.fire[i]) continue;
+    const n = i + 1;
+    const master = i === 0 ? sw.engMaster1 : sw.engMaster2;
+    const pbOut = i === 0 ? sw.fire1Out : sw.fire2Out;
+    const a1 = i === 0 ? sw.agent1Eng1 : sw.agent1Eng2;
+    const a2 = i === 0 ? sw.agent2Eng1 : sw.agent2Eng2;
+    out.push({
+      id: `fire${n}`,
+      title: `ENG ${n} FIRE`,
+      level: "warning",
+      lines: [
+        { text: "-THR LEVERS ........... IDLE", done: c.throttle < 0.05 },
+        { text: "-PARKING BRK ............ ON", done: sw.parkBrake },
+        { text: `-ENG MASTER ${n} ......... OFF`, done: !master },
+        { text: `-ENG ${n} FIRE P/B ...... PUSH`, done: pbOut },
+        { text: "-AGENT 1 .............. DISCH", done: a1 },
+        { text: "-AGENT 2 .............. DISCH", done: a2 },
+        { text: "-EVACUATION ........ CONSIDER", done: false },
+      ],
+    });
+  }
   if (sys.gen1Failed && sys.engines[0].phase === "RUN") {
     const cycled = !!x?.gen1Cycled;
     out.push({

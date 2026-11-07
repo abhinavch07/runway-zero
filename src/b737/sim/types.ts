@@ -33,6 +33,10 @@ export interface Sw737 {
   taxi: boolean;
   seatBelts: boolean;
   parkBrake: boolean;
+  /** Engine fire handles pulled (up). Pulling cuts the engine's fuel, bleed and generator. */
+  fireHandle: [boolean, boolean];
+  /** Fire bottles L and R: 0 full, or the engine (1 or 2) they were discharged into. */
+  bottle: [number, number];
 }
 
 export interface Controls737 {
@@ -67,6 +71,8 @@ export interface Extras737 {
   baro: { qnh: number; std: boolean };
   ndMode: "MAP" | "VOR" | "APP";
   ndRange: number;
+  /** FIRE WARN lights on (a fire not yet acknowledged with the bell cut-out). */
+  fireWarn: boolean;
 }
 
 export function defaultExtras737(): Extras737 {
@@ -80,6 +86,7 @@ export function defaultExtras737(): Extras737 {
     baro: { qnh: 1013, std: false },
     ndMode: "MAP",
     ndRange: 20,
+    fireWarn: false,
   };
 }
 
@@ -126,7 +133,8 @@ export type ToWorker737 =
   | { type: "controls"; controls: Controls737 }
   | { type: "mcp"; action: McpAction }
   | { type: "route"; points: RoutePoint[]; crzAltFt: number }
-  | { type: "rate"; rate: number };
+  | { type: "rate"; rate: number }
+  | { type: "fail"; what: "fire1" };
 
 export type FromWorker737 =
   | { type: "ready"; start: Start737 }
@@ -155,6 +163,8 @@ export function coldSwitches737(): Sw737 {
     taxi: false,
     seatBelts: false,
     parkBrake: true,
+    fireHandle: [false, false],
+    bottle: [0, 0],
   };
 }
 
@@ -185,5 +195,7 @@ export function runningSwitches737(): Sw737 {
     strobe: true,
     seatBelts: true,
     parkBrake: false,
+    fireHandle: [false, false],
+    bottle: [0, 0],
   };
 }

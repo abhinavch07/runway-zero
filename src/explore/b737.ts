@@ -4,6 +4,13 @@ import { COMMON } from "./common";
 
 export const B737_EXPLORE: ExploreTable = {
   exact: {
+    "fire-warn": { name: "FIRE WARN", what: "Red light on the glareshield that flashes with the fire bell when a fire is detected. Press it to silence the bell. The fire handle stays lit until the fire is out.", when: "Any fire warning." },
+    "fire-1": { name: "ENG 1 fire handle", what: "Glows red when engine 1 is on fire. Pulling it closes the engine's fuel valve, cuts its bleed and generator and arms the bottles.", when: "Engine 1 fire, after the start lever is at CUTOFF." },
+    "fire-2": { name: "ENG 2 fire handle", what: "The same for engine 2.", when: "Engine 2 fire." },
+    "fire-1-L": { name: "Turn ENG 1 handle left", what: "Fires the left bottle into engine 1. Works only with the handle pulled.", when: "Engine 1 fire." },
+    "fire-1-R": { name: "Turn ENG 1 handle right", what: "Fires the right bottle into engine 1.", when: "On the ground straight after the first bottle. In flight, if the fire is still there after 30 seconds." },
+    "fire-2-L": { name: "Turn ENG 2 handle left", what: "Fires the left bottle into engine 2.", when: "Engine 2 fire." },
+    "fire-2-R": { name: "Turn ENG 2 handle right", what: "Fires the right bottle into engine 2.", when: "Engine 2 fire." },
     ...COMMON,
     "#b-pfd": { name: "PFD (primary flight display)", what: "Speed tape on the left, attitude in the middle with the flight director bars, altitude and vertical speed on the right, heading at the bottom. The FMA at the top shows the autothrottle, roll and pitch modes.", when: "Always. Check the FMA after every MCP button press." },
     "#b-nd": { name: "ND (navigation display)", what: "MAP mode shows the route in magenta and the next waypoint. VOR and APP modes show a compass with the course and the deviation bar.", when: "To follow the route or a VOR or ILS." },

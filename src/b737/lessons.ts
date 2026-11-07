@@ -36,6 +36,9 @@ export interface Lesson737 extends LessonBase<State737, Controls737, X737, Panel
   qnh?: number;
   clearance?: Clearance;
   callsign?: string;
+  /** Something fails this many seconds after the start. */
+  failAfterS?: number;
+  failure?: "fire1";
 }
 
 const mcp = (s: State737) => s.afcs.mcp;
@@ -657,6 +660,77 @@ export const B737_LESSONS: Lesson737[] = [
         why: "The bar is far to the right: the runway centreline is to your right. The PFD also shows the localizer scale under the attitude. A localizer is about four times more sensitive than a VOR. Press Next.",
         targets: [],
         panel: "main",
+      },
+    ],
+  },
+  {
+    id: "b737-fire",
+    title: "Engine fire on the ground",
+    summary: "Engines running at the gate when engine 1 catches fire: the fire bell and FIRE WARN, start lever to CUTOFF, pull the fire handle, turn it to fire both bottles, then the evacuation decision.",
+    minutes: 5,
+    state: "running",
+    fms: "empty",
+    switches: (sw) => {
+      sw.parkBrake = true;
+    },
+    failAfterS: 8,
+    failure: "fire1",
+    finished: "You handled an engine fire on the ground the Boeing way: silence the bell, start lever CUTOFF, pull the handle, turn it to fire the bottles. The real procedure has more to it (ATC, the cabin crew, evacuation): follow the airline's procedures.",
+    steps: [
+      {
+        title: "Wait: something is about to happen",
+        why: "Both engines are running at the gate with the parking brake set. Listen.",
+        targets: [],
+        panel: "main",
+        done: (s) => s.sys.fire[0],
+      },
+      {
+        title: "FIRE WARN: press to silence the bell",
+        why: "The fire bell rings and the red FIRE WARN light flashes on the glareshield. Press FIRE WARN: the bell stops. The fire is still there: the handle for the burning engine stays lit.",
+        targets: ["fire-warn"],
+        panel: "main",
+        done: (_s, c) => !c.x.fireWarn,
+      },
+      {
+        title: "Find the lit handle: ENG 1",
+        why: "On the pedestal, the ENG 1 fire handle glows red, so the fire is in engine 1. Check it is engine 1 before you touch anything. The thrust levers are already at idle. Press Next.",
+        targets: ["fire-1"],
+        panel: "ped",
+      },
+      {
+        title: "START LEVER 1: CUTOFF",
+        why: "Cut the fuel to engine 1 with its start lever. The engine winds down.",
+        targets: ["lever1-CUTOFF"],
+        panel: "ped",
+        done: (_s, c) => c.switches.startLever[0] === "CUTOFF",
+      },
+      {
+        title: "ENG 1 fire handle: PULL",
+        why: "Pull the ENG 1 fire handle up. This closes the engine's fuel valve, cuts its bleed air and generator, and arms the bottles.",
+        targets: ["fire-1"],
+        panel: "ped",
+        done: (_s, c) => c.switches.fireHandle[0],
+      },
+      {
+        title: "Turn the handle: bottle L",
+        why: "Turn the handle to one side and hold it for a second: that fires one bottle into the engine. Press ◀ L under ENG 1. L BOTTLE DISCHARGED lights.",
+        targets: ["fire-1-L"],
+        panel: "ped",
+        done: (_s, c) => c.switches.bottle.includes(1),
+      },
+      {
+        title: "On the ground: the other bottle too (R)",
+        why: "On the ground there is no reason to wait: turn the handle the other way to fire the second bottle. Press R ▶ under ENG 1.",
+        targets: ["fire-1-R"],
+        panel: "ped",
+        done: (_s, c) => c.switches.bottle[0] === 1 && c.switches.bottle[1] === 1,
+      },
+      {
+        title: "Fire out: decide on the evacuation",
+        why: "A few seconds later the handle light goes out. The crew now tells ATC and decides with the cabin crew whether to evacuate the passengers.",
+        targets: ["fire-1"],
+        panel: "ped",
+        done: (s) => s.sys.fireOut[0],
       },
     ],
   },
