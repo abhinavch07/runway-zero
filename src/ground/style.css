@@ -1033,3 +1033,21 @@
 .gf-hills {
   fill: #6b5b3e;
 }
+/* Figures added with Modules 11 to 14 */
+.gf-code {
+  fill: var(--paint);
+  font: 600 15px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+/* Weather radar colours stay the same in both themes, as on a real display */
+.gf-rgreen {
+  fill: #2f9e4f;
+}
+.gf-ryellow {
+  fill: #e8c21c;
+}
+.gf-rred {
+  fill: #d43a2f;
+}
+.gf-rmag {
+  fill: #c23bc2;
+}

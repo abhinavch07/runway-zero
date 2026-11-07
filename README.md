@@ -44,7 +44,7 @@
 
 A free course for the Indian DGCA CPL theory papers at [runwayzero.in/ground-school.html](https://www.runwayzero.in/ground-school.html). Each module has simple notes with our own diagrams, a slide view, a "remember for the exam" box and practice questions that show the reason for every answer. Timed mock exams draw from all the ready modules and give a score per module.
 
-Meteorology comes first, in 14 modules that follow the DGCA syllabus (CAR Section 7, Series B, Part IV, Appendix B). Modules 1 to 10 are ready, from The Atmosphere and ISA through to the Climate of India (monsoon, western disturbances and local storms). Four modules remain: Thunderstorms and Windshear, Icing and Turbulence, Observations and Charts, and Met Reports and Forecasts. Air Regulations, Air Navigation, Technical General, Technical Specific and RTR (A) will follow. Where the DGCA question bank still expects an older answer than the current rule, the question is flagged and both are shown.
+Meteorology comes first, in 14 modules that follow the DGCA syllabus (CAR Section 7, Series B, Part IV, Appendix B). All 14 modules are ready, from The Atmosphere and ISA through to Met Reports and Forecasts (METAR, TAF, SIGMET and the rest, as used in India). Air Regulations, Air Navigation, Technical General, Technical Specific and RTR (A) will follow. Where the DGCA question bank still expects an older answer than the current rule, the question is flagged and both are shown.
 
 Everything is written fresh for Runway Zero from the official syllabus and standard ICAO values. Nothing is copied from books, institute notes or exam papers.
 

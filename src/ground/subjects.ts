@@ -10,6 +10,10 @@ import { M07 } from "./met/m07-airmasses-fronts.ts";
 import { M08 } from "./met/m08-pressure-systems-tc.ts";
 import { M09 } from "./met/m09-circulation-jets-cat.ts";
 import { M10 } from "./met/m10-climate-india.ts";
+import { M11 } from "./met/m11-thunderstorms-windshear.ts";
+import { M12 } from "./met/m12-icing-turbulence-waves.ts";
+import { M13 } from "./met/m13-observations-charts.ts";
+import { M14 } from "./met/m14-reports-forecasts.ts";
 
 export const SUBJECTS: Subject[] = [
   {
@@ -27,10 +31,10 @@ export const SUBJECTS: Subject[] = [
       M08,
       M09,
       M10,
-      { n: 11, title: "Thunderstorms, Microburst and Windshear", car: "1.9 c, d" },
-      { n: 12, title: "Icing, Turbulence, Mountain Waves and Inversions", car: "1.2 g, 1.9 a, b, e, f" },
-      { n: 13, title: "Observations, Instruments, Radar, Satellites and Charts", car: "1.10 a, b" },
-      { n: 14, title: "Met Reports and Forecasts: METAR, TAF, SIGMET and more", car: "1.10 c" },
+      M11,
+      M12,
+      M13,
+      M14,
     ],
   },
   { id: "regs", title: "Air Regulations", blurb: "Aircraft Act and Rules, CARs, ICAO Annexes, rules of the air and ATS.", modules: [] },

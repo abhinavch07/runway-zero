@@ -1,0 +1,262 @@
+// Meteorology Module 13: Observations, Instruments, Radar, Satellites and Charts. CAR Sec 7 Series B Part IV, Appendix B 1.10 a, b.
+// Written fresh for Runway Zero. India's geostationary weather satellites checked against MoES (INSAT-3DS launched 17 February 2024).
+import type { Module } from "../types.ts";
+
+export const M13: Module = {
+  n: 13,
+  title: "Observations, Instruments, Radar, Satellites and Charts",
+  car: "1.10 a, b",
+  summary:
+    "How weather is observed: the observation network and its times, the instruments for each element, reports from aircraft, weather radar on the ground and in the aircraft, weather satellites and their pictures, and how to read surface and upper air charts, wind barbs, station plots and the many iso lines.",
+  sections: [
+    {
+      id: "network",
+      title: "Who observes, and when",
+      blocks: [
+        {
+          t: "list",
+          items: [
+            "In India the **India Meteorological Department (IMD)** provides all Met services to aviation, through Aerodrome Meteorological Offices (**AMO**) and Aeronautical Meteorological Stations (**AMS**) at airports, and **Meteorological Watch Offices (MWO)** that watch each Flight Information Region and issue SIGMETs.",
+            "**Synoptic observations** are made at the same moment all over the world so a chart can be drawn. **Main synoptic hours: 00, 06, 12 and 18 UTC.** Intermediate hours: 03, 09, 15 and 21 UTC.",
+            "**Upper air soundings** (radiosonde) are made mainly at **00 and 12 UTC**.",
+            "**Aerodrome observations** for METARs are made every half hour or hour, with extra reports when the weather changes (Module 14).",
+            "All times in aviation Met are in **UTC**. India is UTC + 5:30.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "instruments",
+      title: "Instruments",
+      blocks: [
+        {
+          t: "table",
+          head: ["Element", "Instrument", "Notes"],
+          rows: [
+            ["**Pressure**", "**Mercury barometer** (most accurate), **aneroid barometer**, **barograph** (continuous record)", "Read in hPa. Corrected and reduced to MSL for charts (Module 3)"],
+            ["**Air temperature**", "Thermometers in a **Stevenson screen**. Maximum thermometer (mercury), minimum thermometer (alcohol). **Thermograph** records it", "The screen is a **white, louvred** box with the bulbs about **1.25 m** above short grass: shaded from the sun, open to the air"],
+            ["**Humidity and dew point**", "**Dry and wet bulb thermometers (psychrometer)**, hygrometer, **hair hygrograph**", "The wet bulb reads lower than the dry bulb unless the air is saturated. The bigger the difference, the drier the air"],
+            ["**Surface wind**", "**Cup anemometer** (speed), **wind vane** (direction), anemograph (record), windsock", "Mounted at **10 m** above open ground (Module 4)"],
+            ["**Rain**", "**Rain gauge**, self recording rain gauge", "Measured as depth in **mm**"],
+            ["**Cloud base**", "**Ceilometer** (laser beam, day and night), cloud searchlight with an **alidade** at night, **ceiling balloon** (timed climb)", "Cloud amount is estimated by eye in **oktas** (eighths of the sky)"],
+            ["**Cloud movement**", "**Nephoscope**", "Direction and speed of cloud movement"],
+            ["**Visibility and RVR**", "By eye against known markers, **transmissometer**, **forward scatter meter**", "RVR comes from instruments along the runway (Module 6)"],
+            ["**Upper wind**", "**Pilot balloon** followed by **theodolite**, **RAWIN** (balloon tracked by radar or GPS)", "Direction in degrees true, speed in kt"],
+            ["**Upper air pressure, temperature and humidity**", "**Radiosonde** on a hydrogen balloon. **Dropsonde** dropped from aircraft into cyclones", "A radiosonde tracked for wind is a radiowind sounding"],
+            ["**Sunshine**", "Campbell Stokes recorder (glass sphere burns a card)", "Hours of bright sunshine"],
+          ],
+        },
+        {
+          t: "tip",
+          text: "**-graph** instruments draw a continuous record on a drum: barograph (pressure), thermograph (temperature), hygrograph (humidity), anemograph (wind).",
+        },
+      ],
+    },
+    {
+      id: "aircraft",
+      title: "Reports from aircraft",
+      blocks: [
+        {
+          t: "p",
+          text: "Aircraft are flying weather stations. Most airliners now send their wind and temperature automatically (**AMDAR**, or through ADS). Pilots also send **air reports (AIREP)** by voice or data link, giving position, time, level and the weather met.",
+        },
+        {
+          t: "list",
+          items: [
+            "A **special air report** must be made as soon as possible when meeting: **severe turbulence**, **severe icing**, **severe mountain waves**, **thunderstorms** (obscured, embedded, widespread or in a squall line), with or without **hail**, **heavy dust or sand storms**, **volcanic ash** cloud, or **volcanic activity** before an eruption.",
+            "Pilots should also report **windshear** and **moderate or severe turbulence or icing** to ATC, so it can be passed to others and to the Met office.",
+            "A special air report of a severe hazard can lead the MWO to issue a **SIGMET**.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "radar",
+      title: "Weather radar",
+      blocks: [
+        {
+          t: "p",
+          text: "A weather radar sends out short pulses of radio energy and listens for echoes. **Precipitation sized drops** (rain, hail, wet snow) reflect well. **Cloud droplets and fog are too small** and give almost no echo, so radar shows **where the rain is, not the cloud**. Clear air turbulence gives **no echo at all**.",
+        },
+        { t: "figure", key: "radar", caption: "An airborne weather radar picture. Colours show how heavy the rain is. Shapes warn of the worst cells." },
+        {
+          t: "table",
+          head: ["Colour", "Rain", "Meaning"],
+          rows: [
+            ["**Green**", "Light, about 1 to 4 mm per hour", "Usually safe, but watch for growth"],
+            ["**Yellow**", "Moderate, about 4 to 12 mm per hour", "Moderate turbulence possible"],
+            ["**Red**", "Heavy, about 12 to 50 mm per hour", "Severe turbulence likely. **Avoid by 20 nm**"],
+            ["**Magenta**", "Very heavy, over 50 mm per hour, or turbulence mode", "Extreme. **Avoid**"],
+          ],
+        },
+        {
+          t: "list",
+          items: [
+            "Danger signs in the shape of an echo: **hooks, fingers, scalloped edges, U shapes**, and a **steep change** from green to red over a short distance (strong gradient means strong turbulence).",
+            "**Wet hail** gives very strong echoes. **Dry hail and dry snow** give weak echoes, so a CB top can look harmless.",
+            "**Attenuation (radar shadow)**: heavy rain soaks up the beam, so a storm **behind** it may not show. A black area behind a strong echo is a warning, not a gap.",
+            "Use the **tilt**: tilted too high, the beam passes over the rain core and shows a storm as weak. Scan up and down.",
+            "**Airborne radars** use short wavelengths (about **3 cm**, X band) to see rain ahead. **Ground radars** use longer wavelengths (about 5 to 10 cm) for long range. IMD runs a network of **Doppler weather radars (DWR)** that also measure air moving towards or away, which shows rotation and windshear.",
+            "Radar never shows CAT, and gives little warning of the dry microburst.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "sat",
+      title: "Weather satellites",
+      blocks: [
+        {
+          t: "table",
+          head: ["Kind", "Orbit", "Good for"],
+          rows: [
+            ["**Geostationary**", "About **36,000 km** above the **equator**. Turns with the earth, so it **always sees the same area**", "A new picture every **15 to 30 minutes**. Watching storms, cyclones and fog develop. Poor near the poles. India's are **INSAT-3D, INSAT-3DR and INSAT-3DS**"],
+            ["**Polar orbiting**", "About **800 to 850 km** up, passing near both poles", "Sharper pictures and the poles, but each place is seen only about **twice a day**"],
+          ],
+        },
+        {
+          t: "table",
+          head: ["Picture", "What it shows", "How to read it"],
+          rows: [
+            ["**Visible**", "Sunlight reflected by cloud and ground", "**Daytime only.** Thick cloud, snow and fog look bright white. Thin cirrus looks faint. Fog over the Gangetic plains shows well in the morning"],
+            ["**Infrared (IR)**", "**Temperature** of cloud tops and ground", "**Day and night.** Cold, **high** cloud tops look **bright white**, warm low cloud and fog look grey, close to the ground. CB tops are the coldest and brightest"],
+            ["**Water vapour (WV)**", "Moisture in the **middle and upper** troposphere", "Shows moist and dry air, jet streams and upper troughs even with no cloud"],
+          ],
+        },
+        {
+          t: "p",
+          text: "Satellites are used to watch **tropical cyclones** (their intensity is estimated from cloud patterns), CB clusters, the monsoon, fog, dust storms and volcanic ash. The IMD website and app show INSAT pictures every half hour.",
+        },
+      ],
+    },
+    {
+      id: "charts",
+      title: "Weather charts",
+      blocks: [
+        {
+          t: "list",
+          items: [
+            "**Surface chart (analysis)**: drawn for the main synoptic hours from station reports. Shows **isobars** (on Indian charts usually every **2 hPa**), highs and lows, troughs, fronts and the weather at each station.",
+            "**Upper air (constant pressure) charts**: drawn for standard levels, **850, 700, 500, 300 and 200 hPa** (about 5,000, 10,000, 18,000, 30,000 and 39,000 ft). They show **contours** (the height of that pressure level), isotherms and wind barbs. Low contour heights work like low pressure.",
+            "**Prognostic (prog) charts** are **forecast** charts: what the surface or an upper level is expected to look like at a future time.",
+            "**Significant weather and wind and temperature charts** for flight planning are covered in Module 14.",
+          ],
+        },
+        { t: "figure", key: "windbarbs", caption: "Wind barbs. The shaft points to where the wind comes from." },
+        {
+          t: "list",
+          items: [
+            "The **shaft** points **into the wind**, towards the direction the wind is **coming from**.",
+            "**Full barb = 10 kt. Half barb = 5 kt. Pennant (triangle) = 50 kt.** Add them up. A circle with no shaft means **calm**.",
+            "So a pennant and a full barb is 60 kt, two full barbs and a half is 25 kt.",
+          ],
+        },
+        {
+          t: "table",
+          head: ["Line", "Joins places of equal"],
+          rows: [
+            ["**Isobar**", "Pressure"],
+            ["**Contour**", "Height of a pressure level (upper air charts)"],
+            ["**Isotherm**", "Temperature"],
+            ["**Isotach**", "Wind speed"],
+            ["**Isogon**", "Wind direction (in navigation, an isogonal joins equal magnetic variation)"],
+            ["**Isallobar**", "Pressure change (tendency)"],
+            ["**Isohyet**", "Rainfall"],
+            ["**Isoneph**", "Cloud amount"],
+            ["**Isohel**", "Sunshine"],
+            ["**Isodrosotherm**", "Dew point"],
+            ["**Isopycnal**", "Density"],
+          ],
+        },
+        {
+          t: "p",
+          text: "**Station plot.** On a surface chart, each station's report is plotted round a small circle in a fixed pattern: the circle is shaded for the **total cloud in oktas**, the wind barb sticks out of it, **temperature** is at the **top left**, **dew point** at the **bottom left**, **pressure** at the **top right** (last three figures in tenths of a hPa, so **132 means 1013.2 hPa** and **987 means 998.7 hPa**), the pressure tendency below it, and a symbol for the present weather on the left.",
+        },
+      ],
+    },
+    {
+      id: "exam",
+      title: "Remember for the exam",
+      blocks: [
+        {
+          t: "remember",
+          items: [
+            "Main synoptic hours **00, 06, 12, 18 UTC**. Radiosondes mainly at **00 and 12 UTC**.",
+            "**Mercury barometer** most accurate. **Aneroid** in altimeters. **-graph** instruments record.",
+            "Thermometers in a **white louvred Stevenson screen**, about **1.25 m** up. Max: mercury. Min: alcohol.",
+            "**Psychrometer** (dry and wet bulb) for humidity and dew point. **Hygrograph** records humidity.",
+            "**Anemometer** at **10 m**. **Rain gauge** in mm. **Ceilometer** and **ceiling balloon** for cloud base. **Nephoscope** for cloud movement.",
+            "**Transmissometer** or forward scatter meter for RVR.",
+            "Upper winds: **pilot balloon and theodolite**, **RAWIN**. Upper air pressure, temperature, humidity: **radiosonde**. Cyclones: **dropsonde**.",
+            "Special air report: **severe** turbulence, icing, mountain waves, TS with or without hail, heavy dust or sand storm, volcanic ash.",
+            "Radar sees **precipitation**, not cloud droplets or fog, and **never CAT**.",
+            "Radar colours: **green, yellow, red, magenta** = light to extreme. Avoid hooks, fingers, scalloped edges, steep gradients.",
+            "Heavy rain can **hide** cells behind it (attenuation).",
+            "Geostationary: **36,000 km over the equator**, same view, frequent pictures. Polar: **800 to 850 km**, twice a day.",
+            "India: **INSAT-3D, 3DR, 3DS**.",
+            "**Visible**: day only. **Infrared**: temperature, day and night, **cold high tops bright white**. **Water vapour**: upper moisture, jets.",
+            "Wind barb shaft points **to where the wind comes from**. Full barb 10, half barb 5, **pennant 50**.",
+            "Isotach: wind speed. Isogon: wind direction. Isallobar: pressure change. Isohyet: rain. Isoneph: cloud. Isohel: sunshine.",
+            "Station plot pressure: **132 = 1013.2 hPa**, **987 = 998.7 hPa**.",
+          ],
+        },
+      ],
+    },
+  ],
+  slides: [
+    { title: "The observing network", points: ["IMD: AMOs, AMSs and MWOs", "Main synoptic hours **00, 06, 12, 18 UTC**", "Radiosondes at 00 and 12 UTC", "All times in UTC"] },
+    { title: "Surface instruments", points: ["**Barometer** and barograph: pressure", "**Stevenson screen**: thermometers at 1.25 m", "**Psychrometer**: dry and wet bulb", "**Anemometer** and vane at 10 m"] },
+    { title: "More instruments", points: ["**Ceilometer**, ceiling balloon: cloud base", "**Nephoscope**: cloud movement", "**Transmissometer**: visibility and RVR", "**Rain gauge**: mm of rain"] },
+    { title: "Upper air", points: ["**Pilot balloon** and theodolite: wind", "**RAWIN**: balloon tracked by radar or GPS", "**Radiosonde**: pressure, temperature, humidity", "**Dropsonde** into cyclones, AMDAR from airliners"] },
+    { title: "Special air reports", points: ["Severe turbulence, icing, mountain waves", "Thunderstorms, with or without hail", "Heavy dust or sand storm", "Volcanic ash or activity"] },
+    { title: "Weather radar", points: ["Sees **rain and hail**, not cloud or fog", "Green, yellow, red, **magenta**", "Avoid hooks, fingers, steep gradients", "Heavy rain can hide what is behind"], figure: "radar" },
+    { title: "Satellites", points: ["**Geostationary**: 36,000 km, same view, every 15 to 30 min", "**Polar**: 800 to 850 km, twice a day", "India: **INSAT-3D, 3DR, 3DS**", "Cyclones, CB clusters, fog, dust"] },
+    { title: "Satellite pictures", points: ["**Visible**: daytime only", "**Infrared**: temperature, day and night", "Cold high tops look **bright white**", "**Water vapour**: upper moisture and jets"] },
+    { title: "Charts", points: ["Surface analysis: isobars, fronts, station plots", "Upper air: **850, 700, 500, 300, 200 hPa**", "Contours, isotherms, wind barbs", "Prog charts are forecasts"] },
+    { title: "Wind barbs", points: ["Shaft points **into the wind**", "Full barb **10 kt**, half **5 kt**", "Pennant **50 kt**", "Circle only: calm"], figure: "windbarbs" },
+    { title: "Iso lines", points: ["Isotach: speed. Isogon: direction", "Isallobar: pressure change", "Isohyet: rain. Isoneph: cloud", "Isohel: sunshine. Contour: height"] },
+  ],
+  mcqs: [
+    { id: "m13-01", q: "The main synoptic hours for surface observations are:", options: ["00, 06, 12 and 18 UTC", "03, 09, 15 and 21 UTC", "Every hour on the hour", "Only at 12 UTC"], answer: 0, why: "Main synoptic hours are 00, 06, 12 and 18 UTC. The intermediate hours are 03, 09, 15 and 21 UTC." },
+    { id: "m13-02", q: "Upper air soundings with radiosondes are made mainly at:", options: ["00 and 12 UTC", "03 and 15 UTC", "Every 3 hours", "Only when a pilot asks"], answer: 0, why: "Radiosonde ascents are made mainly at 00 and 12 UTC across the world." },
+    { id: "m13-03", q: "The Stevenson screen is painted white and has louvred sides so that:", options: ["It can be seen from the air", "The thermometers are shaded from the sun but open to the free air", "Rain can enter freely", "Birds keep away"], answer: 1, why: "White reflects sunlight and the louvres let air through, so the thermometers read the true air temperature." },
+    { id: "m13-04", q: "In a Stevenson screen, the thermometer bulbs are about:", options: ["10 m above the ground", "1.25 m above the ground", "On the ground", "5 cm below the ground"], answer: 1, why: "About 1.25 m above short grass. Wind instruments are at 10 m." },
+    { id: "m13-05", q: "A minimum thermometer normally uses:", options: ["Mercury", "Alcohol", "Water", "Air"], answer: 1, why: "Alcohol stays liquid at very low temperatures and works with an index that marks the lowest reading. Maximum thermometers use mercury." },
+    { id: "m13-06", q: "Dew point and relative humidity are found with:", options: ["An anemometer", "A dry and wet bulb thermometer (psychrometer)", "A barograph", "A nephoscope"], answer: 1, why: "The difference between dry and wet bulb readings gives the humidity and dew point from tables." },
+    { id: "m13-07", q: "If the dry bulb and wet bulb thermometers show the same reading, the air is:", options: ["Very dry", "Saturated", "Unstable", "Warmer than normal"], answer: 1, why: "No evaporation can take place from the wet bulb in saturated air, so both read the same." },
+    { id: "m13-08", q: "A hygrograph records:", options: ["Pressure", "Wind", "Humidity", "Rainfall"], answer: 2, why: "Hygro means humidity. A hair hygrograph draws a continuous humidity record." },
+    { id: "m13-09", q: "An instrument that gives a continuous record of wind is an:", options: ["Anemograph", "Aneroid", "Alidade", "Altimeter"], answer: 0, why: "Anemograph records wind. Aneroid is a pressure capsule, alidade is for cloud base at night." },
+    { id: "m13-10", q: "The height of the cloud base at an airport is measured by day and night with a:", options: ["Hygrometer", "Ceilometer", "Transmissometer", "Theodolite"], answer: 1, why: "A ceilometer sends a laser beam up and times the echo from the cloud base." },
+    { id: "m13-11", q: "The direction and speed of cloud movement is found with a:", options: ["Nephoscope", "Barometer", "Rain gauge", "Ceilometer"], answer: 0, why: "Nepho means cloud. A nephoscope shows how the clouds are moving." },
+    { id: "m13-12", q: "A ceiling balloon finds the cloud base by:", options: ["Its colour change", "Timing how long a balloon of known climb rate takes to enter the cloud", "Measuring its pressure", "Radio echoes from the cloud"], answer: 1, why: "The balloon rises at a known rate, so time to disappear gives the height of the base." },
+    { id: "m13-13", q: "RVR is measured with a:", options: ["Ceilometer", "Nephoscope", "Transmissometer or forward scatter meter", "Pilot balloon"], answer: 2, why: "These instruments measure how clear the air is along the runway, and RVR is worked out from that." },
+    { id: "m13-14", q: "Upper winds can be measured by following a pilot balloon with a:", options: ["Hygrometer", "Theodolite", "Barograph", "Ceilometer"], answer: 1, why: "The theodolite gives the balloon's direction and angle every minute, from which the wind at each level is worked out." },
+    { id: "m13-15", q: "A radiosonde measures:", options: ["Pressure, temperature and humidity of the upper air", "Only surface wind", "Rainfall", "Cloud amount"], answer: 0, why: "It is carried up by a balloon and radios back pressure, temperature and humidity. Tracking it also gives the wind." },
+    { id: "m13-16", q: "Sondes dropped from aircraft into tropical cyclones are called:", options: ["Radiosondes", "Dropsondes", "Pilot balloons", "Ceilometers"], answer: 1, why: "Dropsondes fall by parachute through the storm, sending back readings on the way down." },
+    { id: "m13-17", q: "A special air report must be made when an aircraft meets:", options: ["Light turbulence", "Severe icing", "Light rain", "Scattered cumulus"], answer: 1, why: "Special air reports are for severe hazards: severe turbulence, severe icing, severe mountain waves, thunderstorms, heavy dust storms and volcanic ash." },
+    { id: "m13-18", q: "Weather radar detects:", options: ["Cloud droplets and fog", "Precipitation sized drops such as rain and hail", "Clear air turbulence", "Water vapour"], answer: 1, why: "Cloud droplets are too small to reflect the radar pulse well. Rain and hail reflect strongly." },
+    { id: "m13-19", q: "Which hazard is NOT shown by weather radar?", options: ["Heavy rain", "Wet hail", "Clear air turbulence", "The core of a thunderstorm"], answer: 2, why: "CAT happens in clear air with no precipitation, so it gives no echo." },
+    { id: "m13-20", q: "On a colour weather radar display, the most intense returns are shown in:", options: ["Green", "Yellow", "Magenta", "Black"], answer: 2, why: "The scale runs green, yellow, red, magenta from light to very heavy." },
+    { id: "m13-21", q: "Red returns on a weather radar show rainfall of roughly:", options: ["1 to 4 mm per hour", "4 to 12 mm per hour", "12 to 50 mm per hour", "None"], answer: 2, why: "Red is heavy rain, about 12 to 50 mm per hour. Avoid by about 20 nm." },
+    { id: "m13-22", q: "Which radar echo shape warns of a severe storm?", options: ["A large, even green area", "No echo at all", "A thin ring round the aircraft", "A hook or finger shaped echo with sharp edges"], answer: 3, why: "Hooks, fingers, scalloped edges and steep colour changes go with strong updraughts, turbulence and hail." },
+    { id: "m13-23", q: "A black area just behind a strong red echo on the radar may mean:", options: ["A safe gap to fly through", "Clear air with no wind", "Radar shadow, where heavy rain has absorbed the beam and hidden more weather", "A fault in the display"], answer: 2, why: "Heavy rain soaks up the beam (attenuation), so what lies behind it may not show." },
+    { id: "m13-24", q: "Dry hail and dry snow on a weather radar give:", options: ["Very strong echoes", "Magenta always", "No difference from rain", "Weak echoes, so the danger can be underestimated"], answer: 3, why: "Dry ice reflects much less than water, so the top of a CB may look weak on radar." },
+    { id: "m13-25", q: "A geostationary weather satellite is at a height of about:", options: ["800 km", "3,600 km", "36,000 km", "360,000 km"], answer: 2, why: "At about 36,000 km over the equator it goes round once a day, staying over the same spot." },
+    { id: "m13-26", q: "A geostationary satellite is placed:", options: ["Over the North Pole", "In a polar orbit", "Over India's latitude", "Over the equator"], answer: 3, why: "Only an orbit over the equator can keep pace with the earth's turning and stay fixed over one point." },
+    { id: "m13-27", q: "Compared with a geostationary satellite, a polar orbiting satellite:", options: ["Gives a new picture of the same area every 15 minutes", "Is much higher", "Is much lower and sees each place about twice a day", "Cannot see the poles"], answer: 2, why: "At about 800 to 850 km it gives sharper pictures and covers the poles, but passes each place only about twice a day." },
+    { id: "m13-28", q: "India's geostationary weather satellites now in use are:", options: ["INSAT-3D, INSAT-3DR and INSAT-3DS", "Landsat and Sentinel", "GPS and GLONASS", "Aryabhata and Bhaskara"], answer: 0, why: "INSAT-3DS was launched in February 2024 to join INSAT-3D and INSAT-3DR." },
+    { id: "m13-29", q: "Visible satellite pictures:", options: ["Can be used day and night", "Show only water vapour", "Show temperature", "Can be used only in daylight"], answer: 3, why: "They show reflected sunlight, so they are blank at night." },
+    { id: "m13-30", q: "On an infrared satellite picture, the brightest white clouds are:", options: ["Low warm stratus", "Fog", "High, cold cloud tops such as CB anvils", "Clear sky over the sea"], answer: 2, why: "IR pictures show temperature. The coldest tops, which are the highest, are shown brightest." },
+    { id: "m13-31", q: "Infrared satellite pictures are useful because they:", options: ["Work day and night and show cloud top temperature", "Only work in daylight", "Show surface pressure", "Show wind barbs"], answer: 0, why: "They measure heat given off, which happens at night too." },
+    { id: "m13-32", q: "Water vapour satellite pictures mainly show:", options: ["Moisture in the middle and upper troposphere, including jet streams and dry slots", "Rain at the surface", "Fog in valleys", "Ocean waves"], answer: 0, why: "They pick up radiation from water vapour high up, showing moist and dry air even where there is no cloud." },
+    { id: "m13-33", q: "On upper air charts, lines joining places where a pressure level is at the same height are called:", options: ["Isobars", "Isohyets", "Isotachs", "Contours"], answer: 3, why: "Contours show the height of a constant pressure surface, such as 500 hPa." },
+    { id: "m13-34", q: "A prognostic chart is:", options: ["A chart of past weather", "A climatological average", "A chart of the earth's magnetic field", "A forecast chart for a future time"], answer: 3, why: "Prog charts show what the weather pattern is expected to look like later." },
+    { id: "m13-35", q: "On a wind barb, a pennant (filled triangle) stands for:", options: ["5 kt", "10 kt", "50 kt", "100 kt"], answer: 2, why: "Half barb 5 kt, full barb 10 kt, pennant 50 kt." },
+    { id: "m13-36", q: "A wind barb with one pennant and two full barbs shows a wind of:", options: ["52 kt", "60 kt", "25 kt", "70 kt"], answer: 3, why: "50 + 10 + 10 = 70 kt." },
+    { id: "m13-37", q: "The shaft of a wind barb points:", options: ["Where the wind is blowing to", "Towards low pressure", "Always to true north", "Towards the direction the wind is coming from"], answer: 3, why: "The shaft points into the wind, so it shows where the wind comes from." },
+    { id: "m13-38", q: "Lines joining places of equal wind speed are called:", options: ["Isogons", "Isohels", "Isobars", "Isotachs"], answer: 3, why: "Tach means speed. Isogons join equal wind direction." },
+    { id: "m13-39", q: "Lines joining places of equal pressure change (tendency) are called:", options: ["Isallobars", "Isobars", "Isotherms", "Isonephs"], answer: 0, why: "Isallobars show where pressure is rising or falling fastest, which helps forecast how a low will move." },
+    { id: "m13-40", q: "Lines joining places of equal rainfall are called:", options: ["Isohels", "Isogons", "Isonephs", "Isohyets"], answer: 3, why: "Isohyets join equal rainfall. Isohels join equal sunshine and isonephs equal cloud." },
+    { id: "m13-41", q: "On a surface station plot, the pressure figure 087 means:", options: ["1008.7 hPa", "987 hPa", "1087 hPa", "908.7 hPa"], answer: 0, why: "It gives the last three figures in tenths. 087 is 008.7, which only makes sense as 1008.7 hPa." },
+  ],
+};
