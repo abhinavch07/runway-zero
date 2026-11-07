@@ -40,6 +40,14 @@
 - ✈️ **A real flight model underneath**: JSBSim, the open source flight dynamics engine, running in your browser.
 - 💾 **Your progress is saved** in your browser, with a tick for every finished lesson and passed quiz.
 
+## Ground School for the DGCA exams
+
+A free course for the Indian DGCA CPL theory papers at [runwayzero.in/ground-school.html](https://www.runwayzero.in/ground-school.html). Each module has simple notes with our own diagrams, a slide view, a "remember for the exam" box and practice questions that show the reason for every answer. Timed mock exams draw from all the ready modules and give a score per module.
+
+Meteorology comes first, in 14 modules that follow the DGCA syllabus (CAR Section 7, Series B, Part IV, Appendix B). Module 1, The Atmosphere and ISA, is ready. Air Regulations, Air Navigation, Technical General, Technical Specific and RTR (A) will follow. Where the DGCA question bank still expects an older answer than the current rule, the question is flagged and both are shown.
+
+Everything is written fresh for Runway Zero from the official syllabus and standard ICAO values. Nothing is copied from books, institute notes or exam papers.
+
 ## The aircraft
 
 <table>
@@ -278,6 +286,10 @@ scripts/                Node test scripts
 docs/images/            the pictures in this README
 public/img/             pictures on the welcome page, and the share image for link previews
 ```
+
+### Writing a Ground School module
+
+Modules live in `src/ground/<subject>/` as plain data (notes blocks, slides, questions) and are listed in `src/ground/subjects.ts`. Diagrams are SVG built in `src/ground/figures.ts`. Run `npm run test:ground` to check every question has four options and a valid answer, and that the text keeps the house style. The mock exam pattern is set once in `MOCK` in `subjects.ts`.
 
 ### Writing a lesson
 

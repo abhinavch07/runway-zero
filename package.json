@@ -14,7 +14,8 @@
     "test:readback": "node scripts/readback-test.ts",
     "test:pa28": "node scripts/pa28-test.ts",
     "test:737": "node scripts/b737-test.ts",
-    "publish:pages": "bash scripts/publish-pages.sh"
+    "publish:pages": "bash scripts/publish-pages.sh",
+    "test:ground": "node scripts/ground-test.ts"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
