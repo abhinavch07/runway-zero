@@ -7,6 +7,7 @@ import { C172Core, C172_STEP_HZ } from "../src/c172/sim/core.ts";
 import { GA_VARIANTS } from "../src/c172/sim/variant.ts";
 import { runningC172Switches, type C172Controls, type C172State } from "../src/c172/sim/types.ts";
 import { FIRST_FLIGHT } from "../src/c172/firstFlight.ts";
+import { EFATO_FIELD } from "../src/c172/firstFlight.ts";
 import { CIRCUIT, FIELD_FT, LEG_HDG, TAXI, rwyPos, rwyToLatLon, trueHdg } from "../src/c172/world.ts";
 import { angleDiff } from "../src/world/geo.ts";
 
@@ -110,6 +111,17 @@ const PLANS: Record<string, ((s: C172State, c: C172Controls) => Goal)[]> = {
     () => ({ hdg: LEG_HDG.base, kias: 70, thr: 0.5, flaps: 2 }),
     (s) => ({ hdg: rwyPos(s).y > -480 ? trueHdg(clamp(-rwyPos(s).y * 0.06, -30, 30)) : LEG_HDG.base, kias: 70, thr: 0.5 }),
   ],
+  "c172-efato": [
+    () => ({ thr: 1, hdg: LEG_HDG.upwind, kias: 70 }),
+    () => ({ hdg: LEG_HDG.upwind, kias: 68 }),
+    () => ({ hdg: LEG_HDG.upwind, kias: 68 }),
+    (_s, c) => {
+      c.mixture = 0;
+      return { hdg: LEG_HDG.upwind, kias: 68 };
+    },
+    (s) => (s.aglFt > 25 ? { hdg: LEG_HDG.upwind, kias: 62, flaps: 2 } : { hdg: LEG_HDG.upwind, flare: true }),
+    () => ({ ground: { tx: 9000, ty: 0, gs: 0, stop: true }, thr: 0 }),
+  ],
   "c172-ff-landing": [
     () => ({ hdg: LEG_HDG.final, kias: 65, thr: 0.5 }),
     (s) => ({ hdg: trueHdg(clamp(-rwyPos(s).y * 0.05, -10, 10)), kias: 65, thr: 0.5 }),
@@ -133,12 +145,17 @@ for (const lesson of FIRST_FLIGHT) {
   let stepT = 0;
   const log: string[] = [];
   let maxBank = 0;
+  let failed1 = false;
   let minKias = 999;
   while (step < lesson.steps.length && t < 900) {
     const s = core.state();
     if (!s.onGround) {
       maxBank = Math.max(maxBank, Math.abs(s.rollDeg));
       if (s.aglFt > 30) minKias = Math.min(minKias, s.kias);
+    }
+    if (lesson.failAfterS !== undefined && !failed1 && t >= lesson.failAfterS) {
+      core.fail(lesson.failure ?? "alternator");
+      failed1 = true;
     }
     const g = plan[step](s, c);
     fly(s, c, g);
@@ -161,6 +178,7 @@ for (const lesson of FIRST_FLIGHT) {
   if (!pass) failed = true;
   console.log(`${pass ? "PASS" : "FAIL"} ${lesson.id}: ${step}/${lesson.steps.length} steps in ${t.toFixed(0)} s, max bank ${maxBank.toFixed(0)}, min airborne speed ${minKias.toFixed(0)}`);
   console.log(log.join("\n"));
+  if (lesson.fieldLanding) console.log(`  stopped at x=${p.x.toFixed(0)} y=${p.y.toFixed(0)}, field is x ${EFATO_FIELD[0]} to ${EFATO_FIELD[1]}`);
   if (!pass) console.log(`  stuck on: ${lesson.steps[step].title} | x=${p.x.toFixed(0)} y=${p.y.toFixed(0)} h=${p.h.toFixed(0)} hdg=${s.headingDeg.toFixed(0)} kias=${s.kias.toFixed(0)} gs=${s.groundSpeedKt.toFixed(1)} alt=${s.altFt.toFixed(0)} agl=${s.aglFt.toFixed(0)} vs=${s.vsFpm.toFixed(0)} rpm=${s.engine.rpm.toFixed(0)} ground=${s.onGround} pitch=${c.pitch.toFixed(2)}`);
 }
 process.exit(failed ? 1 : 0);

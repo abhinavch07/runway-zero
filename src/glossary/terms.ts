@@ -23,6 +23,7 @@ export const TERMS: Term[] = [
   { term: "Autobrake", also: ["AUTO BRK", "AUTO BRAKE"], text: "Brakes automatically after touchdown, or at full power on a rejected take-off.", ci: true },
   { term: "Avionics", text: "The aircraft's radios, navigation and display electronics.", ci: true },
   { term: "AVAIL", text: "Available. Shown when the APU or ground power is ready to use." },
+  { term: "Best glide", also: ["best glide speed"], ci: true, text: "The speed that gives the longest glide with no engine power. About 68 knots in the light aircraft here.", where: "C172, PA-28" },
   { term: "Bleed air", text: "Hot compressed air taken from an engine or the APU. It is used for air conditioning, anti-ice and starting the engines.", ci: true },
   { term: "Bus", also: ["AC bus", "AC buses"], text: "An electrical bus is a main power line that many items connect to. Generators and batteries feed the buses." },
   { term: "Base", also: ["base leg"], ci: true, text: "The circuit leg flown across the approach path, before the last turn onto final.", where: "C172" },

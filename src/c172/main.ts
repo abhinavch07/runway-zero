@@ -232,7 +232,7 @@ function checkMishap(s: C172State) {
     (Math.abs(p.x - TAXI.x) < TAXI.width / 2 + 4 && p.y < 0 && p.y > TAXI.apronY - 95);
   let text = alertText;
   if (s.onGround && !wasOnGround && lastVs < -800) text = "That was a hard landing. Try a gentler flare: raise the nose a little earlier and hold it. Press RESTART LESSON to try again.";
-  else if (s.onGround && !paved && s.groundSpeedKt > 15) text = "The aircraft has left the runway. Press RESTART LESSON to try again.";
+  else if (s.onGround && !paved && s.groundSpeedKt > 15 && !currentLesson.fieldLanding) text = "The aircraft has left the runway. Press RESTART LESSON to try again.";
   wasOnGround = s.onGround;
   lastVs = s.vsFpm;
   if (text !== alertText) {
@@ -455,7 +455,7 @@ function frame() {
   }
   checkMishap(s);
   if (outside && panel === "out") {
-    outside.draw(s, { guides, view });
+    outside.draw(s, { guides, view, field: currentLesson?.fieldLanding });
     miniPfd?.draw(s);
     outsideDash(s);
   }

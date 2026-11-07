@@ -22,6 +22,9 @@ const onRunway = (s: C172State) => {
   return p.x > 0 && p.x < RWY_LENGTH_M && Math.abs(p.y) < RWY_WIDTH_M / 2;
 };
 
+/** A good field straight ahead after take-off from runway 28, for the engine failure lesson. */
+export const EFATO_FIELD: [number, number, number, number] = [RWY_LENGTH_M + 1600, RWY_LENGTH_M + 3000, -60, 60];
+
 export const FIRST_FLIGHT: C172Lesson[] = [
   {
     id: "c172-ff-takeoff",
@@ -267,6 +270,72 @@ export const FIRST_FLIGHT: C172Lesson[] = [
         targets: ["key-flaps", "o-flaps"],
         panel: "out",
         done: (_s, c) => c.flaps === 0,
+      },
+    ],
+  },
+  {
+    id: "c172-efato",
+    title: "Engine failure after take-off",
+    summary: "Climbing out of runway 28 at 500 ft, the engine stops. Lower the nose at once, glide at 68 knots, land ahead in a field, secure the engine and stop.",
+    minutes: 5,
+    running: true,
+    start: { x: RWY_LENGTH_M + 250, y: 0, h: 0, air: { aglFt: 450, kias: 72, flaps: 0, throttle: 1, trim: 0.05, gammaDeg: 4 } },
+    switches: (sw) => {
+      sw.parkBrake = false;
+      sw.taxi = false;
+      sw.landing = true;
+    },
+    controls: { throttle: 1, mixture: 1, trim: 0.05 },
+    failAfterS: 9,
+    failure: "engine",
+    fieldLanding: EFATO_FIELD,
+    finished: "You flew the most important light aircraft emergency: nose down at once, land ahead, secure the engine. Below about 1000 ft, never try to turn back to the runway. In a real aircraft follow the POH checklist.",
+    steps: [
+      {
+        title: "Climb at 70 knots: something is about to happen",
+        why: "You have just taken off from runway 28 and are climbing at full power. Keep 70 knots and the wings level, and be ready.",
+        targets: ["o-ias", "o-rpm"],
+        panel: "out",
+        aim: { kias: 70, hdg: LEG_HDG.upwind },
+        done: (s) => !s.engine.running,
+      },
+      {
+        title: "ENGINE FAILURE: lower the nose now",
+        why: "The engine has stopped. Without power the speed drops very fast, so push the nose down at once (Up arrow) to just below the horizon, and keep the wings level. Hold the best glide speed, 68 knots. Speed first, everything else second.",
+        targets: ["key-pitch", "o-ias"],
+        panel: "out",
+        aim: { kias: 68 },
+        done: (s) => s.kias > 60 && s.kias < 78 && s.vsFpm < 0 && s.vsFpm > -1500 && Math.abs(s.rollDeg) < 25,
+      },
+      {
+        title: "Land ahead: pick the field",
+        why: "At this height you cannot get back to the runway: turning back is how many of these end badly. Pick a field within 30 degrees left or right of straight ahead. The pink box shows a good one. Small turns only, keep 68 knots.",
+        targets: ["out-view", "o-hdg"],
+        panel: "out",
+        aim: { kias: 68, hdg: LEG_HDG.upwind },
+        done: (s) => s.aglFt < 300 && hdgNear(s.headingDeg, LEG_HDG.upwind, 40),
+      },
+      {
+        title: "Secure the engine: MIXTURE to CUT-OFF",
+        why: "If there is time, shut off the fuel to lower the risk of fire in the landing. Pull the mixture to CUT-OFF on the lower panel. The aircraft keeps gliding while you look down, then come straight back to the view (3).",
+        targets: ["mixture"],
+        panel: "lower",
+        done: (_s, c) => c.mixture < 0.1,
+      },
+      {
+        title: "Flaps 20, then flare and land in the field",
+        why: "Once you are sure to reach the field, press F twice for flaps 20 and slow to about 60 knots. Over the field, flare as in a normal landing and touch down as slowly as you can.",
+        targets: ["key-flaps", "key-pitch"],
+        panel: "out",
+        aim: { kias: 62 },
+        done: (s) => s.onGround,
+      },
+      {
+        title: "Brake to a stop (B)",
+        why: "Hold B to stop. Then the rest of the shutdown: fuel off, magnetos off, master off, and get out.",
+        targets: ["key-brakes"],
+        panel: "out",
+        done: (s) => s.onGround && s.groundSpeedKt < 3,
       },
     ],
   },

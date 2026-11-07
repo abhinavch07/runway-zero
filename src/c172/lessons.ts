@@ -40,10 +40,12 @@ export interface C172Lesson extends LessonBase<C172State, C172Controls, NavReadi
   clearance?: Clearance;
   /** Our callsign on the radio. */
   callsign?: string;
+  /** A forced landing lesson: this field is shown with the guides, and landing off the runway is expected. */
+  fieldLanding?: [number, number, number, number];
   /** Something fails this many seconds after the start. */
   failAfterS?: number;
   /** What fails (the alternator if not set). */
-  failure?: "alternator" | "fuelpump";
+  failure?: "alternator" | "fuelpump" | "engine";
   /** Fuel in the left and right tanks at the start, gallons. */
   fuelGal?: [number, number];
 }

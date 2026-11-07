@@ -155,7 +155,7 @@ export type C172ToWorker =
   | { type: "init"; baseUrl: string; start: C172Start; variant: GaId }
   | { type: "reset"; start: C172Start }
   | { type: "controls"; controls: C172Controls }
-  | { type: "fail"; what: "alternator" | "fuelpump" };
+  | { type: "fail"; what: "alternator" | "fuelpump" | "engine" };
 
 export type C172FromWorker =
   | { type: "ready"; start: C172Start }

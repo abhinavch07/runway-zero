@@ -842,6 +842,38 @@ export const QUIZZES: Record<string, Question[]> = {
       why: "In a good landing the speed is low at touchdown, close to the stall, so a short beep of the horn is normal. In the air at height it is a warning to lower the nose.",
     },
   ],
+  "c172-efato": [
+    {
+      q: "The engine stops while climbing out at 500 ft. What is the very first thing you do?",
+      options: ["Lower the nose to keep flying speed", "Try to restart the engine", "Turn back to the runway", "Call ATC"],
+      why: "Without power the speed falls very fast. Nose down first, at once, to hold the glide speed. Everything else comes after.",
+    },
+    {
+      q: "What is the best glide speed used in this lesson?",
+      options: ["68 knots", "45 knots", "100 knots", "120 knots"],
+      why: "About 68 knots gives the longest glide with flaps up in this trainer. Slower or faster and you come down sooner.",
+    },
+    {
+      q: "Why not turn back to the runway after an engine failure at low height?",
+      options: [
+        "The turn loses too much height, and a steep slow turn close to the ground can end in a stall",
+        "It is against the rules to land on the same runway",
+        "The runway is always closed after a take-off",
+        "The aircraft cannot turn without power",
+      ],
+      why: "A turn back needs a lot of height. Low down it often ends in a stall and spin. Landing ahead, even in a field, is far safer.",
+    },
+    {
+      q: "Where do you look for a field to land in?",
+      options: ["Ahead, within about 30 degrees left or right", "Directly behind you", "Anywhere, as long as it is big", "Only on the runway"],
+      why: "Ahead you can reach with small turns, keeping height and speed for the landing.",
+    },
+    {
+      q: "Why pull the mixture to cut-off before the forced landing, if there is time?",
+      options: ["To stop fuel going to the engine and lower the fire risk", "To make the glide longer", "To restart the engine", "To make the stall horn work"],
+      why: "Shutting off the fuel lowers the chance of a fire if the landing is rough.",
+    },
+  ],
   "c172-shutdown": [
     {
       q: "How do you normally stop the engine?",

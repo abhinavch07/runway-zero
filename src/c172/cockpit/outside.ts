@@ -71,6 +71,8 @@ export interface OutsideOptions {
   guides: boolean;
   /** From the pilot's seat, or from behind the aircraft. */
   view: "cockpit" | "chase";
+  /** A field for a forced landing [x1, x2, y1, y2]: mown grass, outlined in pink with the guides on. */
+  field?: [number, number, number, number];
 }
 
 // ---------- The aircraft, for the view from behind ----------
@@ -383,6 +385,9 @@ export class OutsideView {
       "#7f9455",
     );
 
+    // A forced landing field: mown, smooth grass.
+    if (opt.field) this.rect(opt.field, "#93a862");
+
     // Taxiway and apron.
     const tw = TAXI.width / 2;
     this.rect([TAXI.x - tw, TAXI.x + tw, TAXI.apronY, -HALF], "#5d6064");
@@ -401,7 +406,8 @@ export class OutsideView {
     if (chase && acH < 200) this.shadow(pos, acH);
 
     // Guide markers: the circuit as dots on the ground.
-    if (opt.guides) this.guides();
+    if (opt.guides && !opt.field) this.guides();
+    if (opt.guides && opt.field) this.fieldOutline(opt.field);
 
     // Lights.
     for (let x = 0; x <= RWY_LENGTH_M; x += 60) {
@@ -496,6 +502,18 @@ export class OutsideView {
     // Point on the line below the screen centre.
     const t = (this.w / 2 - u1) / (u2 - u1 || 1e-6);
     return { u: this.w / 2, v: v1 + (v2 - v1) * t, angle };
+  }
+
+  private fieldOutline(f: [number, number, number, number]) {
+    const [x1, x2, y1, y2] = f;
+    const w = 4;
+    for (const r of [
+      [x1, x2, y1, y1 + w],
+      [x1, x2, y2 - w, y2],
+      [x1, x1 + w * 3, y1, y2],
+      [x2 - w * 3, x2, y1, y2],
+    ] as [number, number, number, number][])
+      this.rect(r, "#ff3df2");
   }
 
   private guides() {

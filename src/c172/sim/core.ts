@@ -23,6 +23,8 @@ export class C172Core {
   private starved = false;
   /** The engine-driven fuel pump has failed (a lesson failure). */
   private pumpFailed = false;
+  /** The engine has failed and cannot be restarted (a lesson failure). */
+  private engineFailed = false;
   /** Fuel pressure, psi (PA-28 gauge). */
   private fuelPress = 0;
   /** Seconds of fuel left in the carburettor bowl when the pressure is lost. */
@@ -73,6 +75,7 @@ export class C172Core {
     this.firing = start.running;
     this.altFailed = false;
     this.pumpFailed = false;
+    this.engineFailed = false;
     this.bowlS = 15;
     this.fuelPress = start.running ? 4.5 : 0;
     this.drainAh = 0;
@@ -145,7 +148,8 @@ export class C172Core {
     this.set("propulsion/magneto_cmd", MAG_CMD[sw.magnetos]);
     // A cold engine fires only when primed. Without priming it needs a long crank to catch.
     const needCrank = this.primeS >= 2 ? 0.8 : 5;
-    if (!this.firing && cranking && this.crankS >= needCrank && fuelFlowing && c.mixture > 0.3 && sw.magnetos !== "OFF")
+    if (this.engineFailed) this.firing = false;
+    if (!this.firing && !this.engineFailed && cranking && this.crankS >= needCrank && fuelFlowing && c.mixture > 0.3 && sw.magnetos !== "OFF")
       this.firing = true;
     // It stops when it slows right down (mixture cut-off, magnetos off, no fuel).
     if (this.firing && !cranking && rpm < 250) this.firing = false;
@@ -175,7 +179,8 @@ export class C172Core {
     this.sdk.run();
   }
 
-  fail(what: "alternator" | "fuelpump") {
+  fail(what: "alternator" | "fuelpump" | "engine") {
+    if (what === "engine") this.engineFailed = true;
     if (what === "alternator") this.altFailed = true;
     if (what === "fuelpump") this.pumpFailed = true;
   }
@@ -184,7 +189,7 @@ export class C172Core {
     const g = (p: string) => this.get(p);
     const sw = this.lastSwitches;
     const rpm = g("propulsion/engine/engine-rpm");
-    const running = this.firing && rpm > 450;
+    const running = this.firing && rpm > 450 && !this.engineFailed;
     const cranking = !!sw && sw.magnetos === "START" && sw.masterBat;
     const altOn = this.alternatorWarm > 1;
     const mainBus = !!sw?.masterBat;
