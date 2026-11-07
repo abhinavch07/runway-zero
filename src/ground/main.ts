@@ -77,7 +77,7 @@ function home() {
 }
 
 function notice() {
-  return `<p class="gs-notice"><b>For learning only.</b> Written in our own words from the DGCA syllabus (CAR Section 7, Series B, Part IV). Not approved by DGCA and not a replacement for your ground school or the prescribed books. Questions are our own practice questions, not real exam papers. Found a mistake? <a href="feedback.html?ref=Ground%20School">Tell us here</a>.</p>`;
+  return `<p class="gs-notice"><b>For learning only.</b> Written in our own words from the DGCA syllabus (CAR Section 7, Series B, Part IV). Questions are our own practice questions, not real exam papers. Found a mistake? <a href="feedback.html?ref=Ground%20School">Tell us here</a>.</p>`;
 }
 
 // ---------- Subject: modules and mock exam ----------
