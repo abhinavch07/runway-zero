@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feedback · Runway Zero</title>
+    <meta name="description" content="Report a mistake, a problem or an idea for Runway Zero and its DGCA Ground School." />
+    <meta name="theme-color" content="#f6f4ee" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved reading theme before the page paints. Light is the default.
+      try { if (localStorage.getItem("runway-zero-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/feedback-C3gDdNx5.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-P2Xu9kJm.js">
+    <link rel="modulepreload" crossorigin href="./assets/theme-5frQzmif.js">
+    <link rel="stylesheet" crossorigin href="./assets/theme-BWvttpTw.css">
+    <link rel="stylesheet" crossorigin href="./assets/feedback-C39s992x.css">
+    <link rel="stylesheet" crossorigin href="./assets/style-PVakIBob.css">
+  </head>
+  <body class="welcome rz-paper">
+    <header class="w-top">
+      <a class="w-brand" href="./">Runway Zero</a>
+      <nav aria-label="Page">
+        <a href="./#aircraft">Aircraft</a>
+        <a href="ground-school.html">Ground School</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="feedback.html" aria-current="page">Feedback</a>
+        <button class="rz-theme-btn" id="rz-theme" type="button">Dark mode</button>
+      </nav>
+    </header>
+
+    <main class="gs-main fb-main">
+      <section class="gs-head">
+        <h1>Send feedback</h1>
+        <p class="gs-lead">Found a mistake in a lesson or a question, something not working, or an idea for a new topic? Tell us here. Every message is read.</p>
+      </section>
+      <ul class="fb-list">
+        <li><b>Mistake in Ground School:</b> give the module and the question number (like m6-22) or the section title.</li>
+        <li><b>Problem in a cockpit lesson:</b> say which aircraft and lesson, and what you clicked just before.</li>
+        <li><b>Idea:</b> any topic, aircraft or feature you would like to see.</li>
+      </ul>
+      <div class="fb-ref" id="fb-ref" hidden></div>
+      <div class="fb-form" id="fb-form"></div>
+    </main>
+
+    <footer class="w-foot">
+      <span>Runway Zero</span>
+      <a href="ground-school.html">Ground School</a>
+      <a href="glossary.html">Glossary</a>
+    </footer>
+
+  </body>
+</html>
