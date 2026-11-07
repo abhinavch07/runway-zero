@@ -11,17 +11,22 @@
     <meta property="og:description" content="Free DGCA CPL theory courses: notes, slides, practice MCQs and mock exams." />
     <meta property="og:image" content="https://www.runwayzero.in/img/share.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#121821" />
+    <meta name="theme-color" content="#f6f4ee" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved reading theme before the page paints. Light is the default.
+      try { if (localStorage.getItem("runway-zero-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+    </script>
   </head>
-  <body class="welcome">
+  <body class="welcome gs-page">
     <header class="w-top">
       <a class="w-brand" href="./">Runway Zero</a>
       <nav aria-label="Page">
         <a href="./#aircraft">Aircraft</a>
         <a href="ground-school.html" aria-current="page">Ground School</a>
         <a href="glossary.html">Glossary</a>
-        <a href="https://github.com/abhinavch07/runway-zero">GitHub</a>
+        <a href="feedback.html">Feedback</a>
+        <button class="gs-theme-btn" id="gs-theme" type="button">Dark mode</button>
       </nav>
     </header>
 
@@ -29,8 +34,7 @@
 
     <footer class="w-foot">
       <span>Runway Zero</span>
-      <a href="https://github.com/abhinavch07/runway-zero">Source code on GitHub</a>
-      <a href="https://github.com/abhinavch07/runway-zero/issues">Report a problem or suggest a topic</a>
+      <a href="feedback.html">Send feedback or report a problem</a>
     </footer>
 
     <script type="module" src="/src/ground/main.ts"></script>

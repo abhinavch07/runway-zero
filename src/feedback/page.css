@@ -1,0 +1,44 @@
+.fb-main {
+  max-width: 760px;
+}
+.fb-ref {
+  background: var(--apron);
+  border: 1px solid var(--apron-line);
+  border-left: 4px solid var(--amber);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+.fb-ref p {
+  margin-bottom: 6px !important;
+}
+.fb-ref .w-btn {
+  margin-top: 6px;
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
+}
+.fb-form iframe {
+  width: 100%;
+  height: 1150px;
+  border: 1px solid var(--apron-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.fb-soon {
+  background: var(--apron);
+  border: 1px solid var(--apron-line);
+  border-radius: 8px;
+  padding: 22px;
+}
+.fb-soon h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+.fb-list {
+  margin: 0 0 24px;
+  padding-left: 22px;
+}
+.gs-main .fb-ref button.w-btn {
+  border: 1px solid var(--taxi);
+}

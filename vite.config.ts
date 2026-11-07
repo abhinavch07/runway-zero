@@ -25,7 +25,7 @@ export default defineConfig({
     rollupOptions: {
       // Pages: the welcome page (index.html), the A320 (a320.html), the C172 (c172.html), the PA-28
       // (pa28.html, same script as the C172), the B737 (737.html), the glossary (glossary.html)
-      // and the DGCA Ground School (ground-school.html).
+      // the DGCA Ground School (ground-school.html) and the feedback page (feedback.html).
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         a320: fileURLToPath(new URL("./a320.html", import.meta.url)),
@@ -34,6 +34,7 @@ export default defineConfig({
         b737: fileURLToPath(new URL("./737.html", import.meta.url)),
         glossary: fileURLToPath(new URL("./glossary.html", import.meta.url)),
         ground: fileURLToPath(new URL("./ground-school.html", import.meta.url)),
+        feedback: fileURLToPath(new URL("./feedback.html", import.meta.url)),
       },
     },
     chunkSizeWarningLimit: 1000,

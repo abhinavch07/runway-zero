@@ -211,7 +211,7 @@ function run(root: HTMLElement, s: Subject, items: Item[], minutes: number) {
           const ok = a === it.q.answer;
           return `<li class="${ok ? "ok" : "no"}"><p>${md(it.q.q)}</p>
             <p class="gs-ans">${a === null ? "Not answered." : `You chose ${LETTERS[a]}${ok ? ", correct." : "."}`} ${ok ? "" : `Answer: ${LETTERS[it.q.answer]}. ${md(it.q.options[it.q.answer])}`}</p>
-            <p class="gs-small">${md(it.q.why)}</p>${it.q.flag ? `<p class="gs-small gs-flagline"><b>Old exam answer:</b> ${md(it.q.flag)}</p>` : ""}</li>`;
+            <p class="gs-small">${md(it.q.why)} <a href="feedback.html?ref=${it.q.id}" target="_blank" rel="noopener">Report ${it.q.id}</a></p>${it.q.flag ? `<p class="gs-small gs-flagline"><b>Old exam answer:</b> ${md(it.q.flag)}</p>` : ""}</li>`;
         })
         .join("")}</ol>
       <div class="gs-actions"><a class="w-btn w-btn-main" href="#/${s.id}">Back to ${esc(s.title)}</a></div>`;

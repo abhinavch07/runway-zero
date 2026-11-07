@@ -9,12 +9,14 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "../welcome/style.css";
 import "./style.css";
+import "./light.css";
 import { SUBJECTS, subject, MOCK } from "./subjects";
 import { isReady, type Block, type Mcq, type Module, type Subject } from "./types";
 import { FIGURES } from "./figures";
 import { markNotesRead, moduleProgress, recordPractice } from "./progress";
 import { renderMock } from "./mock";
 import { esc, md, LETTERS, shuffle, onLeave, runCleanup } from "./util";
+import { setUpThemeToggle } from "./theme";
 
 const root = document.getElementById("gs-root")!;
 
@@ -75,7 +77,7 @@ function home() {
 }
 
 function notice() {
-  return `<p class="gs-notice"><b>For learning only.</b> Written in our own words from the DGCA syllabus (CAR Section 7, Series B, Part IV). Not approved by DGCA and not a replacement for your ground school or the prescribed books. Questions are our own practice questions, not real exam papers. Found a mistake? <a href="https://github.com/abhinavch07/runway-zero/issues">Tell us on GitHub</a>.</p>`;
+  return `<p class="gs-notice"><b>For learning only.</b> Written in our own words from the DGCA syllabus (CAR Section 7, Series B, Part IV). Not approved by DGCA and not a replacement for your ground school or the prescribed books. Questions are our own practice questions, not real exam papers. Found a mistake? <a href="feedback.html?ref=Ground%20School">Tell us here</a>.</p>`;
 }
 
 // ---------- Subject: modules and mock exam ----------
@@ -267,6 +269,7 @@ function runPractice(s: Subject, m: Module, qs: Mcq[]) {
       <p class="gs-verdict ${ok ? "ok" : "no"}">${ok ? "Correct." : `Not quite. The answer is ${LETTERS[q.answer]}.`}</p>
       <p>${md(q.why)}</p>
       ${q.flag ? `<aside class="gs-flag"><h4>Old exam answer</h4><p>${md(q.flag)}</p></aside>` : ""}
+      <p class="gs-small gs-report"><a href="feedback.html?ref=${q.id}" target="_blank" rel="noopener">Report a problem with this question (${q.id})</a></p>
       <button class="w-btn w-btn-main" id="gs-nextq">${i === qs.length - 1 ? "See my score" : "Next question"}</button>`;
     const nb = host.querySelector<HTMLButtonElement>("#gs-nextq")!;
     nb.onclick = next;
@@ -340,4 +343,5 @@ function route() {
 }
 
 window.addEventListener("hashchange", route);
+setUpThemeToggle();
 route();
