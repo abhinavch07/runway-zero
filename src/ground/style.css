@@ -827,3 +827,20 @@
     position: static;
   }
 }
+
+/* Figures added with Module 2 */
+.gf-line2 {
+  fill: none;
+  stroke: var(--taxi);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.gf-blue {
+  fill: var(--taxi);
+}
+.gf-fill {
+  fill: rgba(90, 168, 255, 0.1);
+}
+.gf-dot2 {
+  fill: var(--taxi);
+}

@@ -1,6 +1,7 @@
 // The DGCA CPL papers and their modules. A module is listed with only a title until it is written.
 import type { Subject } from "./types.ts";
 import { M01 } from "./met/m01-atmosphere.ts";
+import { M02 } from "./met/m02-temp-density-humidity.ts";
 
 export const SUBJECTS: Subject[] = [
   {
@@ -9,7 +10,7 @@ export const SUBJECTS: Subject[] = [
     blurb: "The atmosphere, weather, flight hazards and the Met reports and forecasts pilots use.",
     modules: [
       M01,
-      { n: 2, title: "Temperature, Density and Humidity", car: "1.1 b, d, 1.3" },
+      M02,
       { n: 3, title: "Pressure and Altimetry", car: "1.1 c, f" },
       { n: 4, title: "Wind", car: "1.2 a, b, e, f" },
       { n: 5, title: "Vertical Motion, Stability and Clouds", car: "1.3, 1.4 a" },
@@ -33,8 +34,5 @@ export const SUBJECTS: Subject[] = [
 
 export const subject = (id: string) => SUBJECTS.find((s) => s.id === id);
 
-/**
- * Mock exam pattern. Public sources do not agree on the current DGCA paper, so this is kept in one
- * place and shown on the start screen. Change it here once confirmed.
- */
+/** Mock exam pattern: DGCA CPL Meteorology, 50 questions in 2 hours, 70% to pass, no negative marking. */
 export const MOCK = { questions: 50, minutes: 120, passPercent: 70, negative: false };
