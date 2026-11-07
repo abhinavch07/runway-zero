@@ -197,4 +197,328 @@ function saturation(): string {
   return s + "</svg>";
 }
 
-export const FIGURES: Record<string, () => string> = { layers, tropopause, isa, composition, diurnal, saturation };
+/** A cold column and a warm column side by side: the same pressure levels sit lower in cold air. */
+function columns(): string {
+  const W = 600;
+  const H = 320;
+  const levels: [string, number, number][] = [
+    ["500 hPa", 205, 155],
+    ["700 hPa", 120, 92],
+    ["850 hPa", 58, 45],
+  ]; // [name, height over warm, height over cold], scaled so the warm column is taller
+  const yc = (v: number) => 280 - v;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pressure levels sit lower over a cold column of air and higher over a warm column">`;
+  s += `<rect class="gf-cold" x="70" y="40" width="170" height="240"/><rect class="gf-warm" x="360" y="40" width="170" height="240"/>`;
+  s += `<text class="gf-label" x="155" y="300" text-anchor="middle">Cold, dense air</text>`;
+  s += `<text class="gf-label" x="445" y="300" text-anchor="middle">Warm, light air</text>`;
+  for (const [name, warmH, coldH] of levels) {
+    const a = yc(coldH);
+    const b = yc(warmH);
+    s += `<path class="gf-line" d="M70,${a} L240,${a} C300,${a} 300,${b} 360,${b} L530,${b}"/>`;
+    s += `<text class="gf-small" x="536" y="${b + 4}">${name}</text>`;
+  }
+  s += `<line class="gf-dash" x1="60" x2="540" y1="${yc(106)}" y2="${yc(106)}"/>`;
+  s += `<text class="gf-small" x="66" y="${yc(106) - 6}">Same height: pressure below 700 hPa here...</text>`;
+  s += `<text class="gf-small" x="360" y="${yc(106) + 16}">...but above 700 hPa here</text>`;
+  s += `<line class="gf-axis" x1="60" y1="280" x2="540" y2="280"/>`;
+  return s + "</svg>";
+}
+
+/** The five isobar patterns as small panels: low, high, trough, ridge, col. */
+function systems(): string {
+  const W = 640;
+  const H = 200;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Low, high, trough, ridge and col isobar patterns">`;
+  const panel = (cx: number, title: string, body: string) =>
+    `<g>${body}<text class="gf-label" x="${cx}" y="188" text-anchor="middle">${title}</text></g>`;
+  const rings = (cx: number, letter: string, cls: string) => {
+    let b = "";
+    for (const r of [16, 32, 48]) b += `<ellipse class="gf-iso" cx="${cx}" cy="90" rx="${r * 1.15}" ry="${r}"/>`;
+    return b + `<text class="${cls}" x="${cx}" y="98" text-anchor="middle">${letter}</text>`;
+  };
+  s += panel(64, "Low", rings(64, "L", "gf-bigL"));
+  s += panel(192, "High", rings(192, "H", "gf-bigH"));
+  // Trough: V shaped isobars opening upwards from a low at the top.
+  let tr = "";
+  for (const k of [0, 1, 2]) {
+    const w = 18 + k * 18;
+    tr += `<path class="gf-iso" d="M${320 - w},${30 + k * 8} L320,${120 + k * 22} L${320 + w},${30 + k * 8}"/>`;
+  }
+  tr += `<text class="gf-bigL" x="320" y="34" text-anchor="middle">L</text><line class="gf-dash" x1="320" x2="320" y1="44" y2="166"/>`;
+  s += panel(320, "Trough", tr);
+  // Ridge: rounded U shaped isobars from a high at the top.
+  let rg = "";
+  for (const k of [0, 1, 2]) {
+    const w = 18 + k * 18;
+    const d = 110 + k * 22;
+    rg += `<path class="gf-iso" d="M${448 - w},${30 + k * 8} C${448 - w},${d} ${448 + w},${d} ${448 + w},${30 + k * 8}"/>`;
+  }
+  rg += `<text class="gf-bigH" x="448" y="34" text-anchor="middle">H</text>`;
+  s += panel(448, "Ridge", rg);
+  // Col: two lows and two highs around a saddle.
+  let col = "";
+  for (const [dx, dy, l, cls] of [[-36, -40, "L", "gf-smL"], [36, 40, "L", "gf-smL"], [36, -40, "H", "gf-smH"], [-36, 40, "H", "gf-smH"]] as const) {
+    col += `<ellipse class="gf-iso" cx="${576 + dx}" cy="${90 + dy}" rx="20" ry="17"/><text class="${cls}" x="${576 + dx}" y="${96 + dy}" text-anchor="middle">${l}</text>`;
+  }
+  col += `<circle class="gf-dot" cx="576" cy="90" r="4"/>`;
+  s += panel(576, "Col", col);
+  return s + "</svg>";
+}
+
+/** Three altimeter readings for one aircraft: QFE, QNH and 1013. */
+function altimetry(): string {
+  const W = 620;
+  const H = 360;
+  const sea = 290;
+  const field = 250;
+  const std = 312; // 1013 datum, drawn below MSL on a low pressure day
+  const ac = 70;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="QFE gives height above the aerodrome, QNH gives altitude above sea level, 1013 gives pressure altitude">`;
+  s += `<rect class="gf-sea" x="20" y="${sea}" width="200" height="${std - 4 - sea}"/>`;
+  s += `<path class="gf-ground" d="M220,${sea} L300,${field} L600,${field} L600,${std - 4} L220,${std - 4} Z"/>`;
+  s += `<text class="gf-small" x="30" y="${sea + 16}">Sea</text>`;
+  s += `<text class="gf-small" x="440" y="${field + 20}">Aerodrome</text>`;
+  s += `<line class="gf-dash" x1="220" x2="600" y1="${sea}" y2="${sea}"/>`;
+  s += `<text class="gf-small" x="596" y="${sea - 6}" text-anchor="end">MSL</text>`;
+  s += `<line class="gf-dash" x1="20" x2="600" y1="${std}" y2="${std}"/>`;
+  s += `<text class="gf-small" x="30" y="${std + 18}">1013.25 hPa level (below MSL on a low pressure day)</text>`;
+  s += `<path class="gf-plane" d="M460,${ac} l40,0 l8,-6 l4,0 l-4,8 l-12,2 l-6,10 l-6,0 l2,-10 l-26,0 z"/>`;
+  const arrow = (x: number, y2: number, label: string, sub: string) => {
+    s += `<line class="gf-arrow" x1="${x}" x2="${x}" y1="${ac + 12}" y2="${y2}" marker-end="url(#ah)" marker-start="url(#ah)"/>`;
+    s += `<text class="gf-label" x="${x + 8}" y="${(ac + y2) / 2}">${label}</text>`;
+    s += `<text class="gf-small" x="${x + 8}" y="${(ac + y2) / 2 + 16}">${sub}</text>`;
+  };
+  s += `<defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="gf-head"/></marker></defs>`;
+  arrow(480, field, "QFE", "Height");
+  arrow(330, sea, "QNH", "Altitude");
+  arrow(170, std, "1013", "Pressure altitude, FL");
+  s += `<line class="gf-dash" x1="160" x2="470" y1="${ac + 12}" y2="${ac + 12}"/>`;
+  return s + "</svg>";
+}
+
+/** Flying from high to low pressure at a constant indicated altitude: the aircraft sinks. */
+function hightolow(): string {
+  const W = 620;
+  const H = 260;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="At constant indicated altitude, flying from high to low pressure takes the aircraft lower">`;
+  s += `<rect class="gf-ground2" x="20" y="220" width="580" height="30"/>`;
+  s += `<path class="gf-line" d="M40,70 C200,70 380,140 580,150"/>`;
+  s += `<text class="gf-small" x="40" y="36">Indicated altitude stays 3,000 ft all the way</text>`;
+  s += `<text class="gf-small" x="330" y="150" text-anchor="end">Where the aircraft really is</text>`;
+  s += `<line class="gf-dash" x1="40" x2="580" y1="70" y2="70"/>`;
+  s += `<text class="gf-small" x="575" y="62" text-anchor="end">Where the pilot thinks the aircraft is</text>`;
+  s += `<text class="gf-bigH" x="70" y="200" text-anchor="middle">H</text><text class="gf-small" x="70" y="214" text-anchor="middle">QNH 1020</text>`;
+  s += `<text class="gf-bigL" x="550" y="200" text-anchor="middle">L</text><text class="gf-small" x="550" y="214" text-anchor="middle">QNH 1005</text>`;
+  s += `<line class="gf-arrow" x1="560" x2="560" y1="72" y2="146" marker-end="url(#ah2)" marker-start="url(#ah2)"/>`;
+  s += `<text class="gf-label" x="548" y="112" text-anchor="end">15 hPa × 30 ft = 450 ft lower</text>`;
+  s += `<defs><marker id="ah2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="gf-head"/></marker></defs>`;
+  s += `<text class="gf-label" x="300" y="200" text-anchor="middle">High to low: look out below</text>`;
+  return s + "</svg>";
+}
+
+/** Arrow marker shared by the force diagrams. Each SVG gets its own id to stay valid when several are on a page. */
+const head = (id: string, cls = "gf-head") =>
+  `<defs><marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="${cls}"/></marker></defs>`;
+
+/** Geostrophic balance: straight isobars, PGF towards low, Coriolis towards high, wind along the isobars. */
+function geostrophic(): string {
+  const W = 600;
+  const H = 300;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Geostrophic wind: pressure gradient force towards low pressure balances Coriolis force towards high pressure">`;
+  s += head("gh1") + head("gh2", "gf-headb") + head("gh3", "gf-headr");
+  for (const [y, p] of [[60, 1004], [150, 1008], [240, 1012]] as const) {
+    s += `<line class="gf-iso" x1="40" x2="560" y1="${y}" y2="${y}"/><text class="gf-small" x="566" y="${y + 4}">${p}</text>`;
+  }
+  s += `<text class="gf-bigL" x="300" y="34" text-anchor="middle">LOW</text>`;
+  s += `<text class="gf-bigH" x="300" y="286" text-anchor="middle">HIGH</text>`;
+  s += `<line class="gf-arrowr" x1="300" x2="300" y1="150" y2="88" marker-end="url(#gh3)"/>`;
+  s += `<text class="gf-label" x="310" y="112">Pressure gradient force</text>`;
+  s += `<line class="gf-arrowb" x1="300" x2="300" y1="150" y2="212" marker-end="url(#gh2)"/>`;
+  s += `<text class="gf-label" x="310" y="196">Coriolis force</text>`;
+  s += `<line class="gf-arrow" x1="120" x2="270" y1="150" y2="150" marker-end="url(#gh1)" style="stroke-width:4"/>`;
+  s += `<text class="gf-label" x="60" y="140">Wind</text>`;
+  s += `<text class="gf-small" x="40" y="174">Along the isobars, low on its left (NH)</text>`;
+  return s + "</svg>";
+}
+
+/** Friction: the wind above follows the isobars, the surface wind is slower and turned in towards low. */
+function friction(): string {
+  const W = 600;
+  const H = 280;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Surface wind is slower and crosses the isobars towards low pressure">`;
+  s += head("fh1") + head("fh2", "gf-headb");
+  for (const [y, p] of [[60, 1004], [140, 1008], [220, 1012]] as const) {
+    s += `<line class="gf-iso" x1="40" x2="560" y1="${y}" y2="${y}"/><text class="gf-small" x="566" y="${y + 4}">${p}</text>`;
+  }
+  s += `<text class="gf-bigL" x="300" y="34" text-anchor="middle">LOW</text>`;
+  s += `<text class="gf-bigH" x="300" y="268" text-anchor="middle">HIGH</text>`;
+  s += `<line class="gf-arrow" x1="160" x2="400" y1="140" y2="140" marker-end="url(#fh1)" style="stroke-width:4"/>`;
+  s += `<text class="gf-label" x="250" y="166">2,000 ft wind: along the isobars</text>`;
+  // 30° in towards low, about half as long.
+  const len = 120;
+  const ang = (30 * Math.PI) / 180;
+  s += `<line class="gf-arrowb" x1="160" x2="${f(160 + len * Math.cos(ang))}" y1="140" y2="${f(140 - len * Math.sin(ang))}" marker-end="url(#fh2)" style="stroke-width:4"/>`;
+  s += `<text class="gf-label gf-blue" x="${f(160 + len * Math.cos(ang) + 8)}" y="${f(140 - len * Math.sin(ang))}">Surface wind: about half the speed</text>`;
+  s += `<path class="gf-iso" d="M210,140 A50,50 0 0 0 203,115"/>`;
+  s += `<text class="gf-small" x="218" y="128">about 30° over land</text>`;
+  s += `<text class="gf-small" x="250" y="186">NH: the surface wind is backed and lighter</text>`;
+  return s + "</svg>";
+}
+
+/** Sea breeze by day and land breeze by night, side by side. */
+function seabreeze(): string {
+  const W = 640;
+  const H = 260;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="By day the sea breeze blows from sea to land, by night the land breeze blows from land to sea">`;
+  s += head("sb1") + head("sb2", "gf-headb");
+  const panel = (x0: number, day: boolean) => {
+    let p = `<rect class="gf-sea" x="${x0}" y="190" width="140" height="40"/><rect class="gf-ground2" x="${x0 + 140}" y="186" width="150" height="44"/>`;
+    p += `<text class="gf-small" x="${x0 + 10}" y="214">Sea</text><text class="gf-small" x="${x0 + 280}" y="212" text-anchor="end">Land</text>`;
+    p += `<text class="gf-label" x="${x0 + 145}" y="24" text-anchor="middle">${day ? "Day: sea breeze" : "Night: land breeze"}</text>`;
+    p += `<text class="gf-small" x="${x0 + 145}" y="42" text-anchor="middle">${day ? "Land warmer, air rises over it" : "Land colder, air sinks over it"}</text>`;
+    // Loop: surface arrow, rising, return aloft, sinking.
+    const sx = day ? x0 + 40 : x0 + 250;
+    const ex = day ? x0 + 250 : x0 + 40;
+    const cls = day ? "gf-arrowb" : "gf-arrow";
+    const mk = day ? "sb2" : "sb1";
+    p += `<line class="${cls}" x1="${sx}" x2="${ex}" y1="170" y2="170" marker-end="url(#${mk})" style="stroke-width:4"/>`;
+    p += `<line class="gf-arrowthin" x1="${ex}" x2="${ex}" y1="160" y2="80" marker-end="url(#sb1)"/>`;
+    p += `<line class="gf-arrowthin" x1="${ex}" x2="${sx}" y1="70" y2="70" marker-end="url(#sb1)"/>`;
+    p += `<line class="gf-arrowthin" x1="${sx}" x2="${sx}" y1="80" y2="160" marker-end="url(#sb1)"/>`;
+    p += `<text class="gf-small" x="${x0 + 145}" y="160" text-anchor="middle">${day ? "10 to 15 kt, the stronger one" : "Weaker, a few knots"}</text>`;
+    return p;
+  };
+  s += panel(20, true) + panel(340, false);
+  return s + "</svg>";
+}
+
+/** Föhn: moist air rises and rains on the windward side, sinks warm and dry on the lee side. */
+function foehn(): string {
+  const W = 640;
+  const H = 300;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Föhn effect over a mountain range">`;
+  s += head("fo1");
+  s += `<path class="gf-ground" d="M20,260 L220,260 L320,70 L420,260 L620,260 L620,300 L20,300 Z"/>`;
+  s += `<path class="gf-cloud" d="M190,250 C180,200 220,150 260,135 C280,110 320,80 330,95 C300,130 280,190 280,250 Z"/>`;
+  for (const x of [215, 235, 255]) s += `<line class="gf-rain" x1="${x}" x2="${x - 6}" y1="230" y2="258"/>`;
+  s += `<path class="gf-line" d="M40,240 C160,240 250,120 320,60 C390,120 470,240 600,240" marker-end="url(#fo1)"/>`;
+  s += `<text class="gf-label" x="40" y="228">20 °C, moist</text>`;
+  s += `<text class="gf-small" x="40" y="212">Windward side</text>`;
+  s += `<text class="gf-small" x="40" y="120">Cloud and rain:</text>`;
+  s += `<text class="gf-small" x="40" y="136">cools slowly (saturated rate)</text>`;
+  s += `<text class="gf-small" x="420" y="150">Dry now: warms</text>`;
+  s += `<text class="gf-small" x="420" y="166">fast (dry rate)</text>`;
+  s += `<text class="gf-label" x="600" y="228" text-anchor="end">26 °C, dry</text>`;
+  s += `<text class="gf-small" x="600" y="212" text-anchor="end">Lee side: föhn</text>`;
+  return s + "</svg>";
+}
+
+/** Stability: DALR and SALR lines from one start point, with ELR zones between and beyond them. */
+function stability(): string {
+  const W = 600;
+  const H = 330;
+  const x = (t: number) => 80 + (t + 20) * 11; // -20 to +20 °C
+  const y = (h: number) => 290 - h * 22; // 0 to 11 thousand ft
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Stability zones: ELR steeper than DALR is absolutely unstable, less steep than SALR is absolutely stable, in between is conditionally unstable">`;
+  // Zones as wedges from the start point (15 °C at the surface).
+  const sx = x(15);
+  const sy = y(0);
+  const at = (rate: number) => [x(15 - rate * 10), y(10)]; // temperature after 10,000 ft at that rate
+  const [dx, dy] = at(3);
+  const [wx, wy] = at(1.5);
+  s += `<path class="gf-zone-u" d="M${sx},${sy} L${dx},${dy} L${x(-20)},${dy} L${x(-20)},${y(0)} Z"/>`;
+  s += `<path class="gf-zone-c" d="M${sx},${sy} L${dx},${dy} L${wx},${wy} Z"/>`;
+  s += `<path class="gf-zone-s" d="M${sx},${sy} L${wx},${wy} L${x(20)},${wy} L${x(20)},${y(0)} Z"/>`;
+  s += `<line class="gf-line" x1="${sx}" y1="${sy}" x2="${dx}" y2="${dy}"/>`;
+  s += `<line class="gf-line2" x1="${sx}" y1="${sy}" x2="${wx}" y2="${wy}"/>`;
+  s += `<text class="gf-label" x="${dx - 4}" y="${dy - 8}">DALR 3 °C/1000 ft</text>`;
+  s += `<text class="gf-label gf-blue" x="${wx - 10}" y="${wy - 8}">SALR 1.5 °C/1000 ft</text>`;
+  s += `<text class="gf-small" x="${x(-19)}" y="${y(5)}">ELR steeper than DALR:</text>`;
+  s += `<text class="gf-label" x="${x(-19)}" y="${y(5) + 18}">absolutely unstable</text>`;
+  s += `<text class="gf-small" x="${x(0)}" y="${y(7.5)}" text-anchor="middle">In between:</text>`;
+  s += `<text class="gf-label" x="${x(0)}" y="${y(7.5) + 18}" text-anchor="middle">conditionally</text>`;
+  s += `<text class="gf-label" x="${x(0)}" y="${y(7.5) + 36}" text-anchor="middle">unstable</text>`;
+  s += `<text class="gf-small" x="${x(19)}" y="${y(9)}" text-anchor="end">ELR less than SALR</text>`;
+  s += `<text class="gf-small" x="${x(19)}" y="${y(9) + 16}" text-anchor="end">(and inversions):</text>`;
+  s += `<text class="gf-label" x="${x(19)}" y="${y(9) + 34}" text-anchor="end">absolutely stable</text>`;
+  s += `<line class="gf-axis" x1="80" y1="${y(0)}" x2="520" y2="${y(0)}"/><line class="gf-axis" x1="80" y1="${y(0)}" x2="80" y2="${y(11)}"/>`;
+  for (const t of [-20, -10, 0, 10, 20]) s += `<text class="gf-tick" x="${x(t)}" y="${y(0) + 18}" text-anchor="middle">${t}</text>`;
+  for (const h of [0, 5, 10]) s += `<text class="gf-tick" x="72" y="${y(h) + 4}" text-anchor="end">${h}</text>`;
+  s += `<text class="gf-tick" x="300" y="${y(0) + 34}" text-anchor="middle">Temperature °C</text>`;
+  s += `<text class="gf-tick" x="22" y="${y(5.5)}" transform="rotate(-90 22 ${y(5.5)})" text-anchor="middle">Height, thousand ft</text>`;
+  return s + "</svg>";
+}
+
+/** Four small panels: convection, orographic, frontal and convergence lifting. */
+function lifting(): string {
+  const W = 640;
+  const H = 210;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Four ways air is lifted: convection, orographic, frontal and convergence">`;
+  s += head("lf1");
+  const up = (x1: number, y1: number, x2: number, y2: number) => `<line class="gf-arrow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#lf1)"/>`;
+  const cu = (cx: number, cy: number, w: number) =>
+    `<path class="gf-cloud" d="M${cx - w},${cy} c0,-14 12,-20 20,-16 c4,-14 24,-18 32,-6 c10,-8 26,0 ${2 * w - 52},22 z"/>`;
+  // 1 Convection
+  s += `<rect class="gf-ground2" x="10" y="170" width="140" height="12"/><circle class="gf-sun" cx="128" cy="34" r="12"/>`;
+  s += up(70, 165, 70, 95) + cu(70, 80, 36);
+  s += `<text class="gf-label" x="80" y="202" text-anchor="middle">Convection</text>`;
+  // 2 Orographic
+  s += `<path class="gf-ground" d="M165,182 L215,182 L265,100 L315,182 L315,182 Z"/>`;
+  s += up(175, 170, 245, 108) + cu(255, 92, 34);
+  s += `<text class="gf-label" x="240" y="202" text-anchor="middle">Orographic</text>`;
+  // 3 Frontal
+  s += `<path class="gf-coldair" d="M330,182 L470,182 L470,110 Z"/><text class="gf-small" x="440" y="170" text-anchor="middle">Cold</text>`;
+  s += up(345, 170, 445, 110) + cu(440, 96, 34) + `<text class="gf-small" x="350" y="150">Warm</text>`;
+  s += `<text class="gf-label" x="400" y="202" text-anchor="middle">Frontal</text>`;
+  // 4 Convergence
+  s += `<rect class="gf-ground2" x="490" y="170" width="140" height="12"/>`;
+  s += `<line class="gf-arrow" x1="495" y1="160" x2="545" y2="160" marker-end="url(#lf1)"/><line class="gf-arrow" x1="625" y1="160" x2="575" y2="160" marker-end="url(#lf1)"/>`;
+  s += up(560, 150, 560, 95) + cu(560, 80, 36);
+  s += `<text class="gf-label" x="560" y="202" text-anchor="middle">Convergence</text>`;
+  return s + "</svg>";
+}
+
+/** The ten cloud types drawn at their usual heights. */
+function clouds(): string {
+  const W = 640;
+  const H = 380;
+  const y = (kft: number) => 340 - kft * 5.2; // 0 to 60 thousand ft
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cloud types by height: high, medium, low and vertical development">`;
+  s += `<rect class="gf-band1" x="70" y="${y(60)}" width="560" height="${y(20) - y(60)}"/>`;
+  s += `<rect class="gf-band0" x="70" y="${y(20)}" width="560" height="${y(6.5) - y(20)}"/>`;
+  s += `<rect class="gf-band1" x="70" y="${y(6.5)}" width="560" height="${y(0) - y(6.5)}"/>`;
+  s += `<text class="gf-small" x="76" y="${y(57)}">High</text><text class="gf-small" x="76" y="${y(18)}">Medium</text><text class="gf-small" x="76" y="${y(5)}">Low</text>`;
+  // High: wisps, ripples, veil.
+  s += `<path class="gf-wisp" d="M120,${y(42)} q30,-12 60,-4 M130,${y(40)} q30,-10 55,-2 M175,${y(43)} l14,-14"/>`;
+  s += `<text class="gf-label" x="150" y="${y(34.5)}" text-anchor="middle">Ci</text>`;
+  for (let i = 0; i < 9; i++) s += `<circle class="gf-cloud" cx="${230 + (i % 5) * 12}" cy="${y(40) + Math.floor(i / 5) * 10}" r="4"/>`;
+  s += `<text class="gf-label" x="255" y="${y(34.5)}" text-anchor="middle">Cc</text>`;
+  s += `<rect class="gf-veil" x="310" y="${y(43)}" width="110" height="10" rx="5"/><text class="gf-label" x="365" y="${y(34.5)}" text-anchor="middle">Cs</text>`;
+  // Medium.
+  for (let i = 0; i < 6; i++) s += `<ellipse class="gf-cloud" cx="${130 + i * 18}" cy="${y(14)}" rx="9" ry="6"/>`;
+  s += `<text class="gf-label" x="175" y="${y(10)}" text-anchor="middle">Ac</text>`;
+  s += `<rect class="gf-cloud2" x="250" y="${y(15)}" width="140" height="14" rx="4"/><text class="gf-label" x="320" y="${y(10)}" text-anchor="middle">As</text>`;
+  // Ns from medium down to low, with rain.
+  s += `<rect class="gf-dark" x="420" y="${y(12)}" width="80" height="${y(2) - y(12)}" rx="6"/>`;
+  for (const xx of [432, 450, 468, 486]) s += `<line class="gf-rain" x1="${xx}" x2="${xx - 5}" y1="${y(2)}" y2="${y(0) - 2}"/>`;
+  s += `<text class="gf-label" x="460" y="${y(7)}" text-anchor="middle" style="fill:#fff">Ns</text>`;
+  // Low.
+  s += `<rect class="gf-cloud2" x="120" y="${y(2)}" width="120" height="10" rx="3"/><text class="gf-label" x="180" y="${y(2) + 26}" text-anchor="middle">St</text>`;
+  for (let i = 0; i < 5; i++) s += `<ellipse class="gf-cloud2" cx="${270 + i * 24}" cy="${y(4)}" rx="13" ry="8"/>`;
+  s += `<text class="gf-label" x="318" y="${y(4) + 30}" text-anchor="middle">Sc</text>`;
+  // Cu and Cb.
+  s += `<path class="gf-cloud" d="M515,${y(3)} c-4,-14 6,-24 18,-20 c4,-16 26,-14 28,0 c12,-2 16,12 10,20 z"/>`;
+  s += `<text class="gf-label" x="545" y="${y(3) + 20}" text-anchor="middle">Cu</text>`;
+  s += `<path class="gf-cloud" d="M572,${y(3)} L580,${y(25)} C570,${y(35)} 585,${y(46)} 596,${y(48)} L548,${y(50)} L626,${y(50)} L606,${y(47)} C620,${y(40)} 618,${y(28)} 612,${y(20)} L620,${y(3)} Z"/>`;
+  s += `<text class="gf-label" x="598" y="${y(3) + 20}" text-anchor="middle">Cb</text>`;
+  s += `<text class="gf-small" x="588" y="${y(52)}" text-anchor="middle">anvil</text>`;
+  s += `<line class="gf-axis" x1="70" y1="${y(0)}" x2="630" y2="${y(0)}"/><line class="gf-axis" x1="70" y1="${y(0)}" x2="70" y2="${y(60)}"/>`;
+  for (const k of [0, 6.5, 20, 40, 60]) s += `<text class="gf-tick" x="64" y="${y(k) + 4}" text-anchor="end">${k === 6.5 ? "6,500" : k ? k + ",000" : "0"}</text>`;
+  s += `<text class="gf-tick" x="18" y="${y(30)}" transform="rotate(-90 18 ${y(30)})" text-anchor="middle">Height ft (tropics)</text>`;
+  return s + "</svg>";
+}
+
+export const FIGURES: Record<string, () => string> = {
+  layers, tropopause, isa, composition, diurnal, saturation, columns, systems, altimetry, hightolow,
+  geostrophic, friction, seabreeze, foehn, stability, lifting, clouds,
+};

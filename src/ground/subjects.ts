@@ -2,6 +2,9 @@
 import type { Subject } from "./types.ts";
 import { M01 } from "./met/m01-atmosphere.ts";
 import { M02 } from "./met/m02-temp-density-humidity.ts";
+import { M03 } from "./met/m03-pressure.ts";
+import { M04 } from "./met/m04-wind.ts";
+import { M05 } from "./met/m05-stability-clouds.ts";
 
 export const SUBJECTS: Subject[] = [
   {
@@ -11,9 +14,9 @@ export const SUBJECTS: Subject[] = [
     modules: [
       M01,
       M02,
-      { n: 3, title: "Pressure and Altimetry", car: "1.1 c, f" },
-      { n: 4, title: "Wind", car: "1.2 a, b, e, f" },
-      { n: 5, title: "Vertical Motion, Stability and Clouds", car: "1.3, 1.4 a" },
+      M03,
+      M04,
+      M05,
       { n: 6, title: "Precipitation, Visibility, Fog and Optical Phenomena", car: "1.4 b, 1.5, 1.9 g" },
       { n: 7, title: "Air Masses and Fronts", car: "1.6" },
       { n: 8, title: "Pressure Systems and Tropical Cyclones", car: "1.7" },

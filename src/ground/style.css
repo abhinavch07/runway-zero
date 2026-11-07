@@ -844,3 +844,108 @@
 .gf-dot2 {
   fill: var(--taxi);
 }
+
+/* Figures added with Module 3 */
+.gf-cold {
+  fill: rgba(90, 168, 255, 0.14);
+}
+.gf-warm {
+  fill: rgba(255, 140, 60, 0.14);
+}
+.gf-iso {
+  fill: none;
+  stroke: var(--paint);
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+.gf-bigL,
+.gf-smL {
+  fill: var(--no);
+  font: 700 22px var(--display);
+}
+.gf-bigH,
+.gf-smH {
+  fill: var(--taxi);
+  font: 700 22px var(--display);
+}
+.gf-smL,
+.gf-smH {
+  font-size: 15px;
+}
+.gf-sea {
+  fill: rgba(90, 168, 255, 0.22);
+}
+.gf-ground,
+.gf-ground2 {
+  fill: #3a3326;
+}
+.gf-plane {
+  fill: var(--paint);
+}
+.gf-arrow {
+  stroke: var(--amber);
+  stroke-width: 2;
+}
+.gf-head {
+  fill: var(--amber);
+}
+
+/* Figures added with Module 4 */
+.gf-arrowb {
+  stroke: var(--taxi);
+  stroke-width: 3;
+}
+.gf-arrowr {
+  stroke: var(--no);
+  stroke-width: 3;
+}
+.gf-headb {
+  fill: var(--taxi);
+}
+.gf-headr {
+  fill: var(--no);
+}
+.gf-arrowthin {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+.gf-cloud {
+  fill: rgba(236, 230, 214, 0.75);
+}
+.gf-rain {
+  stroke: var(--taxi);
+  stroke-width: 2;
+}
+
+/* Figures added with Module 5 */
+.gf-zone-u {
+  fill: rgba(255, 107, 94, 0.14);
+}
+.gf-zone-c {
+  fill: rgba(255, 178, 26, 0.12);
+}
+.gf-zone-s {
+  fill: rgba(79, 209, 139, 0.12);
+}
+.gf-sun {
+  fill: var(--amber);
+}
+.gf-coldair {
+  fill: rgba(90, 168, 255, 0.25);
+}
+.gf-wisp {
+  fill: none;
+  stroke: var(--paint);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.gf-veil {
+  fill: rgba(236, 230, 214, 0.35);
+}
+.gf-cloud2 {
+  fill: rgba(190, 196, 205, 0.75);
+}
+.gf-dark {
+  fill: #5c6573;
+}
