@@ -1,6 +1,7 @@
 // Runway Zero: an A320neo-type cockpit procedures trainer.
 // The flight model and aircraft systems run in a worker. The page shows one cockpit panel at a time
 // (Overhead, Main panel, Pedestal) and a lesson sidebar that guides the learner step by step.
+import { minZoom } from "./shell/phone";
 import { glossarize, enableGlossaryTips } from "./glossary/glossary";
 import "./style.css";
 import { STARTS } from "./config";
@@ -319,13 +320,13 @@ function fit() {
   if (panel === "ovhd") overhead.fit();
   if (panel === "main") {
     gsInner.style.zoom = "1";
-    gsInner.style.zoom = String(Math.min(1.25, (box.width - 50) / gsInner.scrollWidth));
+    gsInner.style.zoom = String(Math.max(minZoom(0), Math.min(1.25, (box.width - 50) / gsInner.scrollWidth)));
   }
   if (panel === "ped") {
     const row = $("ped-row");
     row.style.zoom = "1";
     const z = Math.min(1.6, (box.width - 40) / row.scrollWidth, (box.height - 40) / row.scrollHeight);
-    row.style.zoom = String(Math.max(0.6, z));
+    row.style.zoom = String(Math.max(minZoom(0.6), z));
   }
 }
 window.addEventListener("resize", () => requestAnimationFrame(fit));

@@ -2,6 +2,7 @@
 // The JSBSim 737 runs in a worker with our systems and autopilot. The page shows the overhead,
 // the main panel (EFIS, MCP, PFD, ND, engine display) and the pedestal (CDU, levers, radios), with
 // the same lesson list, quiz, progress and sound as the other aircraft.
+import { minZoom } from "../shell/phone";
 import { glossarize, enableGlossaryTips } from "../glossary/glossary";
 import "../style.css";
 import "./style.css";
@@ -224,12 +225,12 @@ function fit() {
     const w = Math.floor(Math.max(200, Math.min((box.width - 40 - 3 * 20 - 24) / 3, box.height - 250)));
     document.documentElement.style.setProperty("--b737w", `${w}px`);
     glare.el.style.zoom = "1";
-    glare.el.style.zoom = String(Math.min(1, (box.width - 20) / glare.el.scrollWidth));
+    glare.el.style.zoom = String(Math.max(minZoom(0), Math.min(1, (box.width - 20) / glare.el.scrollWidth)));
     return;
   }
   el.style.zoom = "1";
   const z = Math.min(1.4, (box.width - 30) / el.scrollWidth, (box.height - 20) / el.scrollHeight);
-  el.style.zoom = String(Math.max(0.55, z));
+  el.style.zoom = String(Math.max(minZoom(0.55), z));
 }
 window.addEventListener("resize", () => requestAnimationFrame(fit));
 

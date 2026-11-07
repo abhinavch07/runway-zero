@@ -1,6 +1,7 @@
 // Overhead panel (2D), simplified: ADIRS, HYD, ELEC, FUEL, AIR, ANTI ICE, APU, exterior lights and signs.
 // Pushbuttons follow the "dark cockpit" idea: no light means normal. A white OFF light means switched
 // off, blue ON means switched on (for buttons that are normally off), green AVAIL means ready.
+import { minZoom } from "../shell/phone";
 import type { Switches, SystemsStatus } from "../sim/systems";
 
 type BoolKey = { [K in keyof Switches]: Switches[K] extends boolean ? K : never }[keyof Switches];
@@ -199,7 +200,7 @@ export class OverheadPanel {
     if (box.width === 0) return;
     const need = { w: this.inner.scrollWidth, h: this.inner.scrollHeight };
     const zoom = Math.min(1.8, (box.width - 22) / need.w, (box.height - 22) / need.h);
-    this.inner.style.zoom = String(Math.max(0.5, zoom));
+    this.inner.style.zoom = String(Math.max(minZoom(0.5), zoom));
   }
 
   update(sw: Switches, sys: SystemsStatus) {

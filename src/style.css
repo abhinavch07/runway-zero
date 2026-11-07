@@ -1739,3 +1739,83 @@ body.exploring #cockpit * {
     background: #7a0d0a;
   }
 }
+
+/* ---------- Phones and small tablets ----------
+   Portrait: the cockpit on top, the lesson below. Landscape: a narrow lesson column on the left.
+   The panels keep a readable size and scroll with a finger. The next control is scrolled into
+   view at each step (lessonPanel.ts). */
+@media (max-width: 760px), (max-height: 500px) {
+  :root {
+    --top-h: 44px;
+    --foot-h: 18px;
+  }
+  #topbar {
+    gap: 6px;
+    padding: 0 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  #topbar::-webkit-scrollbar {
+    display: none;
+  }
+  #topbar > *,
+  #tabs button {
+    flex: none;
+    white-space: nowrap;
+  }
+  #topbar button {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+  #tabs {
+    margin-left: 0;
+    gap: 4px;
+  }
+  .brand {
+    font-size: 13px;
+  }
+  #topbar kbd,
+  #status,
+  #sound-ctl input {
+    display: none;
+  }
+  #notice {
+    font-size: 9px;
+  }
+  .cp-panel {
+    padding: 8px;
+  }
+  .cp-panel.active {
+    overflow: auto;
+    justify-content: safe center;
+    align-items: safe center;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Larger touch targets for the lesson buttons. */
+  .ls-next,
+  .ls-quiz {
+    min-height: 40px;
+  }
+}
+@media (max-width: 760px) and (min-height: 501px) {
+  #layout {
+    flex-direction: column;
+  }
+  #cockpit {
+    order: 1;
+    min-height: 0;
+  }
+  #lesson-slot {
+    order: 2;
+    width: auto;
+    height: 40%;
+    border-right: none;
+    border-top: 1px solid #262c33;
+  }
+}
+@media (max-height: 500px) and (min-width: 501px) {
+  :root {
+    --side-w: min(300px, 36vw);
+  }
+}

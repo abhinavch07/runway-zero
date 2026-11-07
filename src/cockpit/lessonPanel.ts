@@ -2,6 +2,7 @@
 // control to use, switches to the right panel, and ticks steps off in order.
 // It works for any aircraft: S is the simulation state, C the controls (with a switches object),
 // X any extra data the lessons check (the A320 MCDU), P the panel names.
+import { PHONE } from "../shell/phone";
 import type { LessonBase } from "../lessons/types";
 import { glossarize } from "../glossary/glossary";
 
@@ -21,6 +22,8 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
   private footerHtml = "";
   /** Index of the step being worked on, or -1 when there is none (not started or all done). */
   currentStep = -1;
+  /** On a phone the panels are bigger than the screen: bring the next control into view. */
+  private scrollPending = false;
   private showPanel: (p: P) => void;
   private getPanel: () => P;
 
@@ -110,6 +113,7 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
       this.nextPressed = false;
       if (this.getPanel() !== step.panel) this.showPanel(step.panel);
       (items[current] as HTMLElement).scrollIntoView({ block: "nearest" });
+      this.scrollPending = true;
     }
     for (const t of step.targets) {
       // A switch that is already where the step wants it does not need pressing again.
@@ -120,8 +124,16 @@ export class LessonPanel<S, C extends { switches: object }, X, P extends string>
     if (this.getPanel() !== step.panel) {
       document.querySelectorAll(`[data-ctl="tab-${step.panel}"]`).forEach((el) => el.classList.add("next"));
     }
+    if (this.scrollPending && PHONE.matches) {
+      const el = [...document.querySelectorAll<HTMLElement>("#cockpit .next")].find((e) => e.offsetParent);
+      if (el) {
+        this.scrollPending = false;
+        el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+      }
+    }
   }
 }
+
 
 function clearHighlights() {
   document.querySelectorAll(".next").forEach((el) => el.classList.remove("next"));

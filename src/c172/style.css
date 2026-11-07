@@ -485,3 +485,70 @@
   color: #fff;
   background: #e0362c;
 }
+#out-touch {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 56px;
+  background: rgba(10, 14, 20, 0.85);
+  border: 1px solid #ffd84d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff3c4;
+  font: 13px/1.4 system-ui, sans-serif;
+}
+#out-touch.hidden {
+  display: none;
+}
+@media (max-width: 760px), (max-height: 500px) {
+  #out-btns {
+    top: 6px;
+    right: 6px;
+    gap: 4px;
+  }
+  #view-btn,
+  #restart-btn,
+  #guide-btn,
+  #keys-btn {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+  #out-btns kbd,
+  #out-keys kbd {
+    display: none;
+  }
+  #out-keys {
+    top: 38px;
+    right: 6px;
+  }
+  #out-hint {
+    top: 38px;
+    left: 6px;
+    min-width: 0;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  #out-pfd {
+    left: 6px;
+    bottom: 6px;
+    width: min(220px, 46%);
+  }
+  #out-dash {
+    gap: 3px;
+    padding: 4px;
+  }
+  .od {
+    min-width: 0;
+    padding: 2px 5px;
+    font-size: 8px;
+  }
+  .od b {
+    font-size: 13px;
+  }
+  .od-trim {
+    width: 40px;
+  }
+  .od-lamps b {
+    font-size: 8px;
+  }
+}

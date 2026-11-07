@@ -185,6 +185,9 @@ Not yet. It is a procedures trainer, so there is no outside view. Under the pane
 **Are the checklists and lessons the real ones?**
 No. They are simplified flows in our own words, from general public knowledge. Always use your airline's or school's documents for real flying.
 
+**Does it work on a phone?**
+Yes for the procedure lessons, checklists, quizzes and the glossary. On a phone the cockpit sits above the lesson (or beside it in landscape), panels stay big enough to tap and scroll with a finger, and each step scrolls its switch into view. The first flight lessons still need a keyboard.
+
 **Does Speak record my voice?**
 No. Runway Zero does not record or keep anything. The browser turns your speech into text with its own online service (Google in Chrome, Microsoft in Edge), and only the text is checked, on your computer. If you would rather not use the microphone, pick the read-back instead.
 

@@ -2,6 +2,7 @@
 // and the PA-28 (pa28.html, body data-aircraft="pa28"). The JSBSim model runs in a worker. The page
 // shows the PFD and MFD, or the lower panel, with the same lesson list, quiz, progress and sound
 // as the A320.
+import { PHONE, TOUCH_ONLY, minZoom } from "../shell/phone";
 import { glossarize, enableGlossaryTips } from "../glossary/glossary";
 import "../style.css";
 import "./style.css";
@@ -208,6 +209,9 @@ if (outside) {
     $("out-keys").classList.toggle("closed");
     (e.currentTarget as HTMLElement).blur();
   });
+  // On a phone the keys card would cover the view: start with it closed. Flying needs a keyboard.
+  if (PHONE.matches) $("out-keys").classList.add("closed");
+  if (TOUCH_ONLY) $("out-touch").classList.remove("hidden");
   flightKeys!.enabled = () => ready && !quiz.open && $("picker").classList.contains("hidden");
   flightKeys!.onChange = () => sound.click();
   $("view-btn").addEventListener("click", (e) => {
@@ -337,7 +341,7 @@ function fit() {
   if (panel === "lower") {
     lower.el.style.zoom = "1";
     const z = Math.min(1.5, (box.width - 40) / lower.el.scrollWidth, (box.height - 30) / lower.el.scrollHeight);
-    lower.el.style.zoom = String(Math.max(0.6, z));
+    lower.el.style.zoom = String(Math.max(minZoom(0.6), z));
   }
 }
 window.addEventListener("resize", () => requestAnimationFrame(fit));
