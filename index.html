@@ -15,10 +15,14 @@
     <meta property="og:description" content="Free guided cockpit lessons for the A320, B737, C172 and PA-28 in your browser." />
     <meta property="og:image" content="https://www.runwayzero.in/img/share.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#121821" />
+    <meta name="theme-color" content="#f6f4ee" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved theme before the page paints. Light is the default.
+      try { if (localStorage.getItem("runway-zero-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+    </script>
   </head>
-  <body class="welcome">
+  <body class="welcome rz-paper">
     <header class="w-top">
       <a class="w-brand" href="./">Runway Zero</a>
       <nav aria-label="Page">
@@ -28,6 +32,7 @@
         <a href="ground-school.html">Ground School</a>
         <a href="glossary.html">Glossary</a>
         <a href="feedback.html">Feedback</a>
+        <button class="rz-theme-btn" id="rz-theme" type="button">Dark mode</button>
       </nav>
     </header>
 

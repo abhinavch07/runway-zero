@@ -4,6 +4,9 @@
 import { minZoom } from "./shell/phone";
 import { glossarize, enableGlossaryTips } from "./glossary/glossary";
 import "./style.css";
+import "./theme/cockpit-light.css";
+import { setUpThemeToggle } from "./theme/theme";
+setUpThemeToggle();
 import { STARTS } from "./config";
 import { Pfd } from "./cockpit/pfd";
 import { Nd } from "./cockpit/nd";

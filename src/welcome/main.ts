@@ -4,6 +4,9 @@ import "@fontsource/barlow/600.css";
 import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "./style.css";
+import "../theme/light.css";
+import { setUpThemeToggle } from "../theme/theme";
+setUpThemeToggle();
 import { AIRCRAFT, type AircraftId } from "../lessons/catalog";
 import { loadProgress } from "../lessons/progress";
 

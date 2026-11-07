@@ -5,6 +5,9 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "../welcome/style.css";
 import "./page.css";
+import "../theme/light.css";
+import { setUpThemeToggle } from "../theme/theme";
+setUpThemeToggle();
 import { TERMS } from "./terms";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

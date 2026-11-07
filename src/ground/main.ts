@@ -9,14 +9,14 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "../welcome/style.css";
 import "./style.css";
-import "./light.css";
+import "../theme/light.css";
 import { SUBJECTS, subject, MOCK } from "./subjects";
 import { isReady, type Block, type Mcq, type Module, type Subject } from "./types";
 import { FIGURES } from "./figures";
 import { markNotesRead, moduleProgress, recordPractice } from "./progress";
 import { renderMock } from "./mock";
 import { esc, md, LETTERS, shuffle, onLeave, runCleanup } from "./util";
-import { setUpThemeToggle } from "./theme";
+import { setUpThemeToggle } from "../theme/theme";
 
 const root = document.getElementById("gs-root")!;
 

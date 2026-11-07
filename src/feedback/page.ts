@@ -5,9 +5,9 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "../welcome/style.css";
 import "../ground/style.css";
-import "../ground/light.css";
+import "../theme/light.css";
 import "./page.css";
-import { setUpThemeToggle } from "../ground/theme";
+import { setUpThemeToggle } from "../theme/theme";
 import { FEEDBACK_FORM_URL } from "./config";
 
 setUpThemeToggle();

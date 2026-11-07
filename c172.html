@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Runway Zero · Cessna 172</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the saved theme before the page paints. Light is the default.
+      try { if (localStorage.getItem("runway-zero-theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+    </script>
   </head>
-  <body>
+  <body class="rz-cockpit">
     <header id="topbar">
       <a class="brand" href="./" title="Home">RUNWAY ZERO</a>
       <button id="lessons-btn">Lessons</button>
@@ -19,6 +23,7 @@
         <button id="sound-btn" title="Sound on / off (M)">🔊</button>
         <input id="sound-vol" type="range" min="0" max="100" title="Volume" />
       </span>
+      <button id="rz-theme" type="button" data-compact>☾ Dark</button>
       <span id="status"></span>
     </header>
 
